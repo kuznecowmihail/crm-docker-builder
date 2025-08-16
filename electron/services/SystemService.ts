@@ -20,6 +20,11 @@ export class SystemService implements IService {
     ipcMain.handle(IPC_CHANNELS.SYSTEM.VERSION, async () => {
       return app.getVersion();
     });
+
+    // Получение заголовка приложения
+    ipcMain.handle(IPC_CHANNELS.SYSTEM.TITLE, async () => {
+      return app.getName();
+    });
   }
 
   public getSystemInfo(): SystemInfo {

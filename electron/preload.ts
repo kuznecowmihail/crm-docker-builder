@@ -4,6 +4,7 @@ import { SystemAPI, FileSystemAPI } from './types/api';
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
   SYSTEM: {
+    TITLE: 'system:title',
     INFO: 'system:info',
     VERSION: 'system:version',
   },
@@ -25,6 +26,7 @@ const IPC_CHANNELS = {
 // Экспонируем API в безопасном контексте
 contextBridge.exposeInMainWorld('systemAPI', {
   getSystemInfo: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM.INFO),
+  getAppTitle: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM.TITLE),
   getAppVersion: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM.VERSION),
   openFileDialog: (options: any) => ipcRenderer.invoke(IPC_CHANNELS.DIALOG.OPEN_FILE, options),
   saveFileDialog: (options: any) => ipcRenderer.invoke(IPC_CHANNELS.DIALOG.SAVE_FILE, options),

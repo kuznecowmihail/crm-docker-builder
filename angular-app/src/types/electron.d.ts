@@ -1,6 +1,7 @@
 // Типы для Electron API
 export interface SystemAPI {
   getSystemInfo: () => Promise<any>;
+  getAppTitle: () => Promise<string>;
   getAppVersion: () => Promise<string>;
   openFileDialog: (options: any) => Promise<string[]>;
   saveFileDialog: (options: any) => Promise<string>;

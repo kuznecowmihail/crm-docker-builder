@@ -40,6 +40,16 @@ export class ElectronService {
   }
 
   /**
+   * Получает заголовок приложения
+   */
+  async getAppTitle(): Promise<string> {
+    if (!this.systemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.systemAPI.getAppTitle();
+  }
+
+  /**
    * Получает версию приложения
    */
   async getAppVersion(): Promise<string> {

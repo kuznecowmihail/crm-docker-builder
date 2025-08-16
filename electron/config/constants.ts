@@ -4,7 +4,6 @@ export const DEFAULT_WINDOW_CONFIG = {
   height: 800,
   minWidth: 800,
   minHeight: 600,
-  title: 'Electron Angular App',
 } as const;
 
 // URL для разработки
@@ -20,6 +19,7 @@ export const PATHS = {
 export const IPC_CHANNELS = {
   SYSTEM: {
     INFO: 'system:info',
+    TITLE: 'system:title',
     VERSION: 'system:version',
   },
   DIALOG: {

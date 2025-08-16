@@ -1,5 +1,5 @@
 {
-  "name": "electron-angular-app",
+  "name": "Crm Docker Builder",
   "version": "1.0.0",
   "description": "Electron приложение с интеграцией Angular",
   "main": "electron/dist/main.js",
