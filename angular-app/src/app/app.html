@@ -1,0 +1,61 @@
+<div class="app-container">
+  <header class="app-header">
+    <h1>{{ title() }}</h1>
+    <div class="electron-info" *ngIf="isElectron">
+      <span class="badge">Electron</span>
+      <span class="version" *ngIf="appVersion">v{{ appVersion }}</span>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="content">
+      <h2>Добро пожаловать в Electron + Angular приложение!</h2>
+      
+      <div class="status-section">
+        <h3>Статус приложения</h3>
+        <p>
+          <strong>Режим:</strong> 
+          <span class="status" [class.electron]="isElectron" [class.web]="!isElectron">
+            {{ isElectron ? 'Electron' : 'Веб-браузер' }}
+          </span>
+        </p>
+        
+        <div *ngIf="isElectron && systemInfo" class="system-info">
+          <h4>Информация о системе:</h4>
+          <ul>
+            <li><strong>Платформа:</strong> {{ systemInfo.platform }}</li>
+            <li><strong>Архитектура:</strong> {{ systemInfo.arch }}</li>
+            <li><strong>Версия Node.js:</strong> {{ systemInfo.nodeVersion }}</li>
+            <li><strong>Версия Electron:</strong> {{ systemInfo.electronVersion }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="actions-section">
+        <h3>Действия Electron</h3>
+        <div class="buttons">
+          <button class="btn btn-primary" (click)="showNotification()" *ngIf="isElectron">
+            Показать уведомление
+          </button>
+          <button class="btn btn-secondary" (click)="openFile()" *ngIf="isElectron">
+            Открыть файл
+          </button>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Информация</h3>
+        <p>Это приложение демонстрирует интеграцию Electron с Angular.</p>
+        <p *ngIf="!isElectron">
+          <em>Запустите приложение в Electron для доступа к нативным функциям.</em>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>Electron + Angular Integration</p>
+  </footer>
+</div>
+
+<router-outlet></router-outlet>
