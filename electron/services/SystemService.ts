@@ -1,5 +1,5 @@
 import { app, ipcMain } from 'electron';
-import { SystemInfo } from '../types/api';
+import { SystemInfo } from '@shared/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
 

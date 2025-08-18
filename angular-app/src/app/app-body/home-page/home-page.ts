@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ElectronService } from '../../services/electron.service';
-import { SystemInfo } from 'src/types/electron';
+import { SystemInfo } from '@shared/api';
 
 @Component({
   selector: 'app-home-page',
