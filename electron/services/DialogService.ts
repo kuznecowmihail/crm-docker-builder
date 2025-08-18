@@ -5,16 +5,19 @@ import { IService } from '../interfaces/IService';
 
 export class DialogService implements IService {
   public setupHandlers(): void {
+    // Диалог открытия папки
+    ipcMain.handle(IPC_CHANNELS.DIALOG.OPEN_FOLDER, async (event, options) => {
+      return await this.openFolderDialog(options);
+    });
+
     // Диалог открытия файла
     ipcMain.handle(IPC_CHANNELS.DIALOG.OPEN_FILE, async (event, options) => {
-      const result = await dialog.showOpenDialog(options);
-      return result.filePaths;
+      return await this.openFileDialog(options);
     });
 
     // Диалог сохранения файла
     ipcMain.handle(IPC_CHANNELS.DIALOG.SAVE_FILE, async (event, options) => {
-      const result = await dialog.showSaveDialog(options);
-      return result.filePath;
+      return await this.saveFileDialog(options);
     });
   }
 
@@ -26,5 +29,13 @@ export class DialogService implements IService {
   public async saveFileDialog(options: SaveDialogOptions): Promise<string | undefined> {
     const result = await dialog.showSaveDialog(options);
     return result.filePath;
+  }
+
+  public async openFolderDialog(options?: OpenDialogOptions): Promise<string | undefined> {
+    const result = await dialog.showOpenDialog({
+      ...options,
+      properties: ['openDirectory']
+    });
+    return result.filePaths[0]; // Возвращаем путь к первой выбранной папке
   }
 }

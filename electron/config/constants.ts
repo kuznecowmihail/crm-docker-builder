@@ -23,6 +23,7 @@ export const IPC_CHANNELS = {
     VERSION: 'system:version',
   },
   DIALOG: {
+    OPEN_FOLDER: 'dialog:open-folder',
     OPEN_FILE: 'dialog:open-file',
     SAVE_FILE: 'dialog:save-file',
   },
@@ -35,4 +36,7 @@ export const IPC_CHANNELS = {
     FILE_EXISTS: 'fs:file-exists',
     CREATE_DIR: 'fs:create-dir',
   },
+  CRM_DOCKER_BUILDER_SYSTEM: {
+    CREATE_PROJECT: 'crm-docker-builder:create-project',
+  }
 } as const;

@@ -8,6 +8,9 @@ export interface SystemAPI {
   
   // Получение версии приложения
   getAppVersion: () => Promise<string>;
+
+  // Открытие диалога выбора папки
+  openFolderDialog: (options: OpenDialogOptions) => Promise<string>;
   
   // Открытие диалога выбора файла
   openFileDialog: (options: OpenDialogOptions) => Promise<string[]>;
@@ -32,6 +35,12 @@ export interface FileSystemAPI {
   
   // Создание папки
   createDirectory: (dirPath: string) => Promise<void>;
+}
+
+// API для работы с системой CRM Docker Builder
+export interface CrmDockerBuilderSystemAPI {
+  // Создание проекта
+  createProject: (path: string) => Promise<void>;
 }
 
 // Глобальные типы для window объекта

@@ -1,34 +1,5 @@
-<main class="app-main">
+<div class="app-main">
     <div class="content">
-        <h2>Добро пожаловать в Electron + Angular приложение!</h2>
-        
-        <div class="status-section">
-            <div *ngIf="systemInfo" class="system-info">
-                <h4>Информация о системе:</h4>
-                <ul>
-                <li><strong>Платформа:</strong> {{ systemInfo.platform }}</li>
-                <li><strong>Архитектура:</strong> {{ systemInfo.arch }}</li>
-                <li><strong>Версия Node.js:</strong> {{ systemInfo.nodeVersion }}</li>
-                <li><strong>Версия Electron:</strong> {{ systemInfo.electronVersion }}</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="actions-section">
-            <h3>Действия Electron</h3>
-            <div class="buttons">
-                <button class="btn btn-primary" (click)="showNotification()">
-                Показать уведомление
-                </button>
-                <button class="btn btn-secondary" (click)="openFile()">
-                Открыть файл
-                </button>
-            </div>
-        </div>
-
-        <div class="info-section">
-            <h3>Информация</h3>
-            <p>Это приложение демонстрирует интеграцию Electron с Angular.</p>
-        </div>
+        <app-home-page *ngIf="!isProjectInitialized"></app-home-page>
     </div>
-</main>
+</div>

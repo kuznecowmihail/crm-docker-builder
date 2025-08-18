@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { SystemAPI, FileSystemAPI } from '../../types/electron';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI } from '../../types/electron';
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +30,13 @@ export class ElectronService {
   }
 
   /**
+   * Получает API для работы с файловой системой
+   */
+  get crmDockerBuilderSystemAPI(): CrmDockerBuilderSystemAPI | null {
+    return this.isElectron ? (window as any).crmDockerBuilderSystemAPI : null;
+  }
+
+  /**
    * Получает информацию о системе
    */
   async getSystemInfo(): Promise<any> {
@@ -57,6 +64,16 @@ export class ElectronService {
       throw new Error('Electron API недоступен');
     }
     return await this.systemAPI.getAppVersion();
+  }
+
+  /**
+   * Открывает диалог выбора файла
+   */
+  async openFolderDialog(options: any = {}): Promise<string> {
+    if (!this.systemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.systemAPI.openFolderDialog(options);
   }
 
   /**
@@ -127,5 +144,15 @@ export class ElectronService {
       throw new Error('Electron API недоступен');
     }
     return await this.fileSystemAPI.createDirectory(dirPath);
+  }
+
+  async createProject(path: string): Promise<void> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+
+    let result = await this.crmDockerBuilderSystemAPI.createProject(path);  
+    console.log('result', result);
+    return result;
   }
 }

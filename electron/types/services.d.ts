@@ -55,6 +55,12 @@ export interface NotificationOptions {
   closeButtonText?: string;
 }
 
+// Результат создания проекта
+export interface CreateProjectResult {
+  success: boolean;
+  message: string;
+}
+
 // Типы для файловой системы
 export interface FileSystemError {
   message: string;
