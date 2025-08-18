@@ -1,5 +1,5 @@
 import { app, ipcMain } from 'electron';
-import { SystemInfo } from '../types/services';
+import { SystemInfo } from '../types/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
@@ -7,17 +7,17 @@ export class SystemService implements IService {
   public setupHandlers(): void {
     // Получение информации о системе
     ipcMain.handle(IPC_CHANNELS.SYSTEM.INFO, async () => {
-      return await this.getSystemInfo();
+      return this.getSystemInfo();
     });
 
     // Получение версии приложения
     ipcMain.handle(IPC_CHANNELS.SYSTEM.VERSION, async () => {
-      return await this.getAppVersion();
+      return this.getAppVersion();
     });
 
     // Получение заголовка приложения
     ipcMain.handle(IPC_CHANNELS.SYSTEM.TITLE, async () => {
-      return await this.getAppTitle();
+      return this.getAppTitle();
     });
   }
 

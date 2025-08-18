@@ -1,5 +1,5 @@
 import { dialog, ipcMain } from 'electron';
-import { OpenDialogOptions } from '../types/services';
+import { OpenDialogOptions } from '../types/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
 

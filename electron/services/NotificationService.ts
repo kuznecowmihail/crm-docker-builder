@@ -1,5 +1,5 @@
 import { Notification, ipcMain } from 'electron';
-import { NotificationOptions } from '../types/services';
+import { NotificationOptions } from '../types/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
