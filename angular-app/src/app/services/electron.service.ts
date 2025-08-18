@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, CreateProjectResult } from '../../types/electron';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, CreateProjectResult } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -19,21 +19,21 @@ export class ElectronService {
    * Получает API для работы с системой
    */
   get systemAPI(): SystemAPI | null {
-    return this.isElectron ? (window as any).systemAPI : null;
+    return this.isElectron ? window.systemAPI : null;
   }
 
   /**
    * Получает API для работы с файловой системой
    */
   get fileSystemAPI(): FileSystemAPI | null {
-    return this.isElectron ? (window as any).fileSystemAPI : null;
+    return this.isElectron ? window.fileSystemAPI : null;
   }
 
   /**
-   * Получает API для работы с файловой системой
+   * Получает API для работы с CRM Docker Builder
    */
   get crmDockerBuilderSystemAPI(): CrmDockerBuilderSystemAPI | null {
-    return this.isElectron ? (window as any).crmDockerBuilderSystemAPI : null;
+    return this.isElectron ? window.crmDockerBuilderSystemAPI : null;
   }
 
   /**
