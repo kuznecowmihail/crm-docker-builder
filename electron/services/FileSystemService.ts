@@ -7,39 +7,22 @@ export class FileSystemService implements IService {
   public setupHandlers(): void {
     // Чтение файла
     ipcMain.handle(IPC_CHANNELS.FILE_SYSTEM.READ_FILE, async (event, filePath: string) => {
-      try {
-        return await fs.readFile(filePath, 'utf-8');
-      } catch (error) {
-        throw new Error(`Ошибка чтения файла: ${error}`);
-      }
+      return await this.readFile(filePath);
     });
 
     // Запись файла
     ipcMain.handle(IPC_CHANNELS.FILE_SYSTEM.WRITE_FILE, async (event, filePath: string, content: string) => {
-      try {
-        await fs.writeFile(filePath, content, 'utf-8');
-      } catch (error) {
-        throw new Error(`Ошибка записи файла: ${error}`);
-      }
+      return await this.writeFile(filePath, content);
     });
 
     // Проверка существования файла
     ipcMain.handle(IPC_CHANNELS.FILE_SYSTEM.FILE_EXISTS, async (event, filePath: string) => {
-      try {
-        await fs.access(filePath);
-        return true;
-      } catch {
-        return false;
-      }
+      return await this.fileExists(filePath);
     });
 
     // Создание папки
     ipcMain.handle(IPC_CHANNELS.FILE_SYSTEM.CREATE_DIR, async (event, dirPath: string) => {
-      try {
-        await fs.mkdir(dirPath, { recursive: true });
-      } catch (error) {
-        throw new Error(`Ошибка создания папки: ${error}`);
-      }
+      return await this.createDirectory(dirPath);
     });
   }
 

@@ -7,13 +7,7 @@ export class NotificationService implements IService {
   public setupHandlers(): void {
     // Показать уведомление
     ipcMain.handle(IPC_CHANNELS.NOTIFICATION.SHOW, async (event, title: string, body: string) => {
-      if (Notification.isSupported()) {
-        const notification = new Notification({
-          title,
-          body
-        });
-        notification.show();
-      }
+      return await this.showNotification(title, body);
     });
   }
 

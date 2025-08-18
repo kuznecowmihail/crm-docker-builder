@@ -7,23 +7,17 @@ export class SystemService implements IService {
   public setupHandlers(): void {
     // Получение информации о системе
     ipcMain.handle(IPC_CHANNELS.SYSTEM.INFO, async () => {
-      return {
-        platform: process.platform,
-        arch: process.arch,
-        nodeVersion: process.versions.node,
-        electronVersion: process.versions.electron,
-        chromeVersion: process.versions.chrome
-      };
+      return await this.getSystemInfo();
     });
 
     // Получение версии приложения
     ipcMain.handle(IPC_CHANNELS.SYSTEM.VERSION, async () => {
-      return app.getVersion();
+      return await this.getAppVersion();
     });
 
     // Получение заголовка приложения
     ipcMain.handle(IPC_CHANNELS.SYSTEM.TITLE, async () => {
-      return app.getName();
+      return await this.getAppTitle();
     });
   }
 
@@ -35,6 +29,10 @@ export class SystemService implements IService {
       electronVersion: process.versions.electron,
       chromeVersion: process.versions.chrome
     };
+  }
+
+  public getAppTitle(): string {
+    return app.getName();
   }
 
   public getAppVersion(): string {

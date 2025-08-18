@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ElectronService } from '../../services/electron.service';
+import { SystemInfo } from 'src/types/electron';
 
 @Component({
   selector: 'app-home-page',
@@ -12,7 +13,7 @@ export class HomePage {
   /**
    * Информация о системе
    */
-  systemInfo: any = null;
+  systemInfo: SystemInfo | null = null;
 
   constructor(private electronService: ElectronService) {}
 
@@ -55,14 +56,14 @@ export class HomePage {
       const path = await this.electronService.openFolderDialog({
         title: 'Создать проект'
       });
+      console.log('Выбранныя папка:', path);
 
       if (!path) {
         return;
       }
 
-      console.log('Выбранныя папка:', path);
-
-      await this.electronService.createProject(path);
+      const result = await this.electronService.createProject(path);
+      console.log('result', result);
     } catch (error) {
       console.error('Ошибка открытия папки:', error);
     }

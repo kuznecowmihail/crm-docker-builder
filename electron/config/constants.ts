@@ -25,7 +25,6 @@ export const IPC_CHANNELS = {
   DIALOG: {
     OPEN_FOLDER: 'dialog:open-folder',
     OPEN_FILE: 'dialog:open-file',
-    SAVE_FILE: 'dialog:save-file',
   },
   NOTIFICATION: {
     SHOW: 'notification:show',

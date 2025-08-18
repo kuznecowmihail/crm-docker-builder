@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI } from '../../types/electron';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, CreateProjectResult } from '../../types/electron';
 
 @Injectable({
   providedIn: 'root'
@@ -39,7 +39,7 @@ export class ElectronService {
   /**
    * Получает информацию о системе
    */
-  async getSystemInfo(): Promise<any> {
+  async getSystemInfo(): Promise<SystemInfo> {
     if (!this.systemAPI) {
       throw new Error('Electron API недоступен');
     }
@@ -69,7 +69,7 @@ export class ElectronService {
   /**
    * Открывает диалог выбора файла
    */
-  async openFolderDialog(options: any = {}): Promise<string> {
+  async openFolderDialog(options: OpenDialogOptions): Promise<string> {
     if (!this.systemAPI) {
       throw new Error('Electron API недоступен');
     }
@@ -79,21 +79,11 @@ export class ElectronService {
   /**
    * Открывает диалог выбора файла
    */
-  async openFileDialog(options: any = {}): Promise<string[]> {
+  async openFileDialog(options: OpenDialogOptions): Promise<string[]> {
     if (!this.systemAPI) {
       throw new Error('Electron API недоступен');
     }
     return await this.systemAPI.openFileDialog(options);
-  }
-
-  /**
-   * Открывает диалог сохранения файла
-   */
-  async saveFileDialog(options: any = {}): Promise<string> {
-    if (!this.systemAPI) {
-      throw new Error('Electron API недоступен');
-    }
-    return await this.systemAPI.saveFileDialog(options);
   }
 
   /**
@@ -146,13 +136,11 @@ export class ElectronService {
     return await this.fileSystemAPI.createDirectory(dirPath);
   }
 
-  async createProject(path: string): Promise<void> {
+  async createProject(path: string): Promise<CreateProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
     }
 
-    let result = await this.crmDockerBuilderSystemAPI.createProject(path);  
-    console.log('result', result);
-    return result;
+    return await this.crmDockerBuilderSystemAPI.createProject(path);
   }
 }

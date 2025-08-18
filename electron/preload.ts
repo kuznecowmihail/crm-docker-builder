@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI } from './types/api';
+import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI } from '@shared/api';
 
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
@@ -34,7 +34,6 @@ contextBridge.exposeInMainWorld('systemAPI', {
   getAppVersion: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM.VERSION),
   openFolderDialog: (options: any) => ipcRenderer.invoke(IPC_CHANNELS.DIALOG.OPEN_FOLDER, options),
   openFileDialog: (options: any) => ipcRenderer.invoke(IPC_CHANNELS.DIALOG.OPEN_FILE, options),
-  saveFileDialog: (options: any) => ipcRenderer.invoke(IPC_CHANNELS.DIALOG.SAVE_FILE, options),
   showNotification: (title: string, body: string) => 
     ipcRenderer.invoke(IPC_CHANNELS.NOTIFICATION.SHOW, title, body),
 } as SystemAPI);

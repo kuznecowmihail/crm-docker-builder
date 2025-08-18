@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import * as fs from 'fs/promises';
-import { CreateProjectResult } from '../types/services';
+import { CreateProjectResult } from '@shared/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
