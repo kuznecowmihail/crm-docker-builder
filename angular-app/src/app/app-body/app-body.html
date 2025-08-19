@@ -1,5 +1,8 @@
 <div class="app-main">
     <div class="content">
-        <app-home-page *ngIf="!isProjectInitialized"></app-home-page>
+        <app-home-page 
+            *ngIf="!isProjectInitialized"
+            (projectConfigChange)="onProjectConfigChange($event)">
+        </app-home-page>
     </div>
 </div>

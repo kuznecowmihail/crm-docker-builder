@@ -24,6 +24,7 @@ const IPC_CHANNELS = {
   },
   CRM_DOCKER_BUILDER_SYSTEM: {
     CREATE_PROJECT: 'crm-docker-builder:create-project',
+    OPEN_PROJECT: 'crm-docker-builder:open-project',
   },
 } as const;
 
@@ -48,4 +49,5 @@ contextBridge.exposeInMainWorld('fileSystemAPI', {
 
 contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   createProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.CREATE_PROJECT, path),
+  openProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.OPEN_PROJECT, path),
 } as CrmDockerBuilderSystemAPI);

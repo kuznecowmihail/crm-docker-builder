@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, CreateProjectResult } from '@shared/api';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -136,11 +136,19 @@ export class ElectronService {
     return await this.fileSystemAPI.createDirectory(dirPath);
   }
 
-  async createProject(path: string): Promise<CreateProjectResult> {
+  async createProject(path: string): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
     }
 
     return await this.crmDockerBuilderSystemAPI.createProject(path);
+  }
+
+  async openProject(path: string): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+
+    return await this.crmDockerBuilderSystemAPI.openProject(path);
   }
 }

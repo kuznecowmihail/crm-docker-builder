@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ElectronService } from '../../services/electron.service';
-import { SystemInfo } from '@shared/api';
+import { ProjectConfig, SystemInfo } from '@shared/api';
 
 @Component({
   selector: 'app-home-page',
@@ -15,8 +15,25 @@ export class HomePage {
    */
   systemInfo: SystemInfo | null = null;
 
+  /**
+   * Конфиг проекта
+   */
+  projectConfig: ProjectConfig | null = null;
+
+  /**
+   * Event для передачи projectConfig в родительский компонент
+   */
+  @Output() projectConfigChange = new EventEmitter<ProjectConfig>();
+
+  /**
+   * Конструктор
+   * @param electronService - сервис для работы с Electron
+   */
   constructor(private electronService: ElectronService) {}
 
+  /**
+   * Инициализация компонента
+   */
   ngOnInit() {
     this.loadElectronInfo();
   }
@@ -42,9 +59,20 @@ export class HomePage {
         return;
       }
 
-      console.log('Выбранныя папка:', path);
+      const result = await this.electronService.openProject(path);
+      this.projectConfig = result.projectConfig;
+      console.log('result', result);
+
+      await this.electronService.showNotification('Открыть проект', result.message);
+
+      // Передаем projectConfig в родительский компонент
+      if (result.success && result.projectConfig) {
+        this.projectConfigChange.emit(result.projectConfig);
+      }
     } catch (error) {
-      console.error('Ошибка открытия папки:', error);
+      console.error('Ошибка открытия проекта:', error);
+
+      await this.electronService.showNotification('Открыть проект', 'Ошибка при открытии проекта: ' + error);
     }
   }
 
@@ -63,9 +91,19 @@ export class HomePage {
       }
 
       const result = await this.electronService.createProject(path);
+      this.projectConfig = result.projectConfig;
       console.log('result', result);
+
+      await this.electronService.showNotification('Создать проект', result.message);
+
+      // Передаем projectConfig в родительский компонент
+      if (result.success && result.projectConfig) {
+        this.projectConfigChange.emit(result.projectConfig);
+      }
     } catch (error) {
-      console.error('Ошибка открытия папки:', error);
+      console.error('Ошибка создания проекта:', error);
+
+      await this.electronService.showNotification('Создать проект', 'Ошибка при создании проекта: ' + error); 
     }
   }
 }

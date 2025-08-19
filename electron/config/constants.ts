@@ -37,5 +37,6 @@ export const IPC_CHANNELS = {
   },
   CRM_DOCKER_BUILDER_SYSTEM: {
     CREATE_PROJECT: 'crm-docker-builder:create-project',
+    OPEN_PROJECT: 'crm-docker-builder:open-project',
   }
 } as const;
