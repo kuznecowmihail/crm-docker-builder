@@ -53,18 +53,6 @@
         
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Путь к данным</mat-label>
-            <input matInput 
-                   [(ngModel)]="volumePath" 
-                   placeholder="/path/to/crm/data"
-                   [disabled]="!isEnabled"
-                   required>
-            <mat-hint>Абсолютный путь для хранения данных CRM</mat-hint>
-          </mat-form-field>
-        </div>
-        
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Путь к приложению</mat-label>
             <input matInput 
                    [(ngModel)]="appPath" 
@@ -77,7 +65,7 @@
         
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Путь к резервным копиям</mat-label>
+            <mat-label>Путь к резервной копии</mat-label>
             <input matInput 
                    [(ngModel)]="backupPath" 
                    placeholder="/path/to/backups"
@@ -196,7 +184,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !volumePath || !appPath || !backupPath">
+              [disabled]="!isEnabled || !containerName || !port || !appPath || !backupPath">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

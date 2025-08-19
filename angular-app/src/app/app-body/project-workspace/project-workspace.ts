@@ -105,16 +105,14 @@ export class ProjectWorkspace {
 
     this.projectConfig?.crmConfigs.push({
       containerName: 'crm-bpmsoft',
-      port: 8080,
+      port: 80,
       volumePath: `${this.projectConfig?.projectPath}/crm-bpmsoft`,
       appPath: `${this.projectConfig?.projectPath}/crm-bpmsoft`,
       backupPath: `${this.projectConfig?.projectPath}/crm-bpmsoft/db`,
       redisDb: 0,
       dbType: 'postgres',
-      netVersion: '8',
+      netVersion: '8.0',
       crmType: 'bpmsoft'
     });
-
-    debugger
   }
 }

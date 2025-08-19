@@ -38,20 +38,14 @@ export class RedisSettings {
   /**
    * Поля для редактирования Redis
    */
-  containerName: string = '';
-  port: number = 6379;
-  volumePath: string = '';
-  password: string = '';
+  containerName: string = 'redis';
+  port: number = 6380;
+  volumePath: string = 'redis-volumes';
+  password: string = 'password';
   dbCount: number = 16;
   isEnabled: boolean = true;
-  persistenceEnabled: boolean = true;
   maxMemory: string = '256mb';
   maxMemoryValue: number = 256;
-
-  /**
-   * Конструктор
-   */
-  constructor() {}
 
   /**
    * Обработчик инициализации компоненты
@@ -61,9 +55,9 @@ export class RedisSettings {
     if (this.projectConfig?.redisConfig) {
       const config = this.projectConfig.redisConfig;
       this.containerName = config.containerName || '';
-      this.port = config.port || 6379;
-      this.volumePath = config.volumePath || '';
-      this.password = config.password || '';
+      this.port = config.port || 6380;
+      this.volumePath = config.volumePath || 'redis-volumes';
+      this.password = config.password || 'password';
       this.dbCount = config.dbCount || 16;
     }
     
@@ -79,11 +73,8 @@ export class RedisSettings {
     console.log('RedisSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
-      volumePath: this.volumePath,
       password: this.password,
       dbCount: this.dbCount,
-      isEnabled: this.isEnabled,
-      persistenceEnabled: this.persistenceEnabled,
       maxMemory: this.maxMemory
     });
     // Здесь будет логика сохранения
@@ -106,7 +97,6 @@ export class RedisSettings {
     // Сброс значений памяти
     this.maxMemoryValue = 256;
     this.maxMemory = '256mb';
-    this.persistenceEnabled = true;
   }
 
   /**

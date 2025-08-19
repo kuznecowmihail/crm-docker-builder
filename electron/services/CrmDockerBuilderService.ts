@@ -55,28 +55,27 @@ export class CrmDockerBuilderService implements IService {
         postgresConfig: {
           containerName: 'postgres',
           port: 5433,
-          volumePath: `${path}/postgres`,
-          user: 'postgres',
-          password: 'postgres'
+          volumePath: `${path}/postgres-volumes`,
+          user: 'puser',
+          password: 'puser'
         },
         pgAdminConfig: {
           containerName: 'pgadmin',
-          port: 8081,
-          volumePath: `${path}/pgadmin`,
+          port: 5434,
+          volumePath: `${path}/pgadmin-volumes`,
           email: 'admin@example.com',
-          password: 'admin'
+          password: 'puser'
         },
         redisConfig: {
           containerName: 'redis',
           port: 6380,
-          volumePath: `${path}/redis`,
+          volumePath: `${path}/redis-volumes`,
           password: 'redis',
-          dbCount: 1
+          dbCount: 16
         },
         crmConfigs: []
       };
 
-      
       await fs.writeFile(configPath, JSON.stringify(сonfig, null, 2), 'utf-8');
       
       return {

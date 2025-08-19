@@ -15,12 +15,6 @@
         <h3>Основные настройки</h3>
         
         <div class="form-row">
-          <mat-checkbox [(ngModel)]="isEnabled" color="primary">
-            Включить PostgreSQL контейнер
-          </mat-checkbox>
-        </div>
-        
-        <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Название контейнера</mat-label>
             <input matInput 
@@ -49,22 +43,6 @@
       </div>
       
       <div class="form-section">
-        <h3>Хранилище данных</h3>
-        
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Путь к данным</mat-label>
-            <input matInput 
-                   [(ngModel)]="volumePath" 
-                   placeholder="/path/to/postgres/data"
-                   [disabled]="!isEnabled"
-                   required>
-            <mat-hint>Абсолютный путь для хранения данных PostgreSQL</mat-hint>
-          </mat-form-field>
-        </div>
-      </div>
-      
-      <div class="form-section">
         <h3>Аутентификация</h3>
         
         <div class="form-row">
@@ -83,8 +61,7 @@
           <mat-form-field appearance="outline" class="password-field">
             <mat-label>Пароль</mat-label>
             <input matInput 
-                   [(ngModel)]="password" 
-                   type="password"
+                   [(ngModel)]="password"
                    placeholder="Введите пароль"
                    [disabled]="!isEnabled"
                    required>
@@ -113,8 +90,8 @@
             <span class="info-value">{{ port }}</span>
           </div>
           <div class="info-item">
-            <span class="info-label">Database:</span>
-            <span class="info-value">{{ user }}</span>
+            <span class="info-label">Volumes path:</span>
+            <span class="info-value">{{ volumePath }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Username:</span>
@@ -141,7 +118,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !volumePath || !user || !password">
+              [disabled]="!isEnabled || !containerName || !port || !user || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

@@ -15,12 +15,6 @@
         <h3>Основные настройки</h3>
         
         <div class="form-row">
-          <mat-checkbox [(ngModel)]="isEnabled" color="primary">
-            Включить pgAdmin контейнер
-          </mat-checkbox>
-        </div>
-        
-        <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Название контейнера</mat-label>
             <input matInput 
@@ -38,28 +32,12 @@
             <input matInput 
                    type="number"
                    [(ngModel)]="port" 
-                   placeholder="5050"
+                   placeholder="5434"
                    [disabled]="!isEnabled"
                    min="1024"
                    max="65535"
                    required>
             <mat-hint>Порт для веб-интерфейса pgAdmin</mat-hint>
-          </mat-form-field>
-        </div>
-      </div>
-      
-      <div class="form-section">
-        <h3>Хранилище данных</h3>
-        
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Путь к данным</mat-label>
-            <input matInput 
-                   [(ngModel)]="volumePath" 
-                   placeholder="/path/to/pgadmin/data"
-                   [disabled]="!isEnabled"
-                   required>
-            <mat-hint>Абсолютный путь для хранения данных pgAdmin</mat-hint>
           </mat-form-field>
         </div>
       </div>
@@ -78,22 +56,13 @@
                    required>
             <mat-hint>Email для входа в pgAdmin</mat-hint>
           </mat-form-field>
-          
-          <button mat-icon-button 
-                  type="button"
-                  (click)="onGenerateEmail()"
-                  [disabled]="!isEnabled"
-                  matTooltip="Сгенерировать email">
-            <mat-icon>alternate_email</mat-icon>
-          </button>
         </div>
         
         <div class="form-row password-row">
           <mat-form-field appearance="outline" class="password-field">
             <mat-label>Пароль</mat-label>
             <input matInput 
-                   [(ngModel)]="password" 
-                   type="password"
+                   [(ngModel)]="password"
                    placeholder="Введите пароль"
                    [disabled]="!isEnabled"
                    required>
@@ -114,8 +83,16 @@
         <h3>Доступ к интерфейсу</h3>
         <div class="access-info" *ngIf="isEnabled && containerName && port">
           <div class="info-item">
-            <span class="info-label">URL:</span>
-            <span class="info-value">http://localhost:{{ port }}</span>
+            <span class="info-label">Host:</span>
+            <span class="info-value">localhost</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Port:</span>
+            <span class="info-value">{{ port }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Volumes path:</span>
+            <span class="info-value">{{ volumePath }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Email:</span>
@@ -146,7 +123,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !volumePath || !email || !password">
+              [disabled]="!isEnabled || !containerName || !port || !email || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

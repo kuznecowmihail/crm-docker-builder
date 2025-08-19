@@ -36,17 +36,12 @@ export class PgAdminSettings {
   /**
    * Поля для редактирования pgAdmin
    */
-  containerName: string = '';
+  containerName: string = 'pgadmin';
   port: number = 5050;
-  volumePath: string = '';
-  email: string = '';
-  password: string = '';
+  volumePath: string = 'pgadmin-volumes';
+  email: string = 'admin@example.com';
+  password: string = 'puser';
   isEnabled: boolean = true;
-
-  /**
-   * Конструктор
-   */
-  constructor() {}
 
   /**
    * Обработчик инициализации компоненты
@@ -55,11 +50,11 @@ export class PgAdminSettings {
     console.log('PgAdminSettings: Инициализация с конфигурацией:', this.projectConfig);
     if (this.projectConfig?.pgAdminConfig) {
       const config = this.projectConfig.pgAdminConfig;
-      this.containerName = config.containerName || '';
+      this.containerName = config.containerName || 'pgadmin';
       this.port = config.port || 5050;
-      this.volumePath = config.volumePath || '';
-      this.email = config.email || '';
-      this.password = config.password || '';
+      this.volumePath = config.volumePath || 'pgadmin-volumes';
+      this.email = config.email || 'admin@example.com';
+      this.password = config.password || 'puser';
     }
   }
 
@@ -70,12 +65,16 @@ export class PgAdminSettings {
     console.log('PgAdminSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
-      volumePath: this.volumePath,
       email: this.email,
-      password: this.password,
-      isEnabled: this.isEnabled
+      password: this.password
     });
-    // Здесь будет логика сохранения
+    
+    if (this.projectConfig?.pgAdminConfig) {
+      this.projectConfig.pgAdminConfig.containerName = this.containerName;
+      this.projectConfig.pgAdminConfig.port = this.port;
+      this.projectConfig.pgAdminConfig.email = this.email;
+      this.projectConfig.pgAdminConfig.password = this.password;
+    } 
   }
 
   /**
@@ -83,13 +82,14 @@ export class PgAdminSettings {
    */
   onCancelChanges() {
     console.log('PgAdminSettings: Отмена изменений');
+
     if (this.projectConfig?.pgAdminConfig) {
       const config = this.projectConfig.pgAdminConfig;
-      this.containerName = config.containerName || '';
+      this.containerName = config.containerName || 'pgadmin';
       this.port = config.port || 5050;
-      this.volumePath = config.volumePath || '';
-      this.email = config.email || '';
-      this.password = config.password || '';
+      this.volumePath = config.volumePath || 'pgadmin-volumes';
+      this.email = config.email || 'admin@example.com';
+      this.password = config.password || 'puser';
     }
   }
 

@@ -36,11 +36,11 @@ export class PostgresSettings {
   /**
    * Поля для редактирования PostgreSQL
    */
-  containerName: string = '';
+  containerName: string = 'postgres';
   port: number = 5432;
-  volumePath: string = '';
-  user: string = '';
-  password: string = '';
+  volumePath: string = 'postgres-volumes';
+  user: string = 'puser';
+  password: string = 'puser';
   isEnabled: boolean = true;
 
   /**
@@ -55,11 +55,11 @@ export class PostgresSettings {
     console.log('PostgresSettings: Инициализация с конфигурацией:', this.projectConfig);
     if (this.projectConfig?.postgresConfig) {
       const config = this.projectConfig.postgresConfig;
-      this.containerName = config.containerName || '';
+      this.containerName = config.containerName || 'postgres';
       this.port = config.port || 5432;
-      this.volumePath = config.volumePath || '';
-      this.user = config.user || '';
-      this.password = config.password || '';
+      this.volumePath = config.volumePath || 'postgres-volumes';
+      this.user = config.user || 'puser';
+      this.password = config.password || 'puser';
     }
   }
 
@@ -70,12 +70,16 @@ export class PostgresSettings {
     console.log('PostgresSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
-      volumePath: this.volumePath,
       user: this.user,
-      password: this.password,
-      isEnabled: this.isEnabled
+      password: this.password
     });
-    // Здесь будет логика сохранения
+
+    if (this.projectConfig?.postgresConfig) {
+      this.projectConfig.postgresConfig.containerName = this.containerName;
+      this.projectConfig.postgresConfig.port = this.port;
+      this.projectConfig.postgresConfig.user = this.user;
+      this.projectConfig.postgresConfig.password = this.password;
+    }
   }
 
   /**
@@ -83,13 +87,13 @@ export class PostgresSettings {
    */
   onCancelChanges() {
     console.log('PostgresSettings: Отмена изменений');
+
     if (this.projectConfig?.postgresConfig) {
       const config = this.projectConfig.postgresConfig;
-      this.containerName = config.containerName || '';
+      this.containerName = config.containerName || 'postgres';
       this.port = config.port || 5432;
-      this.volumePath = config.volumePath || '';
-      this.user = config.user || '';
-      this.password = config.password || '';
+      this.user = config.user || 'puser';
+      this.password = config.password || 'puser';
     }
   }
 

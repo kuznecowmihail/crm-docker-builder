@@ -43,19 +43,13 @@ export class CrmSettings {
    */
   containerName: string = '';
   port: number = 80;
-  volumePath: string = '';
   appPath: string = '';
   backupPath: string = '';
   redisDb: number = 0;
   dbType: string = 'postgres';
-  netVersion: string = '4.8';
-  crmType: string = 'creatio';
+  netVersion: string = '8.0';
+  crmType: string = 'bpmsoft';
   isEnabled: boolean = true;
-
-  /**
-   * Конструктор
-   */
-  constructor() {}
 
   /**
    * Обработчик инициализации компоненты
@@ -65,7 +59,6 @@ export class CrmSettings {
     if (this.crmConfig) {
       this.containerName = this.crmConfig.containerName || '';
       this.port = this.crmConfig.port || 80;
-      this.volumePath = this.crmConfig.volumePath || '';
       this.appPath = this.crmConfig.appPath || '';
       this.backupPath = this.crmConfig.backupPath || '';
       this.redisDb = this.crmConfig.redisDb || 0;
@@ -82,7 +75,6 @@ export class CrmSettings {
     console.log('CrmSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
-      volumePath: this.volumePath,
       appPath: this.appPath,
       backupPath: this.backupPath,
       redisDb: this.redisDb,
@@ -91,7 +83,14 @@ export class CrmSettings {
       crmType: this.crmType,
       isEnabled: this.isEnabled
     });
-    // Здесь будет логика сохранения
+    
+    if (this.crmConfig) {
+      this.crmConfig.containerName = this.containerName;
+      this.crmConfig.port = this.port;
+      this.crmConfig.appPath = this.appPath;
+      this.crmConfig.backupPath = this.backupPath;
+      this.crmConfig.redisDb = this.redisDb;
+    }
   }
 
   /**
@@ -102,7 +101,6 @@ export class CrmSettings {
     if (this.crmConfig) {
       this.containerName = this.crmConfig.containerName || '';
       this.port = this.crmConfig.port || 80;
-      this.volumePath = this.crmConfig.volumePath || '';
       this.appPath = this.crmConfig.appPath || '';
       this.backupPath = this.crmConfig.backupPath || '';
       this.redisDb = this.crmConfig.redisDb || 0;

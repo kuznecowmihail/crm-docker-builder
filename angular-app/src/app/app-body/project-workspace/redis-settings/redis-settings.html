@@ -15,12 +15,6 @@
         <h3>Основные настройки</h3>
         
         <div class="form-row">
-          <mat-checkbox [(ngModel)]="isEnabled" color="primary">
-            Включить Redis контейнер
-          </mat-checkbox>
-        </div>
-        
-        <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Название контейнера</mat-label>
             <input matInput 
@@ -38,34 +32,12 @@
             <input matInput 
                    type="number"
                    [(ngModel)]="port" 
-                   placeholder="6379"
+                   placeholder="6380"
                    [disabled]="!isEnabled"
                    min="1024"
                    max="65535"
                    required>
             <mat-hint>Порт для подключения к Redis</mat-hint>
-          </mat-form-field>
-        </div>
-      </div>
-      
-      <div class="form-section">
-        <h3>Хранилище и персистентность</h3>
-        
-        <div class="form-row">
-          <mat-checkbox [(ngModel)]="persistenceEnabled" color="primary" [disabled]="!isEnabled">
-            Включить персистентность данных
-          </mat-checkbox>
-        </div>
-        
-        <div class="form-row" *ngIf="persistenceEnabled">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Путь к данным</mat-label>
-            <input matInput 
-                   [(ngModel)]="volumePath" 
-                   placeholder="/path/to/redis/data"
-                   [disabled]="!isEnabled"
-                   required>
-            <mat-hint>Абсолютный путь для хранения данных Redis</mat-hint>
           </mat-form-field>
         </div>
       </div>
@@ -77,8 +49,7 @@
           <mat-form-field appearance="outline" class="password-field">
             <mat-label>Пароль</mat-label>
             <input matInput 
-                   [(ngModel)]="password" 
-                   type="password"
+                   [(ngModel)]="password"
                    placeholder="Введите пароль"
                    [disabled]="!isEnabled"
                    required>
@@ -146,16 +117,16 @@
             <span class="info-value">{{ port }}</span>
           </div>
           <div class="info-item">
+            <span class="info-label">Volumes path:</span>
+            <span class="info-value">{{ volumePath }}</span>
+          </div>
+          <div class="info-item">
             <span class="info-label">Databases:</span>
             <span class="info-value">{{ dbCount }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Max Memory:</span>
             <span class="info-value">{{ maxMemory }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Persistence:</span>
-            <span class="info-value">{{ persistenceEnabled ? 'Enabled' : 'Disabled' }}</span>
           </div>
         </div>
       </div>
@@ -185,7 +156,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !password || (persistenceEnabled && !volumePath)">
+              [disabled]="!isEnabled || !containerName || !port || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

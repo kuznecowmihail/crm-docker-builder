@@ -33,12 +33,6 @@ export class GeneralProjectSettings {
    * Поля для редактирования
    */
   projectName: string = '';
-  projectPath: string = '';
-
-  /**
-   * Конструктор
-   */
-  constructor() {}
 
   /**
    * Обработчик инициализации компоненты
@@ -47,7 +41,6 @@ export class GeneralProjectSettings {
     console.log('GeneralProjectSettings: Инициализация с конфигурацией:', this.projectConfig);
     if (this.projectConfig) {
       this.projectName = this.projectConfig.projectName || '';
-      this.projectPath = this.projectConfig.projectPath || '';
     }
   }
 
@@ -57,9 +50,11 @@ export class GeneralProjectSettings {
   onSaveChanges() {
     console.log('GeneralProjectSettings: Сохранение изменений:', {
       projectName: this.projectName,
-      projectPath: this.projectPath
     });
-    // Здесь будет логика сохранения
+
+    if (this.projectConfig) {
+      this.projectConfig.projectName = this.projectName;
+    }
   }
 
   /**
@@ -67,9 +62,9 @@ export class GeneralProjectSettings {
    */
   onCancelChanges() {
     console.log('GeneralProjectSettings: Отмена изменений');
+
     if (this.projectConfig) {
       this.projectName = this.projectConfig.projectName || '';
-      this.projectPath = this.projectConfig.projectPath || '';
     }
   }
 }
