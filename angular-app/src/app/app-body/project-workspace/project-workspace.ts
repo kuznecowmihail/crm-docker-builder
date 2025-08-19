@@ -12,6 +12,7 @@ import { GeneralProjectSettings } from './general-project-settings/general-proje
 import { PostgresSettings } from './postgres-settings/postgres-settings';
 import { PgAdminSettings } from './pgadmin-settings/pgadmin-settings';
 import { RedisSettings } from './redis-settings/redis-settings';
+import { CrmSettings } from './crm-settings/crm-settings';
 
 @Component({
   selector: 'app-project-workspace',
@@ -29,6 +30,7 @@ import { RedisSettings } from './redis-settings/redis-settings';
     PostgresSettings,
     PgAdminSettings,
     RedisSettings,
+    CrmSettings,
   ],
   templateUrl: './project-workspace.html',
   styleUrl: './project-workspace.css'
@@ -49,6 +51,11 @@ export class ProjectWorkspace {
    * Активная секция
    */
   activeSection: string = '';
+
+  /**
+   * Выбранная конфигурация CRM
+   */
+  selectedCrmConfig: any = null;
 
   /**
    * Конструктор
@@ -80,9 +87,14 @@ export class ProjectWorkspace {
   /**
    * Обработчик выбора секции
    */
-  onSectionSelect(section: string) {
-    console.log('Выбрана секция:', section);
+  onSectionSelect(section: string, crmConfig?: any) {
+    console.log('Выбрана секция:', section, 'CRM конфигурация:', crmConfig);
     this.activeSection = section;
+    if (section === 'crm' && crmConfig) {
+      this.selectedCrmConfig = crmConfig;
+    } else {
+      this.selectedCrmConfig = null;
+    }
   }
 
   /**
@@ -94,9 +106,9 @@ export class ProjectWorkspace {
     this.projectConfig?.crmConfigs.push({
       containerName: 'crm-bpmsoft',
       port: 8080,
-      volumePath: `${this.projectConfig?.projectName}/crm-bpmsoft`,
-      appPath: `${this.projectConfig?.projectName}/crm-bpmsoft`,
-      backupPath: `${this.projectConfig?.projectName}/crm-bpmsoft/db`,
+      volumePath: `${this.projectConfig?.projectPath}/crm-bpmsoft`,
+      appPath: `${this.projectConfig?.projectPath}/crm-bpmsoft`,
+      backupPath: `${this.projectConfig?.projectPath}/crm-bpmsoft/db`,
       redisDb: 0,
       dbType: 'postgres',
       netVersion: '8',

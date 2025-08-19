@@ -62,8 +62,8 @@
             </mat-panel-description>
           </mat-expansion-panel-header>
           <div class="panel-content">
-            <button *ngFor="let crm of projectConfig?.crmConfigs" mat-button (click)="onSectionSelect('crm')">
-              <mat-icon>playlist_add</mat-icon>
+            <button *ngFor="let crm of projectConfig?.crmConfigs" mat-button (click)="onSectionSelect('crm', crm)">
+              <mat-icon>business</mat-icon>
               {{crm.containerName}}
             </button>
           </div>
@@ -96,6 +96,13 @@
           *ngIf="activeSection === 'redis'"
           [projectConfig]="projectConfig">
         </app-redis-settings>
+        
+        <!-- Настройки CRM -->
+        <app-crm-settings 
+          *ngIf="activeSection === 'crm'"
+          [projectConfig]="projectConfig"
+          [crmConfig]="selectedCrmConfig">
+        </app-crm-settings>
         
         <!-- Заглушка для других секций -->
         <div class="section-placeholder" *ngIf="!activeSection">
