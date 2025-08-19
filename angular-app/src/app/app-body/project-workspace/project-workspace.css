@@ -1,0 +1,276 @@
+.project-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f8f9fa;
+}
+
+.workspace-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.workspace-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.project-info {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.project-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.workspace-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.workspace-sidebar {
+  width: 250px;
+  background-color: #ffffff;
+  border-right: 1px solid #e9ecef;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.workspace-sidebar h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.nav-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-menu li {
+  margin-bottom: 0.5rem;
+}
+
+.nav-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: #495057;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.nav-item:hover {
+  background-color: #e9ecef;
+  color: #333;
+  text-decoration: none;
+}
+
+.workspace-main {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.main-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-content h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.main-content p {
+  margin: 0 0 1rem 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Стили для Angular Material компонентов */
+.edit-form-card {
+  margin-bottom: 2rem;
+}
+
+.form-row {
+  margin-bottom: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-card-header {
+  margin-bottom: 1rem;
+}
+
+mat-card-title {
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+mat-card-title .mat-icon {
+  font-size: 1.3rem !important;
+  width: 1.3rem !important;
+  height: 1.3rem !important;
+  color: #1976d2 !important;
+}
+
+mat-card-content {
+  padding: 1rem 0;
+}
+
+mat-card-actions {
+  padding: 1rem 0;
+}
+
+/* Кастомизация Material Design полей */
+.mat-mdc-form-field {
+  margin-bottom: 1rem;
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-form-field-wrapper {
+  margin: 0;
+}
+
+/* Стили для кнопок */
+.mat-mdc-button,
+.mat-mdc-raised-button {
+  margin-left: 0.5rem;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.mat-mdc-button .mat-icon,
+.mat-mdc-raised-button .mat-icon {
+  font-size: 1rem !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+.mat-mdc-raised-button.mat-primary {
+  background-color: #1976d2;
+}
+
+.mat-mdc-button.mat-warn {
+  color: #f44336;
+}
+
+/* Стили для accordion навигации */
+.project-navigation {
+  width: 100%;
+}
+
+.project-navigation .mat-expansion-panel {
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+}
+
+.project-navigation .mat-expansion-panel-header {
+  padding: 0.75rem 1rem;
+}
+
+.project-navigation .mat-expansion-panel-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.project-navigation .mat-expansion-panel-header-description {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.project-navigation .mat-icon {
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #1976d2;
+}
+
+.panel-content {
+  padding: 0.5rem 0;
+}
+
+/* Стили для иконок в заголовках */
+.workspace-sidebar h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.workspace-sidebar h3::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 20px;
+  background-color: #1976d2;
+  border-radius: 2px;
+}
+
+/* Стили для заглушки секций */
+.section-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.placeholder-card {
+  max-width: 500px;
+  text-align: center;
+  padding: 2rem;
+}
+
+.placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.placeholder-icon {
+  font-size: 4rem !important;
+  width: 4rem !important;
+  height: 4rem !important;
+  color: #ccc !important;
+}
+
+.placeholder-content h3 {
+  margin: 0;
+  color: #666;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.placeholder-content p {
+  margin: 0;
+  color: #999;
+  font-size: 1rem;
+  line-height: 1.5;
+}

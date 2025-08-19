@@ -4,5 +4,10 @@
             *ngIf="!isProjectInitialized"
             (projectConfigChange)="onProjectConfigChange($event)">
         </app-home-page>
+        
+        <app-project-workspace 
+            *ngIf="isProjectInitialized"
+            [projectConfig]="projectConfig">
+        </app-project-workspace>
     </div>
 </div>

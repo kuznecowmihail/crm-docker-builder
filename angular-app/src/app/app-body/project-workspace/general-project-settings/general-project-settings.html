@@ -1,0 +1,71 @@
+<div class="general-settings">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>settings</mat-icon>
+        Общие настройки проекта
+      </mat-card-title>
+      <mat-card-subtitle>
+        Основные параметры конфигурации проекта
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="form-section">
+        <h3>Основная информация</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Название проекта</mat-label>
+            <input matInput 
+                   [(ngModel)]="projectName" 
+                   placeholder="Введите название проекта"
+                   required>
+            <mat-hint>Укажите уникальное название вашего проекта</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Путь к проекту</mat-label>
+            <input matInput 
+                   [(ngModel)]="projectPath" 
+                   placeholder="Введите полный путь к папке проекта"
+                   required>
+            <mat-hint>Укажите абсолютный путь к директории проекта</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Информация о проекте</h3>
+        <div class="info-grid" *ngIf="projectConfig">
+          <div class="info-item">
+            <span class="info-label">Дата создания:</span>
+            <span class="info-value">{{ projectConfig.modifiedOn | date:'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Статус:</span>
+            <span class="info-value status-active">Активный</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button 
+              color="warn" 
+              (click)="onCancelChanges()">
+        <mat-icon>cancel</mat-icon>
+        Отмена
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSaveChanges()"
+              [disabled]="!projectName || !projectPath">
+        <mat-icon>save</mat-icon>
+        Сохранить изменения
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -15,8 +15,7 @@ export interface ProjectConfig {
   postgresConfig: PostgresConfig;
   pgAdminConfig: PgAdminConfig;
   redisConfig: RedisConfig;
-  creatioConfigs: CreatioConfig[];
-  bpmSoftConfigs: BPMSoftConfig[];
+  crmConfigs: CrmConfig[];
 }
 
 export interface BaseContainerConfig {
@@ -24,19 +23,6 @@ export interface BaseContainerConfig {
   port: number;
   volumePath: string;
 }
-
-export interface BaseCrmConfig {
-  appPath: string;
-  backupPath: string;
-  redisDb: number;
-  dbType: string;
-  netVersion: string;
-  crmType: string;
-}
-
-export interface CreatioConfig extends BaseCrmConfig { }
-
-export interface BPMSoftConfig extends BaseCrmConfig { }
 
 export interface PostgresConfig extends BaseContainerConfig {
   user: string;
@@ -51,6 +37,15 @@ export interface PgAdminConfig extends BaseContainerConfig {
 export interface RedisConfig extends BaseContainerConfig {
   password: string;
   dbCount: number;
+}
+
+export interface CrmConfig extends BaseContainerConfig {
+  appPath: string;
+  backupPath: string;
+  redisDb: number;
+  dbType: string;
+  netVersion: string;
+  crmType: string;
 }
 
 // API для работы с системой CRM Docker Builder

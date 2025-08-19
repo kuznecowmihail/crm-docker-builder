@@ -1,0 +1,155 @@
+<div class="pgadmin-settings">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>admin_panel_settings</mat-icon>
+        Настройки pgAdmin
+      </mat-card-title>
+      <mat-card-subtitle>
+        Конфигурация веб-интерфейса для управления PostgreSQL
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="form-section">
+        <h3>Основные настройки</h3>
+        
+        <div class="form-row">
+          <mat-checkbox [(ngModel)]="isEnabled" color="primary">
+            Включить pgAdmin контейнер
+          </mat-checkbox>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Название контейнера</mat-label>
+            <input matInput 
+                   [(ngModel)]="containerName" 
+                   placeholder="pgadmin-container"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Уникальное имя для Docker контейнера pgAdmin</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="port-field">
+            <mat-label>Порт</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="port" 
+                   placeholder="5050"
+                   [disabled]="!isEnabled"
+                   min="1024"
+                   max="65535"
+                   required>
+            <mat-hint>Порт для веб-интерфейса pgAdmin</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Хранилище данных</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Путь к данным</mat-label>
+            <input matInput 
+                   [(ngModel)]="volumePath" 
+                   placeholder="/path/to/pgadmin/data"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Абсолютный путь для хранения данных pgAdmin</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Аутентификация</h3>
+        
+        <div class="form-row email-row">
+          <mat-form-field appearance="outline" class="email-field">
+            <mat-label>Email</mat-label>
+            <input matInput 
+                   [(ngModel)]="email" 
+                   type="email"
+                   placeholder="admin@example.com"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Email для входа в pgAdmin</mat-hint>
+          </mat-form-field>
+          
+          <button mat-icon-button 
+                  type="button"
+                  (click)="onGenerateEmail()"
+                  [disabled]="!isEnabled"
+                  matTooltip="Сгенерировать email">
+            <mat-icon>alternate_email</mat-icon>
+          </button>
+        </div>
+        
+        <div class="form-row password-row">
+          <mat-form-field appearance="outline" class="password-field">
+            <mat-label>Пароль</mat-label>
+            <input matInput 
+                   [(ngModel)]="password" 
+                   type="password"
+                   placeholder="Введите пароль"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Пароль для входа в pgAdmin</mat-hint>
+          </mat-form-field>
+          
+          <button mat-icon-button 
+                  type="button"
+                  (click)="onGeneratePassword()"
+                  [disabled]="!isEnabled"
+                  matTooltip="Сгенерировать пароль">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Доступ к интерфейсу</h3>
+        <div class="access-info" *ngIf="isEnabled && containerName && port">
+          <div class="info-item">
+            <span class="info-label">URL:</span>
+            <span class="info-value">http://localhost:{{ port }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ email || 'Не указан' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Статус:</span>
+            <span class="info-value status-ready">Готов к запуску</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button 
+              color="accent"
+              (click)="onOpenPgAdmin()"
+              [disabled]="!isEnabled || !containerName || !port || !email || !password">
+        <mat-icon>open_in_new</mat-icon>
+        Открыть pgAdmin
+      </button>
+      <button mat-button 
+              color="warn" 
+              (click)="onCancelChanges()">
+        <mat-icon>cancel</mat-icon>
+        Отмена
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSaveChanges()"
+              [disabled]="!isEnabled || !containerName || !port || !volumePath || !email || !password">
+        <mat-icon>save</mat-icon>
+        Сохранить изменения
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -73,8 +73,7 @@ export class CrmDockerBuilderService implements IService {
           password: 'redis',
           dbCount: 1
         },
-        creatioConfigs: [],
-        bpmSoftConfigs: []
+        crmConfigs: []
       };
 
       
@@ -105,7 +104,7 @@ export class CrmDockerBuilderService implements IService {
       const config = await fs.readFile(configPath, 'utf-8');
       return {
         success: true,
-        message: 'Проект успешно создан',
+        message: 'Проект успешно открыт',
         projectConfig: JSON.parse(config)
       };
     }

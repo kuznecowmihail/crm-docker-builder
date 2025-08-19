@@ -1,0 +1,150 @@
+<div class="postgres-settings">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>storage</mat-icon>
+        Настройки PostgreSQL
+      </mat-card-title>
+      <mat-card-subtitle>
+        Конфигурация базы данных PostgreSQL
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="form-section">
+        <h3>Основные настройки</h3>
+        
+        <div class="form-row">
+          <mat-checkbox [(ngModel)]="isEnabled" color="primary">
+            Включить PostgreSQL контейнер
+          </mat-checkbox>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Название контейнера</mat-label>
+            <input matInput 
+                   [(ngModel)]="containerName" 
+                   placeholder="postgres-container"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Уникальное имя для Docker контейнера</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="port-field">
+            <mat-label>Порт</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="port" 
+                   placeholder="5432"
+                   [disabled]="!isEnabled"
+                   min="1024"
+                   max="65535"
+                   required>
+            <mat-hint>Порт для подключения к базе данных</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Хранилище данных</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Путь к данным</mat-label>
+            <input matInput 
+                   [(ngModel)]="volumePath" 
+                   placeholder="/path/to/postgres/data"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Абсолютный путь для хранения данных PostgreSQL</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Аутентификация</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="user-field">
+            <mat-label>Пользователь</mat-label>
+            <input matInput 
+                   [(ngModel)]="user" 
+                   placeholder="postgres"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Имя пользователя базы данных</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row password-row">
+          <mat-form-field appearance="outline" class="password-field">
+            <mat-label>Пароль</mat-label>
+            <input matInput 
+                   [(ngModel)]="password" 
+                   type="password"
+                   placeholder="Введите пароль"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Пароль для пользователя базы данных</mat-hint>
+          </mat-form-field>
+          
+          <button mat-icon-button 
+                  type="button"
+                  (click)="onGeneratePassword()"
+                  [disabled]="!isEnabled"
+                  matTooltip="Сгенерировать пароль">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Информация о соединении</h3>
+        <div class="connection-info" *ngIf="isEnabled && containerName && port && user">
+          <div class="info-item">
+            <span class="info-label">Host:</span>
+            <span class="info-value">localhost</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Port:</span>
+            <span class="info-value">{{ port }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Database:</span>
+            <span class="info-value">{{ user }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Username:</span>
+            <span class="info-value">{{ user }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button 
+              color="accent"
+              (click)="onTestConnection()"
+              [disabled]="!isEnabled || !containerName || !port || !user || !password">
+        <mat-icon>wifi</mat-icon>
+        Тест соединения
+      </button>
+      <button mat-button 
+              color="warn" 
+              (click)="onCancelChanges()">
+        <mat-icon>cancel</mat-icon>
+        Отмена
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSaveChanges()"
+              [disabled]="!isEnabled || !containerName || !port || !volumePath || !user || !password">
+        <mat-icon>save</mat-icon>
+        Сохранить изменения
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

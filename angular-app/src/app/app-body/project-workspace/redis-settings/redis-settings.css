@@ -1,0 +1,228 @@
+.redis-settings {
+  padding: 1rem;
+}
+
+.settings-card {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.settings-card mat-card-header {
+  margin-bottom: 1.5rem;
+}
+
+.settings-card mat-card-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.settings-card mat-card-title .mat-icon {
+  font-size: 1.4rem !important;
+  width: 1.4rem !important;
+  height: 1.4rem !important;
+  color: #dc382d !important;
+}
+
+.settings-card mat-card-subtitle {
+  color: #666 !important;
+  font-size: 0.9rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.form-row {
+  margin-bottom: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.port-field {
+  width: 200px;
+}
+
+.db-count-field {
+  width: 250px;
+}
+
+.password-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.password-field {
+  flex: 1;
+}
+
+/* Стили для checkbox */
+.mat-mdc-checkbox {
+  margin-bottom: 1rem;
+}
+
+/* Стили для слайдера памяти */
+.memory-slider-container {
+  width: 100%;
+  padding: 1rem 0;
+}
+
+.slider-label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.memory-slider {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.slider-hints {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+/* Стили для информационной сетки соединения */
+.connection-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #dc382d;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+/* Стили для кнопок */
+.mat-mdc-button,
+.mat-mdc-raised-button {
+  margin-left: 0.5rem;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.mat-mdc-button .mat-icon,
+.mat-mdc-raised-button .mat-icon {
+  font-size: 1rem !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/* Кастомизация Material Design полей */
+.mat-mdc-form-field {
+  margin-bottom: 1rem;
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-form-field-wrapper {
+  margin: 0;
+}
+
+/* Стили для отключенных полей */
+.mat-mdc-form-field.mat-form-field-disabled {
+  opacity: 0.6;
+}
+
+/* Стили для кнопки генерации пароля */
+.password-row .mat-mdc-icon-button {
+  margin-top: 0.5rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+.password-row .mat-mdc-icon-button:hover {
+  background-color: #e9ecef;
+}
+
+/* Кастомизация слайдера */
+.mat-mdc-slider .mdc-slider__track--active_fill {
+  border-color: #dc382d !important;
+}
+
+.mat-mdc-slider .mdc-slider__thumb {
+  border-color: #dc382d !important;
+}
+
+.mat-mdc-slider .mdc-slider__thumb-knob {
+  background-color: #dc382d !important;
+}
+
+/* Специальные стили для кнопки очистки кэша */
+.mat-mdc-button.mat-warn {
+  color: #dc382d;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .redis-settings {
+    padding: 0.5rem;
+  }
+  
+  .connection-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .settings-card mat-card-title {
+    font-size: 1.1rem !important;
+  }
+  
+  .port-field,
+  .db-count-field {
+    width: 100%;
+  }
+  
+  .password-row {
+    flex-direction: column;
+  }
+  
+  .password-row .mat-mdc-icon-button {
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  
+  .slider-hints {
+    font-size: 0.7rem;
+  }
+}

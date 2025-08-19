@@ -1,0 +1,194 @@
+<div class="redis-settings">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>memory</mat-icon>
+        Настройки Redis
+      </mat-card-title>
+      <mat-card-subtitle>
+        Конфигурация кэш-сервера Redis
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="form-section">
+        <h3>Основные настройки</h3>
+        
+        <div class="form-row">
+          <mat-checkbox [(ngModel)]="isEnabled" color="primary">
+            Включить Redis контейнер
+          </mat-checkbox>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Название контейнера</mat-label>
+            <input matInput 
+                   [(ngModel)]="containerName" 
+                   placeholder="redis-container"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Уникальное имя для Docker контейнера Redis</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="port-field">
+            <mat-label>Порт</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="port" 
+                   placeholder="6379"
+                   [disabled]="!isEnabled"
+                   min="1024"
+                   max="65535"
+                   required>
+            <mat-hint>Порт для подключения к Redis</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Хранилище и персистентность</h3>
+        
+        <div class="form-row">
+          <mat-checkbox [(ngModel)]="persistenceEnabled" color="primary" [disabled]="!isEnabled">
+            Включить персистентность данных
+          </mat-checkbox>
+        </div>
+        
+        <div class="form-row" *ngIf="persistenceEnabled">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Путь к данным</mat-label>
+            <input matInput 
+                   [(ngModel)]="volumePath" 
+                   placeholder="/path/to/redis/data"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Абсолютный путь для хранения данных Redis</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Аутентификация и безопасность</h3>
+        
+        <div class="form-row password-row">
+          <mat-form-field appearance="outline" class="password-field">
+            <mat-label>Пароль</mat-label>
+            <input matInput 
+                   [(ngModel)]="password" 
+                   type="password"
+                   placeholder="Введите пароль"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Пароль для аутентификации в Redis</mat-hint>
+          </mat-form-field>
+          
+          <button mat-icon-button 
+                  type="button"
+                  (click)="onGeneratePassword()"
+                  [disabled]="!isEnabled"
+                  matTooltip="Сгенерировать пароль">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Производительность</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="db-count-field">
+            <mat-label>Количество баз данных</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="dbCount" 
+                   placeholder="16"
+                   [disabled]="!isEnabled"
+                   min="1"
+                   max="100"
+                   required>
+            <mat-hint>Количество доступных баз данных (1-100)</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <div class="memory-slider-container">
+            <label class="slider-label">Максимальная память: {{ maxMemory }}</label>
+            <mat-slider 
+              [disabled]="!isEnabled"
+              [min]="64" 
+              [max]="2048" 
+              [step]="64"
+              (change)="onMemoryChange($event)"
+              class="memory-slider">
+              <input matSliderThumb [(ngModel)]="maxMemoryValue" #slider>
+            </mat-slider>
+            <div class="slider-hints">
+              <span>64MB</span>
+              <span>1GB</span>
+              <span>2GB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Информация о соединении</h3>
+        <div class="connection-info" *ngIf="isEnabled && containerName && port">
+          <div class="info-item">
+            <span class="info-label">Host:</span>
+            <span class="info-value">localhost</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Port:</span>
+            <span class="info-value">{{ port }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Databases:</span>
+            <span class="info-value">{{ dbCount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Max Memory:</span>
+            <span class="info-value">{{ maxMemory }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Persistence:</span>
+            <span class="info-value">{{ persistenceEnabled ? 'Enabled' : 'Disabled' }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button 
+              color="accent"
+              (click)="onTestConnection()"
+              [disabled]="!isEnabled || !containerName || !port || !password">
+        <mat-icon>wifi</mat-icon>
+        Тест соединения
+      </button>
+      <button mat-button 
+              color="warn"
+              (click)="onClearCache()"
+              [disabled]="!isEnabled">
+        <mat-icon>clear_all</mat-icon>
+        Очистить кэш
+      </button>
+      <button mat-button 
+              color="warn" 
+              (click)="onCancelChanges()">
+        <mat-icon>cancel</mat-icon>
+        Отмена
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSaveChanges()"
+              [disabled]="!isEnabled || !containerName || !port || !password || (persistenceEnabled && !volumePath)">
+        <mat-icon>save</mat-icon>
+        Сохранить изменения
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
