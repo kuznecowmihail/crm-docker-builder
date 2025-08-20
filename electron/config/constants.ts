@@ -45,5 +45,16 @@ export const IPC_CHANNELS = {
     SAVE_CRM_SETTING: 'crm-docker-builder:save-crm-setting',
     SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings',
     SAVE_ALL: 'crm-docker-builder:save-all'
+  },
+  CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM: {
+    VALIDATE_GENERAL_PROJECT_SETTINGS: 'crm-docker-builder-validator:validate-general-project-settings',
+    VALIDATE_POSTGRES_SETTINGS: 'crm-docker-builder-validator:validate-postgres-settings',
+    VALIDATE_PGADMIN_SETTINGS: 'crm-docker-builder-validator:validate-pgadmin-settings',
+    VALIDATE_REDIS_SETTINGS: 'crm-docker-builder-validator:validate-redis-settings',
+    VALIDATE_CRM_SETTINGS: 'crm-docker-builder-validator:validate-crm-settings',
+    VALIDATE_CRM_SETTING: 'crm-docker-builder-validator:validate-crm-setting',
+    VALIDATE_APP_PATH: 'crm-docker-builder-validator:validate-app-path',
+    VALIDATE_BACKUP_PATH: 'crm-docker-builder-validator:validate-backup-path',
+    VALIDATE_ALL: 'crm-docker-builder-validator:validate-all'
   }
 } as const;

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig } from '@shared/api';
+import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI } from '@shared/api';
 
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
@@ -33,6 +33,17 @@ const IPC_CHANNELS = {
     SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings',
     SAVE_ALL: 'crm-docker-builder:save-all'
   },
+  CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM: {
+    VALIDATE_GENERAL_PROJECT_SETTINGS: 'crm-docker-builder-validator:validate-general-project-settings',
+    VALIDATE_POSTGRES_SETTINGS: 'crm-docker-builder-validator:validate-postgres-settings',
+    VALIDATE_PGADMIN_SETTINGS: 'crm-docker-builder-validator:validate-pgadmin-settings',
+    VALIDATE_REDIS_SETTINGS: 'crm-docker-builder-validator:validate-redis-settings',
+    VALIDATE_CRM_SETTINGS: 'crm-docker-builder-validator:validate-crm-settings',
+    VALIDATE_CRM_SETTING: 'crm-docker-builder-validator:validate-crm-setting',
+    VALIDATE_APP_PATH: 'crm-docker-builder-validator:validate-app-path',
+    VALIDATE_BACKUP_PATH: 'crm-docker-builder-validator:validate-backup-path',
+    VALIDATE_ALL: 'crm-docker-builder-validator:validate-all'
+  }
 } as const;
 
 // Экспонируем API в безопасном контексте
@@ -65,3 +76,15 @@ contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
   saveAll: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_ALL, projectConfig),
 } as CrmDockerBuilderSystemAPI);
+
+contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
+  validateGeneralProjectSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_GENERAL_PROJECT_SETTINGS, projectConfig),
+  validatePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
+  validatePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
+  validateRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_REDIS_SETTINGS, projectConfig, redisConfig),
+  validateCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTINGS, projectConfig),
+  validateCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTING, projectConfig, crmConfig),
+  validateAppPath: (crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_APP_PATH, crmConfig),
+  validateBackupPath: (crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_BACKUP_PATH, crmConfig),
+  validateAll: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_ALL, projectConfig),
+} as CrmDockerBuilderValidatorSystemAPI);

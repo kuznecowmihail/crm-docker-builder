@@ -3,6 +3,7 @@ import * as fs from 'fs/promises';
 import { BaseContainerConfig, CrmConfig, InitProjectResult, PgAdminConfig, PostgresConfig, ProjectConfig, RedisConfig } from '@shared/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
+import { CrmDockerBuilderValidatorService } from './CrmDockerBuilderValidatorService';
 
 export class CrmDockerBuilderService implements IService {
   public setupHandlers(): void {
@@ -51,6 +52,12 @@ export class CrmDockerBuilderService implements IService {
       return await this.saveAll(projectConfig);
     });
   }
+
+  constructor() {
+    this.validatorService = new CrmDockerBuilderValidatorService();
+  }
+
+  private validatorService: CrmDockerBuilderValidatorService;
 
   /**
    * Создает проект
@@ -164,7 +171,14 @@ export class CrmDockerBuilderService implements IService {
    */
   public async saveGeneralProjectSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     try {
-      await this.validateGeneralProjectSettings(projectConfig);
+      const validateResult = await this.validatorService.validateGeneralProjectSettings(projectConfig);
+      if (!validateResult.success) {
+        return {
+          success: false,
+          projectConfig: null,
+          message: validateResult.message
+        };
+      }
 
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
@@ -197,7 +211,14 @@ export class CrmDockerBuilderService implements IService {
    */
   public async savePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<InitProjectResult> {
     try {
-      await this.validatePostgresSettings(projectConfig, postgresConfig);
+      const validateResult = await this.validatorService.validatePostgresSettings(projectConfig, postgresConfig);
+      if (!validateResult.success) {
+        return {
+          success: false,
+          projectConfig: null,
+          message: validateResult.message
+        };
+      }
 
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
@@ -230,7 +251,14 @@ export class CrmDockerBuilderService implements IService {
    */
   public async savePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<InitProjectResult> {
     try {
-      await this.validatePgAdminSettings(projectConfig, pgAdminConfig);
+      const validateResult = await this.validatorService.validatePgAdminSettings(projectConfig, pgAdminConfig);
+      if (!validateResult.success) {
+        return {
+          success: false,
+          projectConfig: null,
+          message: validateResult.message
+        };
+      }
 
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
@@ -263,7 +291,14 @@ export class CrmDockerBuilderService implements IService {
    */
   public async saveRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<InitProjectResult> {
     try {
-      await this.validateRedisSettings(projectConfig, redisConfig);
+      const validateResult = await this.validatorService.validateRedisSettings(projectConfig, redisConfig);
+      if (!validateResult.success) {
+        return {
+          success: false,
+          projectConfig: null,
+          message: validateResult.message
+        };
+      }
 
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
@@ -296,7 +331,14 @@ export class CrmDockerBuilderService implements IService {
    */
   public async saveCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<InitProjectResult> {
     try {
-      await this.validateCrmSetting(projectConfig, crmConfig);
+      const validateResult = await this.validatorService.validateCrmSetting(projectConfig, crmConfig);
+      if (!validateResult.success) {
+        return {
+          success: false,
+          projectConfig: null,
+          message: validateResult.message
+        };
+      }
 
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
@@ -342,7 +384,14 @@ export class CrmDockerBuilderService implements IService {
    */
   public async saveCrmSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     try {
-      await this.validateCrmSettings(projectConfig);
+      const validateResult = await this.validatorService.validateCrmSettings(projectConfig);
+      if (!validateResult.success) {
+        return {
+          success: false,
+          projectConfig: null,
+          message: validateResult.message
+        };
+      }
 
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
@@ -374,6 +423,14 @@ export class CrmDockerBuilderService implements IService {
    */
   public async saveAll(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     try {
+      const validateResult = await this.validatorService.validateAll(projectConfig);
+      if (!validateResult.success) {
+        return {
+          success: false,
+          projectConfig: null,
+          message: validateResult.message
+        };
+      }
       await this.saveGeneralProjectSettings(projectConfig);
       await this.savePostgresSettings(projectConfig, projectConfig.postgresConfig);
       await this.savePgAdminSettings(projectConfig, projectConfig.pgAdminConfig);

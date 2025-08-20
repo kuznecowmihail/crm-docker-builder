@@ -48,7 +48,9 @@
         <h3>Пути и хранилище</h3>
         
         <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="outline" 
+                         class="full-width"
+                         [class.error-field]="appPathError">
             <mat-label>Путь к приложению</mat-label>
             <input matInput 
                    [(ngModel)]="appPath" 
@@ -66,7 +68,7 @@
             </button>
             <mat-hint *ngIf="!appPathError">Путь к файлам приложения</mat-hint>
             <mat-hint *ngIf="appPathError" class="error-hint">
-              Папка приложения должна находится в корне текущего проекта
+              Некорректный путь к папке приложения
             </mat-hint>
           </mat-form-field>
         </div>
@@ -92,7 +94,7 @@
             </button>
             <mat-hint *ngIf="!backupPathError">Путь для хранения резервных копий</mat-hint>
             <mat-hint *ngIf="backupPathError" class="error-hint">
-              Файл должен иметь расширение .backup
+              Некорректный путь к папке резервных копий
             </mat-hint>
           </mat-form-field>
         </div>
@@ -128,7 +130,7 @@
               <mat-option value="3.1">.NET 3.1</mat-option>
               <mat-option value="8.0">.NET 8.0</mat-option>
             </mat-select>
-            <mat-hint>Версия .NET Framework</mat-hint>
+            <mat-hint>Версия .NET Core</mat-hint>
           </mat-form-field>
           
           <mat-form-field appearance="outline" class="redis-db-field">

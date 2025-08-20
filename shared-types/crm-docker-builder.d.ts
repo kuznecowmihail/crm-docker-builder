@@ -7,6 +7,12 @@ export interface InitProjectResult {
   projectConfig: ProjectConfig | null;
 }
 
+// Результат валидации проекта
+export interface ValidateProjectResult {
+  success: boolean;
+  message: string;
+}
+
 // Конфиг проекта
 export interface ProjectConfig {
   projectName: string;
@@ -66,5 +72,29 @@ export interface CrmDockerBuilderSystemAPI {
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<InitProjectResult>;
   // Сохранение настроек CRM
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
+  // Сохранение настроек CRM
   saveCrmSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+  // Сохранение всех настроек
+  saveAll: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+}
+
+export interface CrmDockerBuilderValidatorSystemAPI {
+  // Проверка настроек проекта
+  validateGeneralProjectSettings: (projectConfig: ProjectConfig) => Promise<ValidateProjectResult>;
+  // Проверка настроек Postgres
+  validatePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => Promise<ValidateProjectResult>;
+  // Проверка настроек PgAdmin
+  validatePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => Promise<ValidateProjectResult>;
+  // Проверка настроек Redis
+  validateRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<ValidateProjectResult>;
+  // Проверка настроек CRM
+  validateCrmSettings: (projectConfig: ProjectConfig) => Promise<ValidateProjectResult>;
+  // Проверка настроек CRM
+  validateCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<ValidateProjectResult>;
+  // Проверка пути к папке приложения
+  validateAppPath: (crmConfig: CrmConfig) => Promise<ValidateProjectResult>;
+  // Проверка пути к файлу резервных копий
+  validateBackupPath: (crmConfig: CrmConfig) => Promise<ValidateProjectResult>;
+  // Проверка всех настроек
+  validateAll: (projectConfig: ProjectConfig) => Promise<ValidateProjectResult>;
 }

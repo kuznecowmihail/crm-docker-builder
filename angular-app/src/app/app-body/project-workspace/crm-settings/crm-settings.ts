@@ -132,9 +132,17 @@ export class CrmSettings implements OnChanges {
   /**
    * Обработчик изменения пути к приложению
    */
-  onAppPathChange() {
+  async onAppPathChange() {
     console.log('CrmSettings: Изменение пути к приложению:', this.appPath);
     if (this.crmConfig) {
+      const appPathResult = await this.electronService.validateAppPath(this.crmConfig);
+      if (!appPathResult.success) {
+        this.appPathError = true;
+        await this.electronService.showNotification('Выберите папку приложения CRM', appPathResult.message);
+      } else {
+        this.appPathError = false;
+      }
+
       this.crmConfig.isSave = false;
     }
   }
@@ -144,22 +152,16 @@ export class CrmSettings implements OnChanges {
    */
   async onBackupPathChange() {
     console.log('CrmSettings: Изменение пути к резервной копии:', this.backupPath);
-    console.log('CrmSettings: backupPathError до проверки:', this.backupPathError);
-    
-    // Проверяем валидность файла
-    if (this.backupPath && !this.backupPath.endsWith('.backup')) {
-      this.backupPathError = true;
-      await this.electronService.showNotification('Выберите файл для резервных копий', 'Файл должен иметь расширение .backup');
-      console.log('CrmSettings: Установка backupPathError = true');
-    } else {
-      this.backupPathError = false;
-      await this.electronService.showNotification('Выберите файл для резервных копий', 'Файл успешно выбран');
-      console.log('CrmSettings: Установка backupPathError = false');
-    }
-    
-    console.log('CrmSettings: backupPathError после проверки:', this.backupPathError);
-    
+
     if (this.crmConfig) {
+      const backupPathResult = await this.electronService.validateBackupPath(this.crmConfig);
+      if (!backupPathResult.success) {
+        this.backupPathError = true;
+        await this.electronService.showNotification('Выберите файл для резервных копий', backupPathResult.message);
+      } else {
+        this.backupPathError = false;
+      }
+
       this.crmConfig.isSave = false;
     }
   }
@@ -286,10 +288,13 @@ export class CrmSettings implements OnChanges {
       
       if (selectedPath) {
         this.appPath = selectedPath;
-        this.onAppPathChange();
       }
+      this.onAppPathChange();
     } catch (error) {
       console.error('Ошибка при выборе папки приложения:', error);
+      this.appPathError = true;
+      this.appPath = '';
+      await this.electronService.showNotification('Выберите папку приложения CRM', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -307,7 +312,7 @@ export class CrmSettings implements OnChanges {
       
       console.log('CrmSettings: Выбранный файл:', selectedPath);
       
-      if (selectedPath && selectedPath.length > 0 && selectedPath[0].endsWith('.backup')) {
+      if (selectedPath && selectedPath.length > 0) {
         this.backupPath = selectedPath[0];
       }
       this.onBackupPathChange();
