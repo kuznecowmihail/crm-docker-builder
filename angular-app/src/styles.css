@@ -32,3 +32,92 @@
     background-color: #5a6268;
     transform: translateY(-1px);
   }
+
+/* ===== ГЛОБАЛЬНЫЕ СТИЛИ ВАЛИДАЦИИ ===== */
+
+/* Стили для поля с ошибкой */
+.error-field {
+  --mdc-filled-text-field-container-color: #ffebee;
+  --mdc-outlined-text-field-container-color: #ffebee;
+}
+
+/* Красная рамка для поля с ошибкой */
+.error-field .mdc-notched-outline__leading,
+.error-field .mdc-notched-outline__notch,
+.error-field .mdc-notched-outline__trailing {
+  border-color: #f44336 !important;
+}
+
+/* Красный цвет лейбла при ошибке */
+.error-field .mat-mdc-form-field-label-wrapper .mat-mdc-form-field-label {
+  color: #f44336 !important;
+}
+
+/* Красный фон поля при ошибке */
+.error-field .mat-mdc-text-field-wrapper {
+  background-color: #ffebee;
+}
+
+/* Стили для отображения ошибки в mat-hint */
+.error-hint {
+  color: #f44336 !important;
+  font-weight: 500;
+}
+
+/* Стили для успешного поля */
+.success-field {
+  --mdc-filled-text-field-container-color: #f1f8e9;
+  --mdc-outlined-text-field-container-color: #f1f8e9;
+}
+
+/* Зеленая рамка для успешного поля */
+.success-field .mdc-notched-outline__leading,
+.success-field .mdc-notched-outline__notch,
+.success-field .mdc-notched-outline__trailing {
+  border-color: #4caf50 !important;
+}
+
+/* Зеленый цвет лейбла для успешного поля */
+.success-field .mat-mdc-form-field-label-wrapper .mat-mdc-form-field-label {
+  color: #4caf50 !important;
+}
+
+/* Зеленый фон для успешного поля */
+.success-field .mat-mdc-text-field-wrapper {
+  background-color: #f1f8e9;
+}
+
+/* Стили для отображения успеха в mat-hint */
+.success-hint {
+  color: #4caf50 !important;
+  font-weight: 500;
+}
+
+/* Стили для предупреждения */
+.warning-field {
+  --mdc-filled-text-field-container-color: #fff3e0;
+  --mdc-outlined-text-field-container-color: #fff3e0;
+}
+
+/* Оранжевая рамка для поля с предупреждением */
+.warning-field .mdc-notched-outline__leading,
+.warning-field .mdc-notched-outline__notch,
+.warning-field .mdc-notched-outline__trailing {
+  border-color: #ff9800 !important;
+}
+
+/* Оранжевый цвет лейбла для поля с предупреждением */
+.warning-field .mat-mdc-form-field-label-wrapper .mat-mdc-form-field-label {
+  color: #ff9800 !important;
+}
+
+/* Оранжевый фон для поля с предупреждением */
+.warning-field .mat-mdc-text-field-wrapper {
+  background-color: #fff3e0;
+}
+
+/* Стили для отображения предупреждения в mat-hint */
+.warning-hint {
+  color: #ff9800 !important;
+  font-weight: 500;
+}

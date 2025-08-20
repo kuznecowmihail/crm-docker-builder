@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProjectConfig, CrmConfig } from '@shared/api';
 import { ElectronService } from 'src/app/services/electron.service';
 
@@ -24,7 +25,8 @@ import { ElectronService } from 'src/app/services/electron.service';
     MatCardModule,
     MatIconModule,
     MatSelectModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatTooltipModule
   ],
   templateUrl: './crm-settings.html',
   styleUrl: './crm-settings.css'
@@ -52,6 +54,16 @@ export class CrmSettings implements OnChanges {
   netVersion: string = '8.0';
   crmType: string = 'bpmsoft';
   isEnabled: boolean = true;
+
+  /**
+   * Состояние ошибки для поля резервной копии
+   */
+  backupPathError: boolean = false;
+
+  /**
+   * Состояние ошибки для поля пути к приложению
+   */
+  appPathError: boolean = false;
   
   /**
    * Конструктор
@@ -93,6 +105,7 @@ export class CrmSettings implements OnChanges {
       this.dbType = this.crmConfig.dbType || 'postgres';
       this.netVersion = this.crmConfig.netVersion || '8.0';
       this.crmType = this.crmConfig.crmType || 'bpmsoft';
+      this.backupPathError = false; // Сбрасываем ошибку
     }
   }
 
@@ -129,8 +142,23 @@ export class CrmSettings implements OnChanges {
   /**
    * Обработчик изменения пути к резервной копии
    */
-  onBackupPathChange() {
+  async onBackupPathChange() {
     console.log('CrmSettings: Изменение пути к резервной копии:', this.backupPath);
+    console.log('CrmSettings: backupPathError до проверки:', this.backupPathError);
+    
+    // Проверяем валидность файла
+    if (this.backupPath && !this.backupPath.endsWith('.backup')) {
+      this.backupPathError = true;
+      await this.electronService.showNotification('Выберите файл для резервных копий', 'Файл должен иметь расширение .backup');
+      console.log('CrmSettings: Установка backupPathError = true');
+    } else {
+      this.backupPathError = false;
+      await this.electronService.showNotification('Выберите файл для резервных копий', 'Файл успешно выбран');
+      console.log('CrmSettings: Установка backupPathError = false');
+    }
+    
+    console.log('CrmSettings: backupPathError после проверки:', this.backupPathError);
+    
     if (this.crmConfig) {
       this.crmConfig.isSave = false;
     }
@@ -242,5 +270,52 @@ export class CrmSettings implements OnChanges {
   onStopCrm() {
     console.log('CrmSettings: Остановка CRM...');
     // Здесь будет логика остановки CRM
+  }
+
+  /**
+   * Обработчик выбора папки приложения
+   */
+  async onSelectAppPath() {
+    console.log('CrmSettings: Выбор папки приложения...');
+    
+    try {
+      const selectedPath = await this.electronService.openFolderDialog({
+        title: 'Выберите папку приложения CRM',
+        defaultPath: this.projectConfig?.projectPath || ''
+      });
+      
+      if (selectedPath) {
+        this.appPath = selectedPath;
+        this.onAppPathChange();
+      }
+    } catch (error) {
+      console.error('Ошибка при выборе папки приложения:', error);
+    }
+  }
+
+  /**
+   * Обработчик выбора папки для резервных копий
+   */
+  async onSelectBackupPath() {
+    console.log('CrmSettings: Выбор папки для резервных копий...');
+    
+    try {
+      const selectedPath = await this.electronService.openFileDialog({
+        title: 'Выберите файл для резервных копий',
+        defaultPath: this.projectConfig?.projectPath || ''
+      });
+      
+      console.log('CrmSettings: Выбранный файл:', selectedPath);
+      
+      if (selectedPath && selectedPath.length > 0 && selectedPath[0].endsWith('.backup')) {
+        this.backupPath = selectedPath[0];
+      }
+      this.onBackupPathChange();
+    } catch (error) {
+      console.error('Ошибка при выборе папки для резервных копий:', error);
+      this.backupPathError = true;
+      this.backupPath = '';
+      await this.electronService.showNotification('Выберите файл для резервных копий', error instanceof Error ? error.message : String(error));
+    }
   }
 }

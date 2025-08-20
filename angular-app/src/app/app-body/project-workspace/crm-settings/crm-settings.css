@@ -74,6 +74,8 @@
   width: 150px;
 }
 
+/* Стили валидации вынесены в глобальный styles.css */
+
 /* Стили для checkbox */
 .mat-mdc-checkbox {
   margin-bottom: 1rem;

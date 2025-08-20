@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import * as fs from 'fs/promises';
-import { CrmConfig, InitProjectResult, PgAdminConfig, PostgresConfig, ProjectConfig, RedisConfig } from '@shared/api';
+import { BaseContainerConfig, CrmConfig, InitProjectResult, PgAdminConfig, PostgresConfig, ProjectConfig, RedisConfig } from '@shared/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
@@ -164,6 +164,8 @@ export class CrmDockerBuilderService implements IService {
    */
   public async saveGeneralProjectSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     try {
+      await this.validateGeneralProjectSettings(projectConfig);
+
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
 
@@ -182,13 +184,21 @@ export class CrmDockerBuilderService implements IService {
       return {
         success: false,
         projectConfig: null,
-        message: `Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : String(error)}`
+        message: `Ошибка при сохранении настроек проекта (General): ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
 
+  /**
+   * Сохраняет настройки Postgres
+   * @param projectConfig - конфигурация проекта
+   * @param postgresConfig - конфигурация Postgres
+   * @returns результат сохранения настроек
+   */
   public async savePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<InitProjectResult> {
     try {
+      await this.validatePostgresSettings(projectConfig, postgresConfig);
+
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
 
@@ -207,13 +217,21 @@ export class CrmDockerBuilderService implements IService {
       return {
         success: false,
         projectConfig: null,
-        message: `Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : String(error)}`
+        message: `Ошибка при сохранении настроек проекта (Postgres): ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
 
+  /**
+   * Сохраняет настройки PgAdmin
+   * @param projectConfig - конфигурация проекта
+   * @param pgAdminConfig - конфигурация PgAdmin
+   * @returns результат сохранения настроек
+   */
   public async savePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<InitProjectResult> {
     try {
+      await this.validatePgAdminSettings(projectConfig, pgAdminConfig);
+
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
 
@@ -232,13 +250,21 @@ export class CrmDockerBuilderService implements IService {
       return {
         success: false,
         projectConfig: null,
-        message: `Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : String(error)}`
+        message: `Ошибка при сохранении настроек проекта (PgAdmin): ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
 
+  /**
+   * Сохраняет настройки Redis
+   * @param projectConfig - конфигурация проекта
+   * @param redisConfig - конфигурация Redis
+   * @returns результат сохранения настроек
+   */
   public async saveRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<InitProjectResult> {
     try {
+      await this.validateRedisSettings(projectConfig, redisConfig);
+
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
 
@@ -257,13 +283,21 @@ export class CrmDockerBuilderService implements IService {
       return {
         success: false,
         projectConfig: null,
-        message: `Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : String(error)}`
+        message: `Ошибка при сохранении настроек проекта (Redis): ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
 
+  /**
+   * Сохраняет настройки CRM
+   * @param projectConfig - конфигурация проекта
+   * @param crmConfig - конфигурация CRM
+   * @returns результат сохранения настроек
+   */
   public async saveCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<InitProjectResult> {
     try {
+      await this.validateCrmSetting(projectConfig, crmConfig);
+
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
 
@@ -296,13 +330,20 @@ export class CrmDockerBuilderService implements IService {
       return {
         success: false,
         projectConfig: null,
-        message: `Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : String(error)}`
+        message: `Ошибка при сохранении настроек проекта (CRM): ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
 
+  /**
+   * Сохраняет настройки CRM
+   * @param projectConfig - конфигурация проекта
+   * @returns результат сохранения настроек
+   */
   public async saveCrmSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     try {
+      await this.validateCrmSettings(projectConfig);
+
       const localProjectResult = await this.openProject(projectConfig.projectPath);
       let localProjectConfig = localProjectResult.projectConfig;
 
@@ -321,11 +362,16 @@ export class CrmDockerBuilderService implements IService {
       return {
         success: false,
         projectConfig: null,
-        message: `Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : String(error)}`
+        message: `Ошибка при сохранении настроек проекта (CRM): ${error instanceof Error ? error.message : String(error)}`
       };
     }
   }
 
+  /**
+   * Сохраняет все настройки
+   * @param projectConfig - конфигурация проекта
+   * @returns результат сохранения настроек
+   */
   public async saveAll(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     try {
       await this.saveGeneralProjectSettings(projectConfig);
@@ -348,6 +394,175 @@ export class CrmDockerBuilderService implements IService {
     }
   }
 
+  /**
+   * Проверяет, существует ли конфигурация контейнера
+   * @param containerConfig - конфигурация контейнера
+   * @returns результат проверки
+   */
+  private async ValidateBaseContainerSettings(containerConfig: BaseContainerConfig): Promise<void> {
+    // Проверяем, существует ли название контейнера
+    if (!containerConfig.containerName) {
+      throw new Error('Название контейнера Postgres не может быть пустым');
+    }
+    // Проверяем, существует ли порт
+    if (!containerConfig.port) {
+      throw new Error('Порт не может быть пустым');
+    }
+    // Проверяем, существует ли путь к папке
+    if (!containerConfig.volumePath) {
+      throw new Error('Путь к папке не может быть пустым');
+    }
+
+    // Проверяем, существует ли путь к папке
+    const pathExists = await this.pathExists(containerConfig.volumePath);
+    if (!pathExists) {
+      throw new Error('Папка не существует');
+    }
+  }
+
+  /**
+   * Проверяет, существует ли конфигурация проекта
+   * @param projectConfig - конфигурация проекта
+   * @returns результат проверки
+   */
+  private async validateGeneralProjectSettings(projectConfig: ProjectConfig): Promise<void> {
+    // Проверяем, существует ли название проекта
+    if (!projectConfig.projectName) {
+      throw new Error('Название проекта не может быть пустым');
+    }
+
+    // Проверяем, существует ли путь к проекту
+    if (!projectConfig.projectPath) {
+      throw new Error('Путь к проекту не может быть пустым');
+    }
+
+    // Проверяем, существует ли папка
+    const pathExists = await this.pathExists(projectConfig.projectPath);
+    if (!pathExists) {
+      throw new Error('Папка не существует');
+    }
+  }
+
+  /**
+   * Проверяет, существует ли конфигурация Postgres
+   * @param projectConfig - конфигурация проекта
+   * @param postgresConfig - конфигурация Postgres
+   * @returns результат проверки
+   */
+  private async validatePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<void> {
+    await this.ValidateBaseContainerSettings(postgresConfig);
+    // Проверяем, существует ли имя пользователя
+    if (!projectConfig.postgresConfig.user) {
+      throw new Error('Имя пользователя не может быть пустым');
+    }
+    // Проверяем, существует ли пароль
+    if (!projectConfig.postgresConfig.password) {
+      throw new Error('Пароль не может быть пустым');
+    }
+
+  }
+
+  /**
+   * Проверяет, существует ли конфигурация PgAdmin
+   * @param projectConfig - конфигурация проекта
+   * @param pgAdminConfig - конфигурация PgAdmin
+   * @returns результат проверки
+   */
+  private async validatePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<void> {
+    await this.ValidateBaseContainerSettings(pgAdminConfig);
+    // Проверяем, существует ли email
+    if (!projectConfig.pgAdminConfig.email) {
+      throw new Error('Email не может быть пустым');
+    }
+    // Проверяем, существует ли пароль
+    if (!projectConfig.pgAdminConfig.password) {
+      throw new Error('Пароль не может быть пустым');
+    }
+  }
+
+  /**
+   * Проверяет, существует ли конфигурация Redis
+   * @param projectConfig - конфигурация проекта
+   * @param redisConfig - конфигурация Redis
+   * @returns результат проверки
+   */
+  private async validateRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<void> {
+    await this.ValidateBaseContainerSettings(redisConfig);
+    // Проверяем, существует ли пароль
+    if (!projectConfig.redisConfig.password) {
+      throw new Error('Пароль не может быть пустым');
+    }
+    // Проверяем, существует ли количество баз данных
+    if (!projectConfig.redisConfig.dbCount) {
+      throw new Error('Количество баз данных не может быть пустым');
+    }
+  }
+
+  /**
+   * Проверяет, существует ли конфигурация CRM
+   * @param projectConfig - конфигурация проекта
+   * @param crmConfig - конфигурация CRM
+   * @returns результат проверки
+   */
+  private async validateCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<void> {
+    await this.ValidateBaseContainerSettings(crmConfig);
+    // Проверяем, существует ли путь к папке
+    if (!crmConfig.appPath) {
+      throw new Error('Путь к папке приложения не может быть пустым');
+    }
+    // Проверяем, существует ли путь к папке
+    if (!crmConfig.backupPath) {
+      throw new Error('Путь к папке резервных копий не может быть пустым');
+    }
+    // Проверяем, существует ли путь к папке
+    if (!crmConfig.redisDb) {
+      throw new Error('Номер базы данных не может быть пустым');
+    }
+    // Проверяем, существует ли путь к папке
+    if (!crmConfig.dbType) {
+      throw new Error('Тип базы данных не может быть пустым');
+    }
+    // Проверяем, существует ли путь к папке
+    if (!crmConfig.netVersion) {
+      throw new Error('Версия сети не может быть пустой');
+    }
+    // Проверяем, существует ли путь к папке
+    if (!crmConfig.crmType) {
+      throw new Error('Тип CRM не может быть пустым');
+    }
+
+    // Проверяем, существует ли путь к папке
+    const appPathExists = await this.pathExists(crmConfig.appPath);
+    if (!appPathExists) {
+      throw new Error('Папка приложения не существует');
+    }
+    // Проверяем, существует ли файл резервных копий
+    const backupPathExists = await this.pathExists(crmConfig.backupPath);
+    if (!backupPathExists) {
+      throw new Error('Файл резервных копий не существует');
+    }
+  }
+
+  /**
+   * Проверяет, существует ли конфигурация CRM
+   * @param projectConfig - конфигурация проекта
+   * @returns результат проверки
+   */
+  private async validateCrmSettings(projectConfig: ProjectConfig): Promise<void> {
+    if (!projectConfig.crmConfigs.length) {
+      throw new Error('Конфигурация CRM не найдена');
+    }
+
+    projectConfig.crmConfigs.forEach(async (crmConfig) => {
+      await this.validateCrmSetting(projectConfig, crmConfig);
+    });
+  }
+
+  /**
+   * Проверяет, существует ли путь
+   * @param path - путь
+   * @returns true, если путь существует, false в противном случае
+   */
   private async pathExists(path: string): Promise<boolean> {
     try {
       await fs.access(path);

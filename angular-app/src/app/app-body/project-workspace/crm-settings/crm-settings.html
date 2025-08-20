@@ -15,12 +15,6 @@
         <h3>Основные настройки</h3>
         
         <div class="form-row">
-          <mat-checkbox [(ngModel)]="isEnabled" color="primary">
-            Включить CRM контейнер
-          </mat-checkbox>
-        </div>
-        
-        <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Название контейнера</mat-label>
             <input matInput 
@@ -62,12 +56,25 @@
                    placeholder="/path/to/crm/app"
                    [disabled]="!isEnabled"
                    required>
-            <mat-hint>Путь к файлам приложения CRM</mat-hint>
+            <button matSuffix 
+                    mat-icon-button 
+                    type="button"
+                    (click)="onSelectAppPath()"
+                    [disabled]="!isEnabled"
+                    matTooltip="Выбрать папку приложения">
+              <mat-icon>folder_open</mat-icon>
+            </button>
+            <mat-hint *ngIf="!appPathError">Путь к файлам приложения</mat-hint>
+            <mat-hint *ngIf="appPathError" class="error-hint">
+              Папка приложения должна находится в корне текущего проекта
+            </mat-hint>
           </mat-form-field>
         </div>
         
         <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="outline" 
+                         class="full-width"
+                         [class.error-field]="backupPathError">
             <mat-label>Путь к резервной копии</mat-label>
             <input matInput 
                    [(ngModel)]="backupPath" 
@@ -75,7 +82,18 @@
                    placeholder="/path/to/backups"
                    [disabled]="!isEnabled"
                    required>
-            <mat-hint>Путь для хранения резервных копий</mat-hint>
+            <button matSuffix 
+                    mat-icon-button 
+                    type="button"
+                    (click)="onSelectBackupPath()"
+                    [disabled]="!isEnabled"
+                    matTooltip="Выбрать папку для резервных копий">
+              <mat-icon>folder_open</mat-icon>
+            </button>
+            <mat-hint *ngIf="!backupPathError">Путь для хранения резервных копий</mat-hint>
+            <mat-hint *ngIf="backupPathError" class="error-hint">
+              Файл должен иметь расширение .backup
+            </mat-hint>
           </mat-form-field>
         </div>
       </div>
