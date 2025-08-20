@@ -98,6 +98,43 @@
   font-weight: 600;
 }
 
+/* Стили для кнопок навигации */
+.nav-button {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/* Индикатор несохраненных изменений */
+.unsaved-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: #ff6b6b;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-50%) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
 .main-content p {
   margin: 0 0 1rem 0;
   color: #666;

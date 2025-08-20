@@ -18,7 +18,8 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Название проекта</mat-label>
             <input matInput 
-                   [(ngModel)]="projectName" 
+                   [(ngModel)]="projectName"
+                   (change)="onProjectNameChange()"
                    placeholder="Введите название проекта"
                    required>
             <mat-hint>Укажите уникальное название вашего проекта</mat-hint>
@@ -56,7 +57,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!projectName">
+              [disabled]="!projectName || projectConfig?.isSave">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

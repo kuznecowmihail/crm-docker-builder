@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ProjectConfig, PostgresConfig } from '@shared/api';
+import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
   selector: 'app-postgres-settings',
@@ -42,11 +43,12 @@ export class PostgresSettings {
   user: string = 'puser';
   password: string = 'puser';
   isEnabled: boolean = true;
-
+  
   /**
    * Конструктор
+   * @param electronService - сервис для работы с Electron
    */
-  constructor() {}
+  constructor(private electronService: ElectronService) {}
 
   /**
    * Обработчик инициализации компоненты
@@ -64,9 +66,53 @@ export class PostgresSettings {
   }
 
   /**
+   * Обработчик изменения названия контейнера
+   */
+  onContainerNameChange() {
+    console.log('PostgresSettings: Изменение названия контейнера:', this.containerName);
+    
+    if (this.projectConfig?.postgresConfig) {
+      this.projectConfig.postgresConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения порта
+   */
+  onPortChange() {
+    console.log('PostgresSettings: Изменение порта:', this.port);
+    
+    if (this.projectConfig?.postgresConfig) {
+      this.projectConfig.postgresConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения пользователя
+   */
+  onUserChange() {
+    console.log('PostgresSettings: Изменение пользователя:', this.user);
+    
+    if (this.projectConfig?.postgresConfig) {
+      this.projectConfig.postgresConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения пароля
+   */
+  onPasswordChange() {
+    console.log('PostgresSettings: Изменение пароля:', this.password);
+
+    if (this.projectConfig?.postgresConfig) {
+      this.projectConfig.postgresConfig.isSave = false;
+    }
+  }
+
+  /**
    * Обработчик сохранения изменений
    */
-  onSaveChanges() {
+  async onSaveChanges() {
     console.log('PostgresSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
@@ -79,6 +125,13 @@ export class PostgresSettings {
       this.projectConfig.postgresConfig.port = this.port;
       this.projectConfig.postgresConfig.user = this.user;
       this.projectConfig.postgresConfig.password = this.password;
+
+      const result = await this.electronService.savePostgresSettings(this.projectConfig, this.projectConfig.postgresConfig);
+      console.log('result', result);
+
+      await this.electronService.showNotification('Сохранить проект', result.message);
+
+      this.projectConfig.postgresConfig.isSave = result.success;
     }
   }
 
@@ -94,6 +147,7 @@ export class PostgresSettings {
       this.port = config.port || 5432;
       this.user = config.user || 'puser';
       this.password = config.password || 'puser';
+      this.projectConfig.postgresConfig.isSave = true;
     }
   }
 

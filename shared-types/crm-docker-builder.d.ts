@@ -16,12 +16,15 @@ export interface ProjectConfig {
   pgAdminConfig: PgAdminConfig;
   redisConfig: RedisConfig;
   crmConfigs: CrmConfig[];
+  isSave: boolean;
 }
 
 export interface BaseContainerConfig {
+  id: string;
   containerName: string;
   port: number;
   volumePath: string;
+  isSave: boolean;
 }
 
 export interface PostgresConfig extends BaseContainerConfig {
@@ -54,4 +57,14 @@ export interface CrmDockerBuilderSystemAPI {
   createProject: (path: string) => Promise<InitProjectResult>;
   // Открытие проекта
   openProject: (path: string) => Promise<InitProjectResult>;
+  // Сохранение проекта
+  saveGeneralProjectSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+  // Сохранение настроек Postgres 
+  savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => Promise<InitProjectResult>;
+  savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => Promise<InitProjectResult>;
+  // Сохранение настроек Redis
+  saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<InitProjectResult>;
+  // Сохранение настроек CRM
+  saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
+  saveCrmSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
 }

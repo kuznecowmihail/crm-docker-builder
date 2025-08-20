@@ -25,6 +25,7 @@
             <mat-label>Название контейнера</mat-label>
             <input matInput 
                    [(ngModel)]="containerName" 
+                   (change)="onContainerNameChange()"
                    placeholder="crm-container"
                    [disabled]="!isEnabled"
                    required>
@@ -38,6 +39,7 @@
             <input matInput 
                    type="number"
                    [(ngModel)]="port" 
+                   (change)="onPortChange()"
                    placeholder="80"
                    [disabled]="!isEnabled"
                    min="1"
@@ -56,6 +58,7 @@
             <mat-label>Путь к приложению</mat-label>
             <input matInput 
                    [(ngModel)]="appPath" 
+                   (change)="onAppPathChange()"
                    placeholder="/path/to/crm/app"
                    [disabled]="!isEnabled"
                    required>
@@ -68,6 +71,7 @@
             <mat-label>Путь к резервной копии</mat-label>
             <input matInput 
                    [(ngModel)]="backupPath" 
+                   (change)="onBackupPathChange()"
                    placeholder="/path/to/backups"
                    [disabled]="!isEnabled"
                    required>
@@ -82,7 +86,7 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="crm-type-field">
             <mat-label>Тип CRM</mat-label>
-            <mat-select [(ngModel)]="crmType" [disabled]="!isEnabled">
+            <mat-select [(ngModel)]="crmType" [disabled]="!isEnabled" (change)="onCrmTypeChange()">
               <mat-option value="creatio">Creatio</mat-option>
               <mat-option value="bpmsoft">BPMSoft</mat-option>
             </mat-select>
@@ -91,7 +95,7 @@
           
           <mat-form-field appearance="outline" class="db-type-field">
             <mat-label>Тип базы данных</mat-label>
-            <mat-select [(ngModel)]="dbType" [disabled]="!isEnabled">
+            <mat-select [(ngModel)]="dbType" [disabled]="!isEnabled" (change)="onDbTypeChange()">
               <mat-option value="postgres">PostgreSQL</mat-option>
               <mat-option value="mssql">Microsoft SQL Server</mat-option>
             </mat-select>
@@ -102,10 +106,8 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="net-version-field">
             <mat-label>Версия .NET</mat-label>
-            <mat-select [(ngModel)]="netVersion" [disabled]="!isEnabled">
-              <mat-option value="4.8">.NET Framework 4.8</mat-option>
-              <mat-option value="6.0">.NET 6.0</mat-option>
-              <mat-option value="7.0">.NET 7.0</mat-option>
+            <mat-select [(ngModel)]="netVersion" [disabled]="!isEnabled" (change)="onNetVersionChange()">
+              <mat-option value="3.1">.NET 3.1</mat-option>
               <mat-option value="8.0">.NET 8.0</mat-option>
             </mat-select>
             <mat-hint>Версия .NET Framework</mat-hint>
@@ -116,6 +118,7 @@
             <input matInput 
                    type="number"
                    [(ngModel)]="redisDb" 
+                   (change)="onRedisDbChange()"
                    placeholder="0"
                    [disabled]="!isEnabled"
                    min="0"
@@ -184,7 +187,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !appPath || !backupPath">
+              [disabled]="!isEnabled || !containerName || !port || !appPath || !backupPath || crmConfig?.isSave">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

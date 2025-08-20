@@ -5,7 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { ProjectConfig } from '@shared/api';
+import { CrmConfig, ProjectConfig } from '@shared/api';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { GeneralProjectSettings } from './general-project-settings/general-project-settings';
@@ -55,7 +55,7 @@ export class ProjectWorkspace {
   /**
    * Выбранная конфигурация CRM
    */
-  selectedCrmConfig: any = null;
+  selectedCrmConfig: CrmConfig | null = null;
 
   /**
    * Конструктор
@@ -87,8 +87,10 @@ export class ProjectWorkspace {
   /**
    * Обработчик выбора секции
    */
-  onSectionSelect(section: string, crmConfig?: any) {
+  onSectionSelect(section: string, crmConfig?: CrmConfig) {
     console.log('Выбрана секция:', section, 'CRM конфигурация:', crmConfig);
+    this.activeSection = '';
+    this.selectedCrmConfig = null;
     this.activeSection = section;
     if (section === 'crm' && crmConfig) {
       this.selectedCrmConfig = crmConfig;
@@ -104,6 +106,7 @@ export class ProjectWorkspace {
     console.log('Добавление CRM');
 
     this.projectConfig?.crmConfigs.push({
+      id: this.generateId(),
       containerName: 'crm-bpmsoft',
       port: 80,
       volumePath: `${this.projectConfig?.projectPath}/crm-bpmsoft`,
@@ -112,7 +115,16 @@ export class ProjectWorkspace {
       redisDb: 0,
       dbType: 'postgres',
       netVersion: '8.0',
-      crmType: 'bpmsoft'
+      crmType: 'bpmsoft',
+      isSave: false
     });
+  }
+
+  /**
+   * Генерирует уникальный идентификатор
+   * @returns уникальный идентификатор
+   */
+  private generateId(): string {
+    return crypto.randomUUID();
   }
 }

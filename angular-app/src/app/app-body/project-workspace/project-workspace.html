@@ -19,9 +19,10 @@
             </mat-panel-title>
           </mat-expansion-panel-header>
             <div class="panel-content">
-              <button mat-button (click)="onSectionSelect('general')">
+              <button mat-button (click)="onSectionSelect('general')" class="nav-button">
                 <mat-icon>settings</mat-icon>
                 Общие настройки проекта
+                <span class="unsaved-indicator" *ngIf="!projectConfig?.isSave"></span>
               </button>
             </div>
         </mat-expansion-panel>
@@ -33,18 +34,21 @@
               Базы данных
             </mat-panel-title>
           </mat-expansion-panel-header>
-                      <div class="panel-content">
-              <button mat-button (click)="onSectionSelect('postgres')">
+            <div class="panel-content">
+              <button mat-button (click)="onSectionSelect('postgres')" class="nav-button">
                 <mat-icon>storage</mat-icon>
                 Postgres
+                <span class="unsaved-indicator" *ngIf="!projectConfig?.postgresConfig?.isSave"></span>
               </button>
-              <button mat-button (click)="onSectionSelect('pgadmin')">
+              <button mat-button (click)="onSectionSelect('pgadmin')" class="nav-button">
                 <mat-icon>admin_panel_settings</mat-icon>
                 PgAdmin
+                <span class="unsaved-indicator" *ngIf="!projectConfig?.pgAdminConfig?.isSave"></span>
               </button>
-              <button mat-button (click)="onSectionSelect('redis')">
+              <button mat-button (click)="onSectionSelect('redis')" class="nav-button">
                 <mat-icon>memory</mat-icon>
                 Redis
+                <span class="unsaved-indicator" *ngIf="!projectConfig?.redisConfig?.isSave"></span>
               </button>
             </div>
         </mat-expansion-panel>
@@ -62,9 +66,10 @@
             </mat-panel-description>
           </mat-expansion-panel-header>
           <div class="panel-content">
-            <button *ngFor="let crm of projectConfig?.crmConfigs" mat-button (click)="onSectionSelect('crm', crm)">
+            <button *ngFor="let crm of projectConfig?.crmConfigs" mat-button (click)="onSectionSelect('crm', crm)" class="nav-button">
               <mat-icon>business</mat-icon>
               {{crm.containerName}}
+              <span class="unsaved-indicator" *ngIf="!crm.isSave"></span>
             </button>
           </div>
         </mat-expansion-panel>

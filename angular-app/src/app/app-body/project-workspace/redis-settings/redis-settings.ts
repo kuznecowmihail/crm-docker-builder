@@ -9,7 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSliderModule } from '@angular/material/slider';
-import { ProjectConfig, RedisConfig } from '@shared/api';
+import { ProjectConfig } from '@shared/api';
+import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
   selector: 'app-redis-settings',
@@ -46,6 +47,12 @@ export class RedisSettings {
   isEnabled: boolean = true;
   maxMemory: string = '256mb';
   maxMemoryValue: number = 256;
+  
+  /**
+   * Конструктор
+   * @param electronService - сервис для работы с Electron
+   */
+  constructor(private electronService: ElectronService) {}
 
   /**
    * Обработчик инициализации компоненты
@@ -67,9 +74,42 @@ export class RedisSettings {
   }
 
   /**
+   * Обработчик изменения названия контейнера
+   */
+  onContainerNameChange() {
+    console.log('RedisSettings: Изменение названия контейнера:', this.containerName);
+
+    if (this.projectConfig?.redisConfig) {
+      this.projectConfig.redisConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения порта
+   */
+  onPortChange() {
+    console.log('RedisSettings: Изменение порта:', this.port);
+
+    if (this.projectConfig?.redisConfig) {
+      this.projectConfig.redisConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения пароля
+   */
+  onPasswordChange() {
+    console.log('RedisSettings: Изменение пароля:', this.password);
+
+    if (this.projectConfig?.redisConfig) {
+      this.projectConfig.redisConfig.isSave = false;
+    }
+  }
+
+  /**
    * Обработчик сохранения изменений
    */
-  onSaveChanges() {
+  async onSaveChanges() {
     console.log('RedisSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
@@ -77,7 +117,20 @@ export class RedisSettings {
       dbCount: this.dbCount,
       maxMemory: this.maxMemory
     });
-    // Здесь будет логика сохранения
+
+    if (this.projectConfig?.redisConfig) {
+      this.projectConfig.redisConfig.containerName = this.containerName;
+      this.projectConfig.redisConfig.port = this.port;
+      this.projectConfig.redisConfig.password = this.password;
+      this.projectConfig.redisConfig.dbCount = this.dbCount;
+
+      const result = await this.electronService.saveRedisSettings(this.projectConfig, this.projectConfig.redisConfig);
+      console.log('result', result);
+
+      await this.electronService.showNotification('Сохранить проект', result.message);
+
+      this.projectConfig.redisConfig.isSave = result.success;
+    }
   }
 
   /**
@@ -92,6 +145,7 @@ export class RedisSettings {
       this.volumePath = config.volumePath || '';
       this.password = config.password || '';
       this.dbCount = config.dbCount || 16;
+      this.projectConfig.redisConfig.isSave = true;
     }
     
     // Сброс значений памяти

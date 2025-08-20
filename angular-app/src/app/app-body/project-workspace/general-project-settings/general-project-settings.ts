@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { ProjectConfig } from '@shared/api';
+import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
   selector: 'app-general-project-settings',
@@ -30,30 +31,57 @@ export class GeneralProjectSettings {
   @Input() projectConfig: ProjectConfig | null = null;
 
   /**
-   * Поля для редактирования
+   * Название проекта
    */
-  projectName: string = '';
+  projectName: string = 'crm-docker-project';
+  
+  /**
+   * Конструктор
+   * @param electronService - сервис для работы с Electron
+   */
+  constructor(private electronService: ElectronService) {}
 
   /**
    * Обработчик инициализации компоненты
    */
   ngOnInit() {
     console.log('GeneralProjectSettings: Инициализация с конфигурацией:', this.projectConfig);
+    
     if (this.projectConfig) {
-      this.projectName = this.projectConfig.projectName || '';
+      this.projectName = this.projectConfig.projectName || 'crm-docker-project';
+    }
+  }
+
+  /**
+   * Обработчик изменения названия проекта
+   */
+  onProjectNameChange() {
+    console.log('GeneralProjectSettings: Изменение названия проекта:', this.projectName);
+
+    if (this.projectConfig) {
+      this.projectConfig.isSave = false;
     }
   }
 
   /**
    * Обработчик сохранения изменений
    */
-  onSaveChanges() {
+  async onSaveChanges() {
     console.log('GeneralProjectSettings: Сохранение изменений:', {
       projectName: this.projectName,
     });
 
     if (this.projectConfig) {
       this.projectConfig.projectName = this.projectName;
+      this.projectConfig.modifiedOn = new Date().toISOString();
+      this.projectConfig.isSave = true;
+
+      const result = await this.electronService.saveGeneralProjectSettings(this.projectConfig);
+      console.log('result', result);
+
+      await this.electronService.showNotification('Сохранить проект', result.message);
+
+      this.projectConfig.isSave = result.success;
     }
   }
 
@@ -64,7 +92,8 @@ export class GeneralProjectSettings {
     console.log('GeneralProjectSettings: Отмена изменений');
 
     if (this.projectConfig) {
-      this.projectName = this.projectConfig.projectName || '';
+      this.projectName = this.projectConfig.projectName || 'crm-docker-project';
+      this.projectConfig.isSave = true;
     }
   }
 }

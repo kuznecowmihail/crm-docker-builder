@@ -82,7 +82,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: puser
       PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
-      - ./pgadmin-volumes/pgadmin-data/:/var/lib/pgadmin
+      - ./pgadmin-volumes/:/var/lib/pgadmin
     ports:
       - 5434:80
     restart: unless-stopped

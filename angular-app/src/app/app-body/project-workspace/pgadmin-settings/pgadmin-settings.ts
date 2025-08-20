@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ProjectConfig, PgAdminConfig } from '@shared/api';
+import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
   selector: 'app-pgadmin-settings',
@@ -42,6 +43,12 @@ export class PgAdminSettings {
   email: string = 'admin@example.com';
   password: string = 'puser';
   isEnabled: boolean = true;
+  
+  /**
+   * Конструктор
+   * @param electronService - сервис для работы с Electron
+   */
+  constructor(private electronService: ElectronService) {}
 
   /**
    * Обработчик инициализации компоненты
@@ -59,9 +66,53 @@ export class PgAdminSettings {
   }
 
   /**
+   * Обработчик изменения названия контейнера
+   */
+  onContainerNameChange() {
+    console.log('PgAdminSettings: Изменение названия контейнера:', this.containerName);
+
+    if (this.projectConfig?.pgAdminConfig) {
+      this.projectConfig.pgAdminConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения порта
+   */
+  onPortChange() {
+    console.log('PgAdminSettings: Изменение порта:', this.port);
+
+    if (this.projectConfig?.pgAdminConfig) {
+      this.projectConfig.pgAdminConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения email
+   */
+  onEmailChange() {
+    console.log('PgAdminSettings: Изменение email:', this.email);
+
+    if (this.projectConfig?.pgAdminConfig) {
+      this.projectConfig.pgAdminConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения пароля
+   */
+  onPasswordChange() {
+    console.log('PgAdminSettings: Изменение пароля:', this.password);
+
+    if (this.projectConfig?.pgAdminConfig) {
+      this.projectConfig.pgAdminConfig.isSave = false;
+    }
+  }
+
+  /**
    * Обработчик сохранения изменений
    */
-  onSaveChanges() {
+  async onSaveChanges() {
     console.log('PgAdminSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
@@ -74,6 +125,13 @@ export class PgAdminSettings {
       this.projectConfig.pgAdminConfig.port = this.port;
       this.projectConfig.pgAdminConfig.email = this.email;
       this.projectConfig.pgAdminConfig.password = this.password;
+
+      const result = await this.electronService.savePgAdminSettings(this.projectConfig, this.projectConfig.pgAdminConfig);
+      console.log('result', result);
+
+      await this.electronService.showNotification('Сохранить проект', result.message);
+      
+      this.projectConfig.pgAdminConfig.isSave = result.success;
     } 
   }
 
@@ -90,6 +148,7 @@ export class PgAdminSettings {
       this.volumePath = config.volumePath || 'pgadmin-volumes';
       this.email = config.email || 'admin@example.com';
       this.password = config.password || 'puser';
+      this.projectConfig.pgAdminConfig.isSave = true;
     }
   }
 

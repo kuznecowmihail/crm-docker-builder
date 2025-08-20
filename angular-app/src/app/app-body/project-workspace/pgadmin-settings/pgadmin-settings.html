@@ -19,6 +19,7 @@
             <mat-label>Название контейнера</mat-label>
             <input matInput 
                    [(ngModel)]="containerName" 
+                   (change)="onContainerNameChange()"
                    placeholder="pgadmin-container"
                    [disabled]="!isEnabled"
                    required>
@@ -50,6 +51,7 @@
             <mat-label>Email</mat-label>
             <input matInput 
                    [(ngModel)]="email" 
+                   (change)="onEmailChange()"
                    type="email"
                    placeholder="admin@example.com"
                    [disabled]="!isEnabled"
@@ -63,6 +65,7 @@
             <mat-label>Пароль</mat-label>
             <input matInput 
                    [(ngModel)]="password"
+                   (change)="onPasswordChange()"
                    placeholder="Введите пароль"
                    [disabled]="!isEnabled"
                    required>
@@ -123,7 +126,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !email || !password">
+              [disabled]="!isEnabled || !containerName || !port || !email || !password || projectConfig?.pgAdminConfig?.isSave">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

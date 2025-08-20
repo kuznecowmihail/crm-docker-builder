@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI } from '@shared/api';
+import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig } from '@shared/api';
 
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
@@ -25,6 +25,13 @@ const IPC_CHANNELS = {
   CRM_DOCKER_BUILDER_SYSTEM: {
     CREATE_PROJECT: 'crm-docker-builder:create-project',
     OPEN_PROJECT: 'crm-docker-builder:open-project',
+    SAVE_GENERAL_PROJECT_SETTINGS: 'crm-docker-builder:save-general-project-settings',
+    SAVE_POSTGRES_SETTINGS: 'crm-docker-builder:save-postgres-settings',
+    SAVE_PGADMIN_SETTINGS: 'crm-docker-builder:save-pgadmin-settings',
+    SAVE_REDIS_SETTINGS: 'crm-docker-builder:save-redis-settings',
+    SAVE_CRM_SETTING: 'crm-docker-builder:save-crm-setting',
+    SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings',
+    SAVE_ALL: 'crm-docker-builder:save-all'
   },
 } as const;
 
@@ -50,4 +57,11 @@ contextBridge.exposeInMainWorld('fileSystemAPI', {
 contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   createProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.CREATE_PROJECT, path),
   openProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.OPEN_PROJECT, path),
+  saveGeneralProjectSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_GENERAL_PROJECT_SETTINGS, projectConfig),
+  savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
+  savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
+  saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
+  saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
+  saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
+  saveAll: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_ALL, projectConfig),
 } as CrmDockerBuilderSystemAPI);

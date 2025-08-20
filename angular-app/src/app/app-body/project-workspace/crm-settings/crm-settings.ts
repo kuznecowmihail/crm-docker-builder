@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,9 +9,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ProjectConfig, CrmConfig } from '@shared/api';
+import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
   selector: 'app-crm-settings',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -27,7 +29,7 @@ import { ProjectConfig, CrmConfig } from '@shared/api';
   templateUrl: './crm-settings.html',
   styleUrl: './crm-settings.css'
 })
-export class CrmSettings {
+export class CrmSettings implements OnChanges {
   /**
    * Конфигурация проекта
    */
@@ -50,6 +52,23 @@ export class CrmSettings {
   netVersion: string = '8.0';
   crmType: string = 'bpmsoft';
   isEnabled: boolean = true;
+  
+  /**
+   * Конструктор
+   * @param electronService - сервис для работы с Electron
+   */
+  constructor(private electronService: ElectronService) {}
+
+  /**
+   * Обработчик изменений входных параметров
+   */
+  ngOnChanges(changes: SimpleChanges) {
+    console.log('CrmSettings: Изменения входных параметров:', changes);
+    
+    if (changes['crmConfig'] && this.crmConfig) {
+      this.updateFormValues();
+    }
+  }
 
   /**
    * Обработчик инициализации компоненты
@@ -57,21 +76,110 @@ export class CrmSettings {
   ngOnInit() {
     console.log('CrmSettings: Инициализация с конфигурацией:', this.crmConfig);
     if (this.crmConfig) {
+      this.updateFormValues();
+    }
+  }
+
+  /**
+   * Обновление значений формы из конфигурации
+   */
+  private updateFormValues() {
+    if (this.crmConfig) {
       this.containerName = this.crmConfig.containerName || '';
       this.port = this.crmConfig.port || 80;
       this.appPath = this.crmConfig.appPath || '';
       this.backupPath = this.crmConfig.backupPath || '';
       this.redisDb = this.crmConfig.redisDb || 0;
       this.dbType = this.crmConfig.dbType || 'postgres';
-      this.netVersion = this.crmConfig.netVersion || '4.8';
-      this.crmType = this.crmConfig.crmType || 'creatio';
+      this.netVersion = this.crmConfig.netVersion || '8.0';
+      this.crmType = this.crmConfig.crmType || 'bpmsoft';
+    }
+  }
+
+  /**
+   * Обработчик изменения названия контейнера
+   */
+  onContainerNameChange() {
+    console.log('CrmSettings: Изменение названия контейнера:', this.containerName);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения порта
+   */
+  onPortChange() {
+    console.log('CrmSettings: Изменение порта:', this.port);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения пути к приложению
+   */
+  onAppPathChange() {
+    console.log('CrmSettings: Изменение пути к приложению:', this.appPath);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения пути к резервной копии
+   */
+  onBackupPathChange() {
+    console.log('CrmSettings: Изменение пути к резервной копии:', this.backupPath);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения типа CRM
+   */
+  onCrmTypeChange() {
+    console.log('CrmSettings: Изменение типа CRM:', this.crmType);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения типа базы данных
+   */
+  onDbTypeChange() {
+    console.log('CrmSettings: Изменение типа базы данных:', this.dbType);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения версии .NET
+   */
+  onNetVersionChange() {
+    console.log('CrmSettings: Изменение версии .NET:', this.netVersion);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
+    }
+  }
+
+  /**
+   * Обработчик изменения номера базы данных Redis
+   */
+  onRedisDbChange() {
+    console.log('CrmSettings: Изменение номера базы данных Redis:', this.redisDb);
+    if (this.crmConfig) {
+      this.crmConfig.isSave = false;
     }
   }
 
   /**
    * Обработчик сохранения изменений
    */
-  onSaveChanges() {
+  async onSaveChanges() {
     console.log('CrmSettings: Сохранение изменений:', {
       containerName: this.containerName,
       port: this.port,
@@ -84,12 +192,19 @@ export class CrmSettings {
       isEnabled: this.isEnabled
     });
     
-    if (this.crmConfig) {
+    if (this.crmConfig && this.projectConfig) {
       this.crmConfig.containerName = this.containerName;
       this.crmConfig.port = this.port;
       this.crmConfig.appPath = this.appPath;
       this.crmConfig.backupPath = this.backupPath;
       this.crmConfig.redisDb = this.redisDb;
+
+      const result = await this.electronService.saveCrmSetting(this.projectConfig, this.crmConfig);
+      console.log('result', result);
+
+      await this.electronService.showNotification('Сохранить проект', result.message);
+
+      this.crmConfig.isSave = result.success;
     }
   }
 
@@ -98,15 +213,10 @@ export class CrmSettings {
    */
   onCancelChanges() {
     console.log('CrmSettings: Отмена изменений');
+
     if (this.crmConfig) {
-      this.containerName = this.crmConfig.containerName || '';
-      this.port = this.crmConfig.port || 80;
-      this.appPath = this.crmConfig.appPath || '';
-      this.backupPath = this.crmConfig.backupPath || '';
-      this.redisDb = this.crmConfig.redisDb || 0;
-      this.dbType = this.crmConfig.dbType || 'postgres';
-      this.netVersion = this.crmConfig.netVersion || '4.8';
-      this.crmType = this.crmConfig.crmType || 'creatio';
+      this.updateFormValues();
+      this.crmConfig.isSave = true;
     }
   }
 

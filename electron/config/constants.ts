@@ -38,5 +38,12 @@ export const IPC_CHANNELS = {
   CRM_DOCKER_BUILDER_SYSTEM: {
     CREATE_PROJECT: 'crm-docker-builder:create-project',
     OPEN_PROJECT: 'crm-docker-builder:open-project',
+    SAVE_GENERAL_PROJECT_SETTINGS: 'crm-docker-builder:save-general-project-settings',
+    SAVE_POSTGRES_SETTINGS: 'crm-docker-builder:save-postgres-settings',
+    SAVE_PGADMIN_SETTINGS: 'crm-docker-builder:save-pgadmin-settings',
+    SAVE_REDIS_SETTINGS: 'crm-docker-builder:save-redis-settings',
+    SAVE_CRM_SETTING: 'crm-docker-builder:save-crm-setting',
+    SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings',
+    SAVE_ALL: 'crm-docker-builder:save-all'
   }
 } as const;

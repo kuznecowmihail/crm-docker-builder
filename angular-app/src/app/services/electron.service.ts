@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult } from '@shared/api';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -150,5 +150,47 @@ export class ElectronService {
     }
 
     return await this.crmDockerBuilderSystemAPI.openProject(path);
+  }
+
+  async saveGeneralProjectSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.saveGeneralProjectSettings(projectConfig);
+  }
+
+  async savePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.savePostgresSettings(projectConfig, postgresConfig);
+  }
+
+  async savePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.savePgAdminSettings(projectConfig, pgAdminConfig);
+  }
+
+  async saveRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.saveRedisSettings(projectConfig, redisConfig);
+  }
+
+  async saveCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.saveCrmSetting(projectConfig, crmConfig);
+  }
+
+  async saveCrmSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.saveCrmSettings(projectConfig);
   }
 }
