@@ -104,7 +104,7 @@
         <h3>Конфигурация системы</h3>
         
         <div class="form-row">
-          <mat-form-field appearance="outline" class="crm-type-field">
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Тип CRM</mat-label>
             <mat-select [(ngModel)]="crmType" [disabled]="!isEnabled" (change)="onCrmTypeChange()">
               <mat-option value="creatio">Creatio</mat-option>
@@ -113,7 +113,7 @@
             <mat-hint>Выберите тип CRM системы</mat-hint>
           </mat-form-field>
           
-          <mat-form-field appearance="outline" class="db-type-field">
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Тип базы данных</mat-label>
             <mat-select [(ngModel)]="dbType" [disabled]="!isEnabled" (change)="onDbTypeChange()">
               <mat-option value="postgres">PostgreSQL</mat-option>
@@ -124,7 +124,7 @@
         </div>
         
         <div class="form-row">
-          <mat-form-field appearance="outline" class="net-version-field">
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Версия .NET</mat-label>
             <mat-select [(ngModel)]="netVersion" [disabled]="!isEnabled" (change)="onNetVersionChange()">
               <mat-option value="3.1">.NET 3.1</mat-option>
@@ -133,7 +133,7 @@
             <mat-hint>Версия .NET Core</mat-hint>
           </mat-form-field>
           
-          <mat-form-field appearance="outline" class="redis-db-field">
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Redis DB номер</mat-label>
             <input matInput 
                    type="number"
@@ -207,7 +207,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !appPath || !backupPath || crmConfig?.isSave">
+              [disabled]="!isEnabled || !containerName || !port || !appPath || !backupPath">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

@@ -70,10 +70,6 @@ export class PgAdminSettings {
    */
   onContainerNameChange() {
     console.log('PgAdminSettings: Изменение названия контейнера:', this.containerName);
-
-    if (this.projectConfig?.pgAdminConfig) {
-      this.projectConfig.pgAdminConfig.isSave = false;
-    }
   }
 
   /**
@@ -81,10 +77,6 @@ export class PgAdminSettings {
    */
   onPortChange() {
     console.log('PgAdminSettings: Изменение порта:', this.port);
-
-    if (this.projectConfig?.pgAdminConfig) {
-      this.projectConfig.pgAdminConfig.isSave = false;
-    }
   }
 
   /**
@@ -92,10 +84,6 @@ export class PgAdminSettings {
    */
   onEmailChange() {
     console.log('PgAdminSettings: Изменение email:', this.email);
-
-    if (this.projectConfig?.pgAdminConfig) {
-      this.projectConfig.pgAdminConfig.isSave = false;
-    }
   }
 
   /**
@@ -103,10 +91,6 @@ export class PgAdminSettings {
    */
   onPasswordChange() {
     console.log('PgAdminSettings: Изменение пароля:', this.password);
-
-    if (this.projectConfig?.pgAdminConfig) {
-      this.projectConfig.pgAdminConfig.isSave = false;
-    }
   }
 
   /**
@@ -130,8 +114,6 @@ export class PgAdminSettings {
       console.log('result', result);
 
       await this.electronService.showNotification('Сохранить проект', result.message);
-      
-      this.projectConfig.pgAdminConfig.isSave = result.success;
     } 
   }
 
@@ -148,7 +130,6 @@ export class PgAdminSettings {
       this.volumePath = config.volumePath || 'pgadmin-volumes';
       this.email = config.email || 'admin@example.com';
       this.password = config.password || 'puser';
-      this.projectConfig.pgAdminConfig.isSave = true;
     }
   }
 

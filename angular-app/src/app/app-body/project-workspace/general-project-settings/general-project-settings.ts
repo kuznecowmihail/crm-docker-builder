@@ -57,10 +57,6 @@ export class GeneralProjectSettings {
    */
   onProjectNameChange() {
     console.log('GeneralProjectSettings: Изменение названия проекта:', this.projectName);
-
-    if (this.projectConfig) {
-      this.projectConfig.isSave = false;
-    }
   }
 
   /**
@@ -74,14 +70,11 @@ export class GeneralProjectSettings {
     if (this.projectConfig) {
       this.projectConfig.projectName = this.projectName;
       this.projectConfig.modifiedOn = new Date().toISOString();
-      this.projectConfig.isSave = true;
 
       const result = await this.electronService.saveGeneralProjectSettings(this.projectConfig);
       console.log('result', result);
 
       await this.electronService.showNotification('Сохранить проект', result.message);
-
-      this.projectConfig.isSave = result.success;
     }
   }
 
@@ -93,7 +86,6 @@ export class GeneralProjectSettings {
 
     if (this.projectConfig) {
       this.projectName = this.projectConfig.projectName || 'crm-docker-project';
-      this.projectConfig.isSave = true;
     }
   }
 }

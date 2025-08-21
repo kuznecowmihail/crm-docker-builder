@@ -203,13 +203,6 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.saveCrmSettings(projectConfig);
   }
 
-  async saveAll(projectConfig: ProjectConfig): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
-      throw new Error('Electron API недоступен');
-    }
-    return await this.crmDockerBuilderSystemAPI.saveAll(projectConfig);
-  }
-
   async validateGeneralProjectSettings(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -254,19 +247,19 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateCrmSetting(projectConfig, crmConfig);
   }
 
-  async validateAppPath(crmConfig: CrmConfig): Promise<ValidateProjectResult> {
+  async validateAppPath(projectPath: string, appPath: string): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderValidatorSystemAPI.validateAppPath(crmConfig);
+    return await this.crmDockerBuilderValidatorSystemAPI.validateAppPath(projectPath, appPath);
   }
   
   
-  async validateBackupPath(crmConfig: CrmConfig): Promise<ValidateProjectResult> {
+  async validateBackupPath(backupPath: string): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderValidatorSystemAPI.validateBackupPath(crmConfig);
+    return await this.crmDockerBuilderValidatorSystemAPI.validateBackupPath(backupPath);
   }
   
   async validateAll(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {

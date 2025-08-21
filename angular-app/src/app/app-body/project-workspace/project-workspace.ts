@@ -115,8 +115,7 @@ export class ProjectWorkspace {
       redisDb: 0,
       dbType: 'postgres',
       netVersion: '8.0',
-      crmType: 'bpmsoft',
-      isSave: false
+      crmType: 'bpmsoft'
     });
   }
 

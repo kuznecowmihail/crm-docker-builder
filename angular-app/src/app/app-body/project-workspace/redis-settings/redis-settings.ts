@@ -78,10 +78,6 @@ export class RedisSettings {
    */
   onContainerNameChange() {
     console.log('RedisSettings: Изменение названия контейнера:', this.containerName);
-
-    if (this.projectConfig?.redisConfig) {
-      this.projectConfig.redisConfig.isSave = false;
-    }
   }
 
   /**
@@ -89,10 +85,6 @@ export class RedisSettings {
    */
   onPortChange() {
     console.log('RedisSettings: Изменение порта:', this.port);
-
-    if (this.projectConfig?.redisConfig) {
-      this.projectConfig.redisConfig.isSave = false;
-    }
   }
 
   /**
@@ -100,10 +92,6 @@ export class RedisSettings {
    */
   onPasswordChange() {
     console.log('RedisSettings: Изменение пароля:', this.password);
-
-    if (this.projectConfig?.redisConfig) {
-      this.projectConfig.redisConfig.isSave = false;
-    }
   }
 
   /**
@@ -128,8 +116,6 @@ export class RedisSettings {
       console.log('result', result);
 
       await this.electronService.showNotification('Сохранить проект', result.message);
-
-      this.projectConfig.redisConfig.isSave = result.success;
     }
   }
 
@@ -145,7 +131,6 @@ export class RedisSettings {
       this.volumePath = config.volumePath || '';
       this.password = config.password || '';
       this.dbCount = config.dbCount || 16;
-      this.projectConfig.redisConfig.isSave = true;
     }
     
     // Сброс значений памяти

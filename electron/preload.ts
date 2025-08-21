@@ -30,8 +30,7 @@ const IPC_CHANNELS = {
     SAVE_PGADMIN_SETTINGS: 'crm-docker-builder:save-pgadmin-settings',
     SAVE_REDIS_SETTINGS: 'crm-docker-builder:save-redis-settings',
     SAVE_CRM_SETTING: 'crm-docker-builder:save-crm-setting',
-    SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings',
-    SAVE_ALL: 'crm-docker-builder:save-all'
+    SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings'
   },
   CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM: {
     VALIDATE_GENERAL_PROJECT_SETTINGS: 'crm-docker-builder-validator:validate-general-project-settings',
@@ -74,7 +73,6 @@ contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
-  saveAll: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_ALL, projectConfig),
 } as CrmDockerBuilderSystemAPI);
 
 contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
@@ -84,7 +82,7 @@ contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
   validateRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_REDIS_SETTINGS, projectConfig, redisConfig),
   validateCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTINGS, projectConfig),
   validateCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTING, projectConfig, crmConfig),
-  validateAppPath: (crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_APP_PATH, crmConfig),
-  validateBackupPath: (crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_BACKUP_PATH, crmConfig),
+  validateAppPath: (projectPath: string, appPath: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_APP_PATH, projectPath, appPath),
+  validateBackupPath: (backupPath: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_BACKUP_PATH, backupPath),
   validateAll: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_ALL, projectConfig),
 } as CrmDockerBuilderValidatorSystemAPI);

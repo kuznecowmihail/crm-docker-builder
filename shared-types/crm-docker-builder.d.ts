@@ -22,7 +22,6 @@ export interface ProjectConfig {
   pgAdminConfig: PgAdminConfig;
   redisConfig: RedisConfig;
   crmConfigs: CrmConfig[];
-  isSave: boolean;
 }
 
 export interface BaseContainerConfig {
@@ -30,7 +29,6 @@ export interface BaseContainerConfig {
   containerName: string;
   port: number;
   volumePath: string;
-  isSave: boolean;
 }
 
 export interface PostgresConfig extends BaseContainerConfig {
@@ -67,6 +65,7 @@ export interface CrmDockerBuilderSystemAPI {
   saveGeneralProjectSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
   // Сохранение настроек Postgres 
   savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => Promise<InitProjectResult>;
+  // Сохранение настроек PgAdmin
   savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => Promise<InitProjectResult>;
   // Сохранение настроек Redis
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<InitProjectResult>;
@@ -74,8 +73,6 @@ export interface CrmDockerBuilderSystemAPI {
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
   // Сохранение настроек CRM
   saveCrmSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
-  // Сохранение всех настроек
-  saveAll: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
 }
 
 export interface CrmDockerBuilderValidatorSystemAPI {
@@ -92,9 +89,9 @@ export interface CrmDockerBuilderValidatorSystemAPI {
   // Проверка настроек CRM
   validateCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<ValidateProjectResult>;
   // Проверка пути к папке приложения
-  validateAppPath: (crmConfig: CrmConfig) => Promise<ValidateProjectResult>;
+  validateAppPath: (projectPath: string, appPath: string) => Promise<ValidateProjectResult>;
   // Проверка пути к файлу резервных копий
-  validateBackupPath: (crmConfig: CrmConfig) => Promise<ValidateProjectResult>;
+  validateBackupPath: (backupPath: string) => Promise<ValidateProjectResult>;
   // Проверка всех настроек
   validateAll: (projectConfig: ProjectConfig) => Promise<ValidateProjectResult>;
 }

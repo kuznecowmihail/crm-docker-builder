@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import { BaseContainerConfig, CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RedisConfig, ValidateProjectResult } from '@shared/api';
 import { IPC_CHANNELS } from '../config/constants';
 import { IService } from '../interfaces/IService';
@@ -31,12 +32,12 @@ export class CrmDockerBuilderValidatorService implements IService {
       return await this.validateCrmSetting(projectConfig, crmConfig);
     });
 
-    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_APP_PATH, async (event, crmConfig: CrmConfig) => {
-      return await this.validateAppPath(crmConfig);
+    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_APP_PATH, async (event, projectPath: string, appPath: string) => {
+      return await this.validateAppPath(projectPath, appPath);
     });
 
-    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_BACKUP_PATH, async (event, crmConfig: CrmConfig) => {
-      return await this.validateBackupPath(crmConfig);
+    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_BACKUP_PATH, async (event, backupPath: string) => {
+      return await this.validateBackupPath(backupPath);
     });
 
     ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_ALL, async (event, projectConfig: ProjectConfig) => {
@@ -228,7 +229,7 @@ export class CrmDockerBuilderValidatorService implements IService {
     }
 
     // Проверяем, существует ли путь к папке
-    const appPathResult = await this.validateAppPath(crmConfig);
+    const appPathResult = await this.validateAppPath(projectConfig.projectPath, crmConfig.appPath);
     if (!appPathResult.success) {
       return {
         success: false,
@@ -237,7 +238,7 @@ export class CrmDockerBuilderValidatorService implements IService {
     }
 
     // Проверяем, существует ли файл резервных копий
-    const backupPathResult = await this.validateBackupPath(crmConfig);
+    const backupPathResult = await this.validateBackupPath(crmConfig.backupPath);
     if (!backupPathResult.success) {
       return {
         success: false,
@@ -256,38 +257,58 @@ export class CrmDockerBuilderValidatorService implements IService {
    * @param crmConfig - конфигурация CRM
    * @returns результат проверки
    */
-  public async validateAppPath(crmConfig: CrmConfig): Promise<ValidateProjectResult> {
+  public async validateAppPath(projectPath: string, appPath: string): Promise<ValidateProjectResult> {
     let result: ValidateProjectResult = {
       success: true,
       message: 'Все настройки корректны'
     };
-    // Проверяем, существует ли файл резервных копий
-    const appPathExists = await this.pathExists(crmConfig.appPath);
+
+    // Проверяем, что appPath не пустой
+    if (!appPath) {
+      result.success = false;
+      result.message = 'Путь к приложению не может быть пустым';
+      return result;
+    }
+
+    // Проверяем, что appPath находится внутри projectPath
+    if (!this.isPathInside(appPath, projectPath)) {
+      result.success = false;
+      result.message = 'Папка приложения должна находиться внутри папки проекта';
+      return result;
+    }
+
+    // Проверяем, существует ли папка приложения
+    const appPathExists = await this.pathExists(appPath);
     if (!appPathExists) {
       result.success = false;
       result.message = 'Папка приложения не существует';
+      return result;
     }
 
     // Проверяем, существует ли файлы в папке
-    const files = await this.getFilesInDirectory(crmConfig.appPath);
+    const files = await this.getFilesInDirectory(appPath);
     if (files.length === 0) {
       result.success = false;
       result.message = 'Папка приложения пуста';
+      return result;
     }
 
     if (!files.includes('appsettings.json')) {
       result.success = false;
       result.message = 'Файл appsettings.json не найден';
+      return result;
     }
 
     if (!files.includes('ConnectionStrings.config')) {
       result.success = false;
       result.message = 'Файл ConnectionStrings.config не найден';
+      return result;
     }
 
     if (!files.includes('Terrasoft.WebHost.dll.config') && !files.includes('BPMSoft.WebHost.dll.config')) {
       result.success = false;
       result.message = 'Файл Terrasoft.WebHost.dll.config или BPMSoft.WebHost.dll.config не найден';
+      return result;
     }
 
     return result;
@@ -298,20 +319,20 @@ export class CrmDockerBuilderValidatorService implements IService {
    * @param backupPath - путь к файлу резервных копий
    * @returns результат проверки
    */
-  public async validateBackupPath(crmConfig: CrmConfig): Promise<ValidateProjectResult> {
+  public async validateBackupPath(backupPath: string): Promise<ValidateProjectResult> {
     let result: ValidateProjectResult = {
       success: true,
       message: 'Все настройки корректны'
     };
     // Проверяем, существует ли файл резервных копий
-    const backupPathExists = await this.pathExists(crmConfig.backupPath);
+    const backupPathExists = await this.pathExists(backupPath);
     if (!backupPathExists) {
       result.success = false;
       result.message = 'Файл резервных копий не существует';
     }
 
     // Проверяем, существует ли файл резервных копий
-    if (crmConfig.backupPath && !crmConfig.backupPath.endsWith('.backup')) {
+    if (backupPath && !backupPath.endsWith('.backup')) {
       result.success = false;
       result.message = 'Файл резервных копий должен иметь расширение .backup';
     }
@@ -413,6 +434,24 @@ export class CrmDockerBuilderValidatorService implements IService {
     try {
       const files = await fs.readdir(path);
       return files.length === 0;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Проверяет, находится ли один путь внутри другого
+   * @param innerPath - внутренний путь
+   * @param outerPath - внешний путь
+   * @returns true, если innerPath находится внутри outerPath
+   */
+  private isPathInside(innerPath: string, outerPath: string): boolean {
+    try {
+      const normalizedInnerPath = path.resolve(innerPath);
+      const normalizedOuterPath = path.resolve(outerPath);
+      
+      return normalizedInnerPath.startsWith(normalizedOuterPath + path.sep) || 
+             normalizedInnerPath === normalizedOuterPath;
     } catch (error) {
       return false;
     }

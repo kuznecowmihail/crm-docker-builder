@@ -106,6 +106,7 @@ export class CrmSettings implements OnChanges {
       this.netVersion = this.crmConfig.netVersion || '8.0';
       this.crmType = this.crmConfig.crmType || 'bpmsoft';
       this.backupPathError = false; // Сбрасываем ошибку
+      this.appPathError = false; // Сбрасываем ошибку
     }
   }
 
@@ -114,9 +115,6 @@ export class CrmSettings implements OnChanges {
    */
   onContainerNameChange() {
     console.log('CrmSettings: Изменение названия контейнера:', this.containerName);
-    if (this.crmConfig) {
-      this.crmConfig.isSave = false;
-    }
   }
 
   /**
@@ -124,9 +122,16 @@ export class CrmSettings implements OnChanges {
    */
   onPortChange() {
     console.log('CrmSettings: Изменение порта:', this.port);
-    if (this.crmConfig) {
-      this.crmConfig.isSave = false;
-    }
+  }
+
+  /**
+   * Извлекает название папки из пути
+   * @param path - путь к папке
+   * @returns название папки
+   */
+  private getFolderNameFromPath(path: string): string {
+    const pathParts = path.split(/[/\\]/);
+    return pathParts[pathParts.length - 1];
   }
 
   /**
@@ -134,16 +139,20 @@ export class CrmSettings implements OnChanges {
    */
   async onAppPathChange() {
     console.log('CrmSettings: Изменение пути к приложению:', this.appPath);
-    if (this.crmConfig) {
-      const appPathResult = await this.electronService.validateAppPath(this.crmConfig);
+    if (this.crmConfig && this.projectConfig) {
+      const appPathResult = await this.electronService.validateAppPath(this.projectConfig.projectPath, this.appPath);
       if (!appPathResult.success) {
         this.appPathError = true;
         await this.electronService.showNotification('Выберите папку приложения CRM', appPathResult.message);
       } else {
         this.appPathError = false;
       }
-
-      this.crmConfig.isSave = false;
+    }
+    // Устанавливаем название контейнера как название папки из appPath
+    if (this.crmConfig && this.appPath) {
+      const folderName = this.getFolderNameFromPath(this.appPath);
+      this.crmConfig.containerName = folderName;
+      this.containerName = folderName;
     }
   }
 
@@ -154,15 +163,13 @@ export class CrmSettings implements OnChanges {
     console.log('CrmSettings: Изменение пути к резервной копии:', this.backupPath);
 
     if (this.crmConfig) {
-      const backupPathResult = await this.electronService.validateBackupPath(this.crmConfig);
+      const backupPathResult = await this.electronService.validateBackupPath(this.backupPath);
       if (!backupPathResult.success) {
         this.backupPathError = true;
         await this.electronService.showNotification('Выберите файл для резервных копий', backupPathResult.message);
       } else {
         this.backupPathError = false;
       }
-
-      this.crmConfig.isSave = false;
     }
   }
 
@@ -171,9 +178,6 @@ export class CrmSettings implements OnChanges {
    */
   onCrmTypeChange() {
     console.log('CrmSettings: Изменение типа CRM:', this.crmType);
-    if (this.crmConfig) {
-      this.crmConfig.isSave = false;
-    }
   }
 
   /**
@@ -181,9 +185,6 @@ export class CrmSettings implements OnChanges {
    */
   onDbTypeChange() {
     console.log('CrmSettings: Изменение типа базы данных:', this.dbType);
-    if (this.crmConfig) {
-      this.crmConfig.isSave = false;
-    }
   }
 
   /**
@@ -191,9 +192,6 @@ export class CrmSettings implements OnChanges {
    */
   onNetVersionChange() {
     console.log('CrmSettings: Изменение версии .NET:', this.netVersion);
-    if (this.crmConfig) {
-      this.crmConfig.isSave = false;
-    }
   }
 
   /**
@@ -201,9 +199,6 @@ export class CrmSettings implements OnChanges {
    */
   onRedisDbChange() {
     console.log('CrmSettings: Изменение номера базы данных Redis:', this.redisDb);
-    if (this.crmConfig) {
-      this.crmConfig.isSave = false;
-    }
   }
 
   /**
@@ -226,6 +221,7 @@ export class CrmSettings implements OnChanges {
       this.crmConfig.containerName = this.containerName;
       this.crmConfig.port = this.port;
       this.crmConfig.appPath = this.appPath;
+      this.crmConfig.volumePath = this.appPath;
       this.crmConfig.backupPath = this.backupPath;
       this.crmConfig.redisDb = this.redisDb;
 
@@ -233,8 +229,6 @@ export class CrmSettings implements OnChanges {
       console.log('result', result);
 
       await this.electronService.showNotification('Сохранить проект', result.message);
-
-      this.crmConfig.isSave = result.success;
     }
   }
 
@@ -243,11 +237,7 @@ export class CrmSettings implements OnChanges {
    */
   onCancelChanges() {
     console.log('CrmSettings: Отмена изменений');
-
-    if (this.crmConfig) {
-      this.updateFormValues();
-      this.crmConfig.isSave = true;
-    }
+    this.updateFormValues();
   }
 
   /**

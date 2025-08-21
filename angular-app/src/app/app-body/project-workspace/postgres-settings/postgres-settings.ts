@@ -70,10 +70,6 @@ export class PostgresSettings {
    */
   onContainerNameChange() {
     console.log('PostgresSettings: Изменение названия контейнера:', this.containerName);
-    
-    if (this.projectConfig?.postgresConfig) {
-      this.projectConfig.postgresConfig.isSave = false;
-    }
   }
 
   /**
@@ -81,10 +77,6 @@ export class PostgresSettings {
    */
   onPortChange() {
     console.log('PostgresSettings: Изменение порта:', this.port);
-    
-    if (this.projectConfig?.postgresConfig) {
-      this.projectConfig.postgresConfig.isSave = false;
-    }
   }
 
   /**
@@ -92,10 +84,6 @@ export class PostgresSettings {
    */
   onUserChange() {
     console.log('PostgresSettings: Изменение пользователя:', this.user);
-    
-    if (this.projectConfig?.postgresConfig) {
-      this.projectConfig.postgresConfig.isSave = false;
-    }
   }
 
   /**
@@ -103,10 +91,6 @@ export class PostgresSettings {
    */
   onPasswordChange() {
     console.log('PostgresSettings: Изменение пароля:', this.password);
-
-    if (this.projectConfig?.postgresConfig) {
-      this.projectConfig.postgresConfig.isSave = false;
-    }
   }
 
   /**
@@ -130,8 +114,6 @@ export class PostgresSettings {
       console.log('result', result);
 
       await this.electronService.showNotification('Сохранить проект', result.message);
-
-      this.projectConfig.postgresConfig.isSave = result.success;
     }
   }
 
@@ -147,7 +129,6 @@ export class PostgresSettings {
       this.port = config.port || 5432;
       this.user = config.user || 'puser';
       this.password = config.password || 'puser';
-      this.projectConfig.postgresConfig.isSave = true;
     }
   }
 

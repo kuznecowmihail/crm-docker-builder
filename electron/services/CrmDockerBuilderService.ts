@@ -46,11 +46,6 @@ export class CrmDockerBuilderService implements IService {
     ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTINGS, async (event, projectConfig: ProjectConfig) => {
       return await this.saveCrmSettings(projectConfig);
     });
-
-    // Сохранение всех настроек
-    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_ALL, async (event, projectConfig: ProjectConfig) => {
-      return await this.saveAll(projectConfig);
-    });
   }
 
   constructor() {
@@ -89,11 +84,13 @@ export class CrmDockerBuilderService implements IService {
       }
       
       // Создаем файл конфигурации проекта
+      // Создаем необходимые папки для проекта
+      await this.createProjectDirectories(path);
+
       const configPath = `${path}/crm-docker-builder-config.json`;
       const сonfig: ProjectConfig = {
         projectName: path.split('/').pop() || 'crm-docker-project',
         projectPath: path,
-        isSave: true,
         modifiedOn: new Date().toISOString(),
         postgresConfig: {
           id: this.generateId(),
@@ -101,8 +98,7 @@ export class CrmDockerBuilderService implements IService {
           port: 5433,
           volumePath: `${path}/postgres-volumes`,
           user: 'puser',
-          password: 'puser',
-          isSave: true
+          password: 'puser'
         },
         pgAdminConfig: {
           id: this.generateId(),
@@ -110,8 +106,7 @@ export class CrmDockerBuilderService implements IService {
           port: 5434,
           volumePath: `${path}/pgadmin-volumes`,
           email: 'admin@example.com',
-          password: 'puser',
-          isSave: true
+          password: 'puser'
         },
         redisConfig: {
           id: this.generateId(),
@@ -119,8 +114,7 @@ export class CrmDockerBuilderService implements IService {
           port: 6380,
           volumePath: `${path}/redis-volumes`,
           password: 'redis',
-          dbCount: 16,
-          isSave: true
+          dbCount: 16
         },
         crmConfigs: []
       };
@@ -211,6 +205,9 @@ export class CrmDockerBuilderService implements IService {
    */
   public async savePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<InitProjectResult> {
     try {
+      // Создаем папку postgres-volumes, если она не существует
+      await this.ensureDirectoryExists(postgresConfig.volumePath);
+
       const validateResult = await this.validatorService.validatePostgresSettings(projectConfig, postgresConfig);
       if (!validateResult.success) {
         return {
@@ -251,6 +248,9 @@ export class CrmDockerBuilderService implements IService {
    */
   public async savePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<InitProjectResult> {
     try {
+      // Создаем папку pgadmin-volumes, если она не существует
+      await this.ensureDirectoryExists(pgAdminConfig.volumePath);
+
       const validateResult = await this.validatorService.validatePgAdminSettings(projectConfig, pgAdminConfig);
       if (!validateResult.success) {
         return {
@@ -291,6 +291,9 @@ export class CrmDockerBuilderService implements IService {
    */
   public async saveRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<InitProjectResult> {
     try {
+      // Создаем папку redis-volumes, если она не существует
+      await this.ensureDirectoryExists(redisConfig.volumePath);
+
       const validateResult = await this.validatorService.validateRedisSettings(projectConfig, redisConfig);
       if (!validateResult.success) {
         return {
@@ -355,7 +358,6 @@ export class CrmDockerBuilderService implements IService {
           existsCrmConfig.dbType = crmConfig.dbType;
           existsCrmConfig.netVersion = crmConfig.netVersion;
           existsCrmConfig.crmType = crmConfig.crmType;
-          existsCrmConfig.isSave = true;
         } else {
           localProjectConfig.crmConfigs.push(crmConfig);
         }
@@ -417,205 +419,6 @@ export class CrmDockerBuilderService implements IService {
   }
 
   /**
-   * Сохраняет все настройки
-   * @param projectConfig - конфигурация проекта
-   * @returns результат сохранения настроек
-   */
-  public async saveAll(projectConfig: ProjectConfig): Promise<InitProjectResult> {
-    try {
-      const validateResult = await this.validatorService.validateAll(projectConfig);
-      if (!validateResult.success) {
-        return {
-          success: false,
-          projectConfig: null,
-          message: validateResult.message
-        };
-      }
-      await this.saveGeneralProjectSettings(projectConfig);
-      await this.savePostgresSettings(projectConfig, projectConfig.postgresConfig);
-      await this.savePgAdminSettings(projectConfig, projectConfig.pgAdminConfig);
-      await this.saveRedisSettings(projectConfig, projectConfig.redisConfig);
-      await this.saveCrmSettings(projectConfig);
-      return {
-        success: true,
-        message: 'Настройки проекта успешно сохранены',
-        projectConfig: projectConfig
-      };
-    }
-    catch (error) {
-      return {
-        success: false,
-        projectConfig: null,
-        message: `Ошибка при сохранении настроек проекта: ${error instanceof Error ? error.message : String(error)}`
-      };
-    }
-  }
-
-  /**
-   * Проверяет, существует ли конфигурация контейнера
-   * @param containerConfig - конфигурация контейнера
-   * @returns результат проверки
-   */
-  private async ValidateBaseContainerSettings(containerConfig: BaseContainerConfig): Promise<void> {
-    // Проверяем, существует ли название контейнера
-    if (!containerConfig.containerName) {
-      throw new Error('Название контейнера Postgres не может быть пустым');
-    }
-    // Проверяем, существует ли порт
-    if (!containerConfig.port) {
-      throw new Error('Порт не может быть пустым');
-    }
-    // Проверяем, существует ли путь к папке
-    if (!containerConfig.volumePath) {
-      throw new Error('Путь к папке не может быть пустым');
-    }
-
-    // Проверяем, существует ли путь к папке
-    const pathExists = await this.pathExists(containerConfig.volumePath);
-    if (!pathExists) {
-      throw new Error('Папка не существует');
-    }
-  }
-
-  /**
-   * Проверяет, существует ли конфигурация проекта
-   * @param projectConfig - конфигурация проекта
-   * @returns результат проверки
-   */
-  private async validateGeneralProjectSettings(projectConfig: ProjectConfig): Promise<void> {
-    // Проверяем, существует ли название проекта
-    if (!projectConfig.projectName) {
-      throw new Error('Название проекта не может быть пустым');
-    }
-
-    // Проверяем, существует ли путь к проекту
-    if (!projectConfig.projectPath) {
-      throw new Error('Путь к проекту не может быть пустым');
-    }
-
-    // Проверяем, существует ли папка
-    const pathExists = await this.pathExists(projectConfig.projectPath);
-    if (!pathExists) {
-      throw new Error('Папка не существует');
-    }
-  }
-
-  /**
-   * Проверяет, существует ли конфигурация Postgres
-   * @param projectConfig - конфигурация проекта
-   * @param postgresConfig - конфигурация Postgres
-   * @returns результат проверки
-   */
-  private async validatePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<void> {
-    await this.ValidateBaseContainerSettings(postgresConfig);
-    // Проверяем, существует ли имя пользователя
-    if (!projectConfig.postgresConfig.user) {
-      throw new Error('Имя пользователя не может быть пустым');
-    }
-    // Проверяем, существует ли пароль
-    if (!projectConfig.postgresConfig.password) {
-      throw new Error('Пароль не может быть пустым');
-    }
-
-  }
-
-  /**
-   * Проверяет, существует ли конфигурация PgAdmin
-   * @param projectConfig - конфигурация проекта
-   * @param pgAdminConfig - конфигурация PgAdmin
-   * @returns результат проверки
-   */
-  private async validatePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<void> {
-    await this.ValidateBaseContainerSettings(pgAdminConfig);
-    // Проверяем, существует ли email
-    if (!projectConfig.pgAdminConfig.email) {
-      throw new Error('Email не может быть пустым');
-    }
-    // Проверяем, существует ли пароль
-    if (!projectConfig.pgAdminConfig.password) {
-      throw new Error('Пароль не может быть пустым');
-    }
-  }
-
-  /**
-   * Проверяет, существует ли конфигурация Redis
-   * @param projectConfig - конфигурация проекта
-   * @param redisConfig - конфигурация Redis
-   * @returns результат проверки
-   */
-  private async validateRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<void> {
-    await this.ValidateBaseContainerSettings(redisConfig);
-    // Проверяем, существует ли пароль
-    if (!projectConfig.redisConfig.password) {
-      throw new Error('Пароль не может быть пустым');
-    }
-    // Проверяем, существует ли количество баз данных
-    if (!projectConfig.redisConfig.dbCount) {
-      throw new Error('Количество баз данных не может быть пустым');
-    }
-  }
-
-  /**
-   * Проверяет, существует ли конфигурация CRM
-   * @param projectConfig - конфигурация проекта
-   * @param crmConfig - конфигурация CRM
-   * @returns результат проверки
-   */
-  private async validateCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<void> {
-    await this.ValidateBaseContainerSettings(crmConfig);
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.appPath) {
-      throw new Error('Путь к папке приложения не может быть пустым');
-    }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.backupPath) {
-      throw new Error('Путь к папке резервных копий не может быть пустым');
-    }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.redisDb) {
-      throw new Error('Номер базы данных не может быть пустым');
-    }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.dbType) {
-      throw new Error('Тип базы данных не может быть пустым');
-    }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.netVersion) {
-      throw new Error('Версия сети не может быть пустой');
-    }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.crmType) {
-      throw new Error('Тип CRM не может быть пустым');
-    }
-
-    // Проверяем, существует ли путь к папке
-    const appPathExists = await this.pathExists(crmConfig.appPath);
-    if (!appPathExists) {
-      throw new Error('Папка приложения не существует');
-    }
-    // Проверяем, существует ли файл резервных копий
-    const backupPathExists = await this.pathExists(crmConfig.backupPath);
-    if (!backupPathExists) {
-      throw new Error('Файл резервных копий не существует');
-    }
-  }
-
-  /**
-   * Проверяет, существует ли конфигурация CRM
-   * @param projectConfig - конфигурация проекта
-   * @returns результат проверки
-   */
-  private async validateCrmSettings(projectConfig: ProjectConfig): Promise<void> {
-    if (!projectConfig.crmConfigs.length) {
-      throw new Error('Конфигурация CRM не найдена');
-    }
-
-    projectConfig.crmConfigs.forEach(async (crmConfig) => {
-      await this.validateCrmSetting(projectConfig, crmConfig);
-    });
-  }
-
-  /**
    * Проверяет, существует ли путь
    * @param path - путь
    * @returns true, если путь существует, false в противном случае
@@ -640,6 +443,46 @@ export class CrmDockerBuilderService implements IService {
       return files.length === 0;
     } catch (error) {
       return false;
+    }
+  }
+
+  /**
+   * Создает необходимые папки для проекта
+   * @param projectPath - путь к проекту
+   */
+  private async createProjectDirectories(projectPath: string): Promise<void> {
+    try {
+      const directories = [
+        `${projectPath}/postgres-volumes`,
+        `${projectPath}/pgadmin-volumes`,
+        `${projectPath}/redis-volumes`
+      ];
+
+      for (const dir of directories) {
+        try {
+          await fs.mkdir(dir, { recursive: true });
+          console.log(`Создана папка: ${dir}`);
+        } catch (error) {
+          console.warn(`Не удалось создать папку ${dir}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при создании папок проекта:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Создает папку, если она не существует
+   * @param directoryPath - путь к папке
+   */
+  private async ensureDirectoryExists(directoryPath: string): Promise<void> {
+    try {
+      await fs.mkdir(directoryPath, { recursive: true });
+      console.log(`Папка создана/проверена: ${directoryPath}`);
+    } catch (error) {
+      console.error(`Ошибка при создании папки ${directoryPath}:`, error);
+      throw error;
     }
   }
 
