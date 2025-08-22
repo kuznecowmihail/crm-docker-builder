@@ -13,6 +13,13 @@ export interface ValidateProjectResult {
   message: string;
 }
 
+// Результат валидации проекта
+export interface ValidateCrmResult {
+  success: boolean;
+  message: string;
+  crmConfig: CrmConfig | null;
+}
+
 // Конфиг проекта
 export interface ProjectConfig {
   projectName: string;
@@ -21,6 +28,7 @@ export interface ProjectConfig {
   postgresConfig: PostgresConfig;
   pgAdminConfig: PgAdminConfig;
   redisConfig: RedisConfig;
+  rabbitmqConfig: RabbitmqConfig;
   crmConfigs: CrmConfig[];
 }
 
@@ -39,11 +47,17 @@ export interface PostgresConfig extends BaseContainerConfig {
 export interface PgAdminConfig extends BaseContainerConfig {
   email: string;
   password: string;
-}
+  }
 
-export interface RedisConfig extends BaseContainerConfig {
+  export interface RedisConfig extends BaseContainerConfig {
+    password: string;
+    dbCount: number;
+  }
+
+export interface RabbitmqConfig extends BaseContainerConfig {
+  user: string;
   password: string;
-  dbCount: number;
+  amqpPort: number;
 }
 
 export interface CrmConfig extends BaseContainerConfig {
@@ -69,10 +83,16 @@ export interface CrmDockerBuilderSystemAPI {
   savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => Promise<InitProjectResult>;
   // Сохранение настроек Redis
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<InitProjectResult>;
+  // Сохранение настроек Rabbitmq
+  saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => Promise<InitProjectResult>;
   // Сохранение настроек CRM
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
   // Сохранение настроек CRM
   saveCrmSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+  // Сборка проекта
+  buildProject: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+  // Запуск проекта
+  runProject: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
 }
 
 export interface CrmDockerBuilderValidatorSystemAPI {
@@ -84,8 +104,10 @@ export interface CrmDockerBuilderValidatorSystemAPI {
   validatePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => Promise<ValidateProjectResult>;
   // Проверка настроек Redis
   validateRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<ValidateProjectResult>;
+  // Проверка настроек Rabbitmq
+  validateRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => Promise<ValidateProjectResult>;
   // Проверка настроек CRM
-  validateCrmSettings: (projectConfig: ProjectConfig) => Promise<ValidateProjectResult>;
+  validateCrmSettings: (projectConfig: ProjectConfig) => Promise<ValidateCrmResult>;
   // Проверка настроек CRM
   validateCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<ValidateProjectResult>;
   // Проверка пути к папке приложения

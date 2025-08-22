@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,7 +12,9 @@ import { GeneralProjectSettings } from './general-project-settings/general-proje
 import { PostgresSettings } from './postgres-settings/postgres-settings';
 import { PgAdminSettings } from './pgadmin-settings/pgadmin-settings';
 import { RedisSettings } from './redis-settings/redis-settings';
+import { RabbitMqSettings } from './rabbitmq-settings/rabbitmq-settings';
 import { CrmSettings } from './crm-settings/crm-settings';
+import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
   selector: 'app-project-workspace',
@@ -30,6 +32,7 @@ import { CrmSettings } from './crm-settings/crm-settings';
     PostgresSettings,
     PgAdminSettings,
     RedisSettings,
+    RabbitMqSettings,
     CrmSettings,
   ],
   templateUrl: './project-workspace.html',
@@ -40,7 +43,6 @@ export class ProjectWorkspace {
    * Конфигурация проекта
    */
   @Input() projectConfig: ProjectConfig | null = null;
-
   /**
    * Поля для редактирования
    */
@@ -56,11 +58,12 @@ export class ProjectWorkspace {
    * Выбранная конфигурация CRM
    */
   selectedCrmConfig: CrmConfig | null = null;
-
+  
   /**
    * Конструктор
+   * @param electronService - сервис для работы с Electron
    */
-  constructor() {}
+  constructor(private electronService: ElectronService) {}
 
   /**
    * Обработчик инициализации компоненты
@@ -74,14 +77,64 @@ export class ProjectWorkspace {
   }
 
   /**
-   * Обработчик сохранения изменений
+   * Обработчик сборки проекта
    */
-  onSaveChanges() {
-    console.log('Сохранение изменений:', {
-      projectName: this.projectName,
-      projectPath: this.projectPath
-    });
-    // Здесь будет логика сохранения
+  async onBuildProject() {
+    console.log('Сборка проекта');
+    
+    if (!this.projectConfig) {
+      return;
+    }
+    const generalProjectSettingsResult = await this.electronService.validateGeneralProjectSettings(this.projectConfig);
+
+    if (!generalProjectSettingsResult.success) {
+      this.onSectionSelect('general');
+      this.electronService.showNotification('Сборка проекта', generalProjectSettingsResult.message);
+      return;
+    }
+
+    const postgresSettingsResult = await this.electronService.validatePostgresSettings(this.projectConfig, this.projectConfig.postgresConfig);
+    if (!postgresSettingsResult.success) {
+      this.onSectionSelect('postgres');
+      this.electronService.showNotification('Сборка проекта', postgresSettingsResult.message);
+      return;
+    }
+
+    const pgAdminSettingsResult = await this.electronService.validatePgAdminSettings(this.projectConfig, this.projectConfig.pgAdminConfig);
+    if (!pgAdminSettingsResult.success) {
+      this.onSectionSelect('pgadmin');
+      this.electronService.showNotification('Сборка проекта', pgAdminSettingsResult.message);
+      return;
+    }
+
+    const redisSettingsResult = await this.electronService.validateRedisSettings(this.projectConfig, this.projectConfig.redisConfig);
+    if (!redisSettingsResult.success) {
+      this.onSectionSelect('redis');
+      this.electronService.showNotification('Сборка проекта', redisSettingsResult.message);
+      return;
+    }
+
+    const crmSettingsResult = await this.electronService.validateCrmSettings(this.projectConfig);
+    if (!crmSettingsResult.success) {
+      this.onSectionSelect('crm', crmSettingsResult.crmConfig || undefined);
+      this.electronService.showNotification('Сборка проекта', crmSettingsResult.message);
+      return;
+    }
+
+    const result = await this.electronService.buildProject(this.projectConfig);
+    this.electronService.showNotification('Сборка проекта', result.message);
+  }
+
+  /**
+   * Обработчик запуска проекта
+   */
+  async onRunProject() {
+    console.log('Запуск проекта');
+    if (!this.projectConfig) {
+      return;
+    }
+    const result = await this.electronService.runProject(this.projectConfig);
+    this.electronService.showNotification('Запуск проекта', result.message);
   }
 
   /**

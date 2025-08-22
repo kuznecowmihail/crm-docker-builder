@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI } from '@shared/api';
+import { inject, Injectable } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -7,6 +8,8 @@ import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, O
 export class ElectronService {
   
   constructor() { }
+
+  private _snackBar = inject(MatSnackBar);
 
   /**
    * Проверяет, запущено ли приложение в Electron
@@ -102,6 +105,9 @@ export class ElectronService {
     if (!this.systemAPI) {
       throw new Error('Electron API недоступен');
     }
+    this._snackBar.open(body, 'OK', {
+      duration: 5000,
+    });
     return await this.systemAPI.showNotification(title, body);
   }
 
@@ -189,6 +195,14 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.saveRedisSettings(projectConfig, redisConfig);
   }
 
+  async saveRabbitmqSettings(projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig): Promise<InitProjectResult> {
+
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.saveRabbitmqSettings(projectConfig, rabbitmqConfig);
+  }
+
   async saveCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -201,6 +215,20 @@ export class ElectronService {
       throw new Error('Electron API недоступен');
     }
     return await this.crmDockerBuilderSystemAPI.saveCrmSettings(projectConfig);
+  }
+
+  async buildProject(projectConfig: ProjectConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.buildProject(projectConfig);
+  }
+
+  async runProject(projectConfig: ProjectConfig): Promise<InitProjectResult> {
+    if (!this.crmDockerBuilderSystemAPI) {  
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderSystemAPI.runProject(projectConfig);
   }
 
   async validateGeneralProjectSettings(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
@@ -231,8 +259,14 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateRedisSettings(projectConfig, redisConfig);
   }
   
+  async validateRabbitmqSettings(projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig): Promise<ValidateProjectResult> {
+    if (!this.crmDockerBuilderValidatorSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderValidatorSystemAPI.validateRabbitmqSettings(projectConfig, rabbitmqConfig);
+  }
   
-  async validateCrmSettings(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
+  async validateCrmSettings(projectConfig: ProjectConfig): Promise<ValidateCrmResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
     }

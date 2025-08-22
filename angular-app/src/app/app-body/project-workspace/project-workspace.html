@@ -46,6 +46,10 @@
                 <mat-icon>memory</mat-icon>
                 Redis
               </button>
+              <button mat-button (click)="onSectionSelect('rabbitmq')">
+                <mat-icon>queue</mat-icon>
+                RabbitMQ
+              </button>
             </div>
         </mat-expansion-panel>
         
@@ -65,6 +69,25 @@
             <button *ngFor="let crm of projectConfig?.crmConfigs" mat-button (click)="onSectionSelect('crm', crm)">
               <mat-icon>business</mat-icon>
               {{crm.containerName}}
+            </button>
+          </div>
+        </mat-expansion-panel>
+        
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>done</mat-icon>
+              Действия
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="panel-content">
+            <button mat-button (click)="onBuildProject()">
+              <mat-icon>build</mat-icon>
+              Собрать проект
+            </button>
+            <button mat-button (click)="onRunProject()">
+              <mat-icon>play_arrow</mat-icon>
+              Запустить проект
             </button>
           </div>
         </mat-expansion-panel>
@@ -96,6 +119,12 @@
           *ngIf="activeSection === 'redis'"
           [projectConfig]="projectConfig">
         </app-redis-settings>
+        
+        <!-- Настройки RabbitMQ -->
+        <app-rabbitmq-settings 
+          *ngIf="activeSection === 'rabbitmq'"
+          [projectConfig]="projectConfig">
+        </app-rabbitmq-settings>
         
         <!-- Настройки CRM -->
         <app-crm-settings 

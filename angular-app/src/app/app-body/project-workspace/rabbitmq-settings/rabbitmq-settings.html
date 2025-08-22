@@ -1,0 +1,153 @@
+<div class="rabbitmq-settings">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>queue</mat-icon>
+        Настройки RabbitMQ
+      </mat-card-title>
+      <mat-card-subtitle>
+        Конфигурация брокера сообщений и веб-интерфейса управления
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="form-section">
+        <h3>Основные настройки</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Название контейнера</mat-label>
+            <input matInput 
+                   [(ngModel)]="containerName" 
+                   (change)="onContainerNameChange()"
+                   placeholder="rabbitmq-container"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Уникальное имя для Docker контейнера RabbitMQ</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="port-field">
+            <mat-label>Порт управления</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="port" 
+                   (change)="onManagementPortChange()"
+                   placeholder="15673"
+                   [disabled]="!isEnabled"
+                   min="1024"
+                   max="65535"
+                   required>
+            <mat-hint>Порт для веб-интерфейса управления</mat-hint>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="port-field">
+            <mat-label>AMQP порт</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="amqpPort" 
+                   (change)="onAmqpPortChange()"
+                   placeholder="5673"
+                   [disabled]="!isEnabled"
+                   min="1024"
+                   max="65535"
+                   required>
+            <mat-hint>Порт для AMQP соединений</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Аутентификация</h3>
+        
+        <div class="form-row username-row">
+          <mat-form-field appearance="outline" class="username-field">
+            <mat-label>Имя пользователя</mat-label>
+            <input matInput 
+                   [(ngModel)]="username" 
+                   (change)="onUsernameChange()"
+                   placeholder="rmuser"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Имя пользователя для доступа к RabbitMQ</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row password-row">
+          <mat-form-field appearance="outline" class="password-field">
+            <mat-label>Пароль</mat-label>
+            <input matInput 
+                   [(ngModel)]="password"
+                   (change)="onPasswordChange()"
+                   placeholder="Введите пароль"
+                   [disabled]="!isEnabled"
+                   required>
+            <mat-hint>Пароль для доступа к RabbitMQ</mat-hint>
+          </mat-form-field>
+          
+          <button mat-icon-button 
+                  type="button"
+                  (click)="onGeneratePassword()"
+                  [disabled]="!isEnabled"
+                  matTooltip="Сгенерировать пароль">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Доступ к интерфейсу</h3>
+        <div class="access-info" *ngIf="isEnabled && containerName && port">
+          <div class="info-item">
+            <span class="info-label">Host:</span>
+            <span class="info-value">localhost</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Management Port:</span>
+            <span class="info-value">{{ port }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">AMQP Port:</span>
+            <span class="info-value">{{ amqpPort }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Volumes path:</span>
+            <span class="info-value">{{ volumePath }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Username:</span>
+            <span class="info-value">{{ username || 'Не указан' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Статус:</span>
+            <span class="info-value status-ready">Готов к запуску</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button 
+              color="accent"
+              (click)="onOpenRabbitMqManagement()"
+              [disabled]="!isEnabled || !containerName || !port || !username || !password">
+        <mat-icon>open_in_new</mat-icon>
+        Открыть Management
+      </button>
+      <button mat-button 
+              color="warn" 
+              (click)="onCancelChanges()">
+        <mat-icon>cancel</mat-icon>
+        Отмена
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSaveChanges()"
+              [disabled]="!isEnabled || !containerName || !port || !amqpPort || !username || !password">
+        <mat-icon>save</mat-icon>
+        Сохранить изменения
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

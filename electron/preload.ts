@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI } from '@shared/api';
+import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig } from '@shared/api';
 
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
@@ -29,14 +29,18 @@ const IPC_CHANNELS = {
     SAVE_POSTGRES_SETTINGS: 'crm-docker-builder:save-postgres-settings',
     SAVE_PGADMIN_SETTINGS: 'crm-docker-builder:save-pgadmin-settings',
     SAVE_REDIS_SETTINGS: 'crm-docker-builder:save-redis-settings',
+    SAVE_RABBITMQ_SETTINGS: 'crm-docker-builder:save-rabbitmq-settings',
     SAVE_CRM_SETTING: 'crm-docker-builder:save-crm-setting',
-    SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings'
+    SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings',
+    BUILD_PROJECT: 'crm-docker-builder:build-project',
+    RUN_PROJECT: 'crm-docker-builder:run-project',
   },
   CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM: {
     VALIDATE_GENERAL_PROJECT_SETTINGS: 'crm-docker-builder-validator:validate-general-project-settings',
     VALIDATE_POSTGRES_SETTINGS: 'crm-docker-builder-validator:validate-postgres-settings',
     VALIDATE_PGADMIN_SETTINGS: 'crm-docker-builder-validator:validate-pgadmin-settings',
     VALIDATE_REDIS_SETTINGS: 'crm-docker-builder-validator:validate-redis-settings',
+    VALIDATE_RABBITMQ_SETTINGS: 'crm-docker-builder-validator:validate-rabbitmq-settings',
     VALIDATE_CRM_SETTINGS: 'crm-docker-builder-validator:validate-crm-settings',
     VALIDATE_CRM_SETTING: 'crm-docker-builder-validator:validate-crm-setting',
     VALIDATE_APP_PATH: 'crm-docker-builder-validator:validate-app-path',
@@ -71,8 +75,11 @@ contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
   savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
+  saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
+  buildProject: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, projectConfig),
+  runProject: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, projectConfig),
 } as CrmDockerBuilderSystemAPI);
 
 contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
@@ -80,6 +87,7 @@ contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
   validatePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
   validatePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
   validateRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_REDIS_SETTINGS, projectConfig, redisConfig),
+  validateRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
   validateCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTINGS, projectConfig),
   validateCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTING, projectConfig, crmConfig),
   validateAppPath: (projectPath: string, appPath: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_APP_PATH, projectPath, appPath),
