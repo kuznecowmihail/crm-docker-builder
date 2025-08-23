@@ -73,7 +73,6 @@ interface IService {
 Строгая типизация для всех API и данных:
 - `SystemInfo` - информация о системе
 - `OpenDialogOptions` - опции диалога открытия
-- `SaveDialogOptions` - опции диалога сохранения
 - `NotificationOptions` - опции уведомлений
 - `SystemAPI` и `FileSystemAPI` - интерфейсы для preload
 

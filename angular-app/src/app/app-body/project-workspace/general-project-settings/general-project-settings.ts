@@ -69,7 +69,7 @@ export class GeneralProjectSettings {
 
     if (this.projectConfig) {
       this.projectConfig.projectName = this.projectName;
-      this.projectConfig.modifiedOn = new Date().toISOString();
+      this.projectConfig.modifiedOn = new Date();
 
       const result = await this.electronService.saveGeneralProjectSettings(this.projectConfig);
       console.log('result', result);

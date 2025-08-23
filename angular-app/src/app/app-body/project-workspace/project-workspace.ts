@@ -146,12 +146,24 @@ export class ProjectWorkspace {
     this.electronService.unsubscribeFromProjectLogs();
 
     this.electronService.showNotification('Сборка проекта', result.message);
+
+    this.projectConfig.buildOn = new Date();
+    this.projectConfig.modifiedOn = new Date();
+    this.electronService.saveGeneralProjectSettings(this.projectConfig);
   }
 
   /**
    * Обработчик запуска проекта
    */
   async onRunProject() {
+    if (!this.projectConfig?.buildOn) {
+      this.electronService.showNotification('Запуск проекта', 'Проект не был собран');
+      return;
+    }
+    if (this.projectConfig.buildOn && this.projectConfig.runOn && new Date(this.projectConfig.buildOn) < new Date(this.projectConfig.runOn)) {
+      this.electronService.showNotification('Запуск проекта', 'Проект был запущен позже, чем собран');
+      return;
+    }
     console.log('Запуск проекта');
     if (!this.projectConfig) {
       return;
@@ -169,6 +181,10 @@ export class ProjectWorkspace {
     this.electronService.unsubscribeFromProjectLogs();
 
     this.electronService.showNotification('Запуск проекта', result.message);
+
+    this.projectConfig.runOn = new Date();
+    this.projectConfig.modifiedOn = new Date();
+    this.electronService.saveGeneralProjectSettings(this.projectConfig);
   }
 
   /**

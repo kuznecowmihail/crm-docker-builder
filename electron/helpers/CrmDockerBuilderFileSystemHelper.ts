@@ -23,7 +23,7 @@ export class CrmDockerBuilderFileSystemHelper {
     }
 
     /**
-     * 
+     * Создает файл docker-compose.yml
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла docker-compose.yml
      */

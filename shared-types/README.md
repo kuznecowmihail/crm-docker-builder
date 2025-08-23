@@ -7,8 +7,8 @@
 ### Основные файлы типов:
 - `api.d.ts` - Главный файл экспорта всех типов и констант
 - `system.d.ts` - Системные типы (SystemInfo, SystemAPI)
-- `dialogs.d.ts` - Типы для диалогов (OpenDialogOptions, SaveDialogOptions)
-- `filesystem.d.ts` - Типы для файловой системы (FileSystemAPI, FileSystemError)
+- `dialogs.d.ts` - Типы для диалогов (OpenDialogOptions)
+- `filesystem.d.ts` - Типы для файловой системы (FileSystemAPI)
 - `notifications.d.ts` - Типы для уведомлений (NotificationOptions)
 - `crm-docker-builder.d.ts` - Типы для CRM Docker Builder (CreateProjectResult, CrmDockerBuilderSystemAPI)
 - `constants.d.ts` - Общие константы (IPC каналы, конфигурация окна, пути)

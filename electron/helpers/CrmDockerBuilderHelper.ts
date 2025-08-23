@@ -77,7 +77,7 @@ export class CrmDockerBuilderHelper {
       const сonfig: ProjectConfig = {
         projectName: path.split('/').pop() || 'crm-docker-project',
         projectPath: path,
-        modifiedOn: new Date().toISOString(),
+        modifiedOn: new Date(),
         postgresConfig: {
           id: this.generateId(),
           containerName: 'postgres',
@@ -175,7 +175,9 @@ export class CrmDockerBuilderHelper {
 
       if (localProjectResult.success && localProjectConfig) {
         localProjectConfig.projectName = projectConfig.projectName;
-        localProjectConfig.modifiedOn = new Date().toISOString();
+        localProjectConfig.modifiedOn = projectConfig.modifiedOn;
+        localProjectConfig.buildOn = projectConfig.buildOn;
+        localProjectConfig.runOn = projectConfig.runOn;
       }
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
@@ -218,7 +220,7 @@ export class CrmDockerBuilderHelper {
 
       if (localProjectResult.success && localProjectConfig) {
         localProjectConfig.postgresConfig = postgresConfig;
-        localProjectConfig.modifiedOn = new Date().toISOString();
+        localProjectConfig.modifiedOn = new Date();
       }
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
@@ -261,7 +263,7 @@ export class CrmDockerBuilderHelper {
 
       if (localProjectResult.success && localProjectConfig) {
         localProjectConfig.pgAdminConfig = pgAdminConfig;
-        localProjectConfig.modifiedOn = new Date().toISOString();
+        localProjectConfig.modifiedOn = new Date();
       }
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
@@ -304,7 +306,7 @@ export class CrmDockerBuilderHelper {
 
       if (localProjectResult.success && localProjectConfig) {
         localProjectConfig.redisConfig = redisConfig;
-        localProjectConfig.modifiedOn = new Date().toISOString();
+        localProjectConfig.modifiedOn = new Date();
       }
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectResult.projectConfig, null, 2));
       return {
@@ -347,7 +349,7 @@ export class CrmDockerBuilderHelper {
 
       if (localProjectResult.success && localProjectConfig) {
         localProjectConfig.rabbitmqConfig = rabbitmqConfig;
-        localProjectConfig.modifiedOn = new Date().toISOString();
+        localProjectConfig.modifiedOn = new Date();
       }
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectResult.projectConfig, null, 2));
       return {
@@ -400,7 +402,7 @@ export class CrmDockerBuilderHelper {
         } else {
           localProjectConfig.crmConfigs.push(crmConfig);
         }
-        localProjectConfig.modifiedOn = new Date().toISOString();
+        localProjectConfig.modifiedOn = new Date();
       }
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
@@ -439,7 +441,7 @@ export class CrmDockerBuilderHelper {
 
       if (localProjectResult.success && localProjectConfig) {
         localProjectConfig.crmConfigs = projectConfig.crmConfigs;
-        localProjectConfig.modifiedOn = new Date().toISOString();
+        localProjectConfig.modifiedOn = new Date();
       }
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
@@ -464,6 +466,8 @@ export class CrmDockerBuilderHelper {
    */
   public async buildProject(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<InitProjectResult> {
     try {
+      onLogCallback?.(`[CrmDockerBuilderHelper] 🚀 Начинаем сборку проекта`);
+      
       const validateResult = await this.crmDockerBuilderValidatorHelper.validateAll(projectConfig, onLogCallback);
       if (!validateResult.success) {
         return {
@@ -473,7 +477,11 @@ export class CrmDockerBuilderHelper {
         };
       }
 
+      // Скачиваем vsdbg файлы
+      await this.vscodeFilesHelper.buildVsdbgFilesWithLogs(projectConfig, onLogCallback);
+      // Создаем файл docker-compose.yml
       await this.crmDockerBuilderFileSystemHelper.buildDockerComposeFile(projectConfig, onLogCallback);
+      // Обрабатываем файлы CRM
       await this.crmDockerBuilderFileSystemHelper.handleCrmFiles(projectConfig, onLogCallback);
 
       onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно собран`);
@@ -501,6 +509,8 @@ export class CrmDockerBuilderHelper {
    */
   public async runProject(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<InitProjectResult> {
     try {
+      onLogCallback?.(`[CrmDockerBuilderHelper] 🚀 Начинаем запуск проекта`);
+      
       const validateResult = await this.crmDockerBuilderValidatorHelper.validateAll(projectConfig);
       if (!validateResult.success) {
         return {
@@ -509,9 +519,6 @@ export class CrmDockerBuilderHelper {
           message: validateResult.message
         };
       }
-
-      // Скачиваем vsdbg файлы
-      await this.vscodeFilesHelper.buildVsdbgFilesWithLogs(projectConfig, onLogCallback);
 
       // Проверяем Docker
       if (!await this.dockerProcessHelper.isDockerInstalled()) {
@@ -522,10 +529,10 @@ export class CrmDockerBuilderHelper {
         throw new Error('Docker daemon не запущен');
       }
 
+      // Создаем сеть с именем проекта
+      await this.dockerProcessHelper.createDockerNetwork(`${projectConfig.projectName}_network`, onLogCallback);
       // Запускаем Docker Compose
-      await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, (log: string) => {
-        onLogCallback?.(`[DockerProcessHelper] ${log.trim()}`);
-      });
+      await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
 
       // Создаем скрипт для восстановления бэкапа в PostgreSQL
       await this.crmDockerBuilderFileSystemHelper.buildPostgresRestoreScript(projectConfig, onLogCallback);

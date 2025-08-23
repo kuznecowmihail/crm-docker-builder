@@ -6,5 +6,6 @@ export * from './dialogs.d';
 export * from './filesystem.d';
 export * from './notifications.d';
 export * from './crm-docker-builder.d';
+export * from './electron.d';
 export * from './constants.d';
 export * from './global.d';

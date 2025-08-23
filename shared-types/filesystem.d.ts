@@ -14,9 +14,3 @@ export interface FileSystemAPI {
   // Создание папки
   createDirectory: (dirPath: string) => Promise<void>;
 }
-
-// Типы для файловой системы
-export interface FileSystemError {
-  message: string;
-  code?: string;
-}

@@ -33,6 +33,7 @@ export class VscodeFilesHelper {
    */
   public async buildVsdbgFilesWithLogs(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<void> {
     try {
+
       const platform = process.platform;
       const arch = process.arch;
 
@@ -47,12 +48,12 @@ export class VscodeFilesHelper {
         throw new Error(`Неподдерживаемая архитектура: ${arch}`);
       }
 
-      onLogCallback?.(`[VscodeFilesHelper] Платформа: ${platform}, Архитектура: ${arch}, Архитектура vsdbg: ${vsdbgArch}`);
-
       if (platform !== 'win32' && arch !== 'arm64') {
         onLogCallback?.(`[VscodeFilesHelper] ❌ Неподдерживаемая платформа: ${platform}`);
         throw new Error(`Неподдерживаемая платформа: ${platform}`);
       }
+      onLogCallback?.(`[VscodeFilesHelper] 🚀 Начинаем скачивание vsdbg...`);
+      onLogCallback?.(`[VscodeFilesHelper] Платформа: ${platform}, Архитектура: ${arch}, Архитектура vsdbg: ${vsdbgArch}`);
 
       let command = '';
       const vsdbgPath = path.join(projectConfig.projectPath, 'vsdbg');
@@ -68,11 +69,10 @@ export class VscodeFilesHelper {
       onLogCallback?.(`[VscodeFilesHelper] Путь к vsdbg: ${vsdbgPath}`);
       await this.executeCommandWithLogs(command, onLogCallback, vsdbgArch);
       
-      onLogCallback?.(`[VscodeFilesHelper] ✅ vsdbg файлы успешно скачаны`);
+      onLogCallback?.(`[VscodeFilesHelper] ✅ vsdbg для ${vsdbgArch} успешно скачан`);
       
     } catch (error) {
-      onLogCallback?.(`[VscodeFilesHelper] ❌ Ошибка при скачивании vsdbg файлов: ${error}`);
-      throw error;
+      onLogCallback?.(`[VscodeFilesHelper] ⚠️ Ошибка при скачивании vsdbg файлов: ${error}`);
     }
   }
 
@@ -83,6 +83,8 @@ export class VscodeFilesHelper {
    */
   public async buildVsCodeFiles(crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
       try {
+        onLog?.(`[VscodeFilesHelper] 🚀 Начинаем создание файлов .vscode/launch.json, .vscode/settings.json и .vscode/tasks.json`);
+        
         await this.fileSystemHelper.ensureDirectoryExists(path.join(crmConfig.appPath, '.vscode'));
 
         onLog?.(`[VscodeFilesHelper] Создаем файлы .vscode/launch.json, .vscode/settings.json и .vscode/tasks.json`);
@@ -111,7 +113,6 @@ export class VscodeFilesHelper {
    */
   private async executeCommandWithLogs(command: string, onLogCallback?: (log: string) => void, archType?: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      onLogCallback?.(`[VscodeFilesHelper] 🚀 Начинаем скачивание vsdbg для ${archType || 'неизвестной архитектуры'}...`);
 
       const process = spawn(command, [], {
         shell: true,
@@ -134,25 +135,20 @@ export class VscodeFilesHelper {
 
       process.on('close', (code) => {
         if (code === 0) {
-          onLogCallback?.(`[VscodeFilesHelper] ✅ vsdbg для ${archType} успешно скачан (код: ${code})`);
           resolve();
         } else {
-          const errorMessage = `[VscodeFilesHelper] ❌ Ошибка при скачивании vsdbg для ${archType} (код: ${code})`;
-          onLogCallback?.(errorMessage);
-          reject(new Error(errorMessage));
+          reject(new Error(`code: ${code}`));
         }
       });
 
       process.on('error', (error) => {
-        const errorMessage = `[VscodeFilesHelper] ❌ Ошибка процесса vsdbg для ${archType}: ${error.message}`;
-        onLogCallback?.(errorMessage);
         reject(error);
       });
     });
   }
 
   /**
-   * 
+   * Генерирует содержимое файла .vscode/launch.json
    * @param crmConfig - конфигурация CRM
    * @returns - содержимое файла .vscode/launch.json
    */
@@ -339,7 +335,7 @@ export class VscodeFilesHelper {
   }
 
   /**
-   * 
+   * Генерирует содержимое файла .vscode/settings.json
    * @param crmConfig - конфигурация CRM
    * @returns - содержимое файла .vscode/settings.json
    */
@@ -353,7 +349,7 @@ export class VscodeFilesHelper {
   }
 
   /**
-   * 
+   * Генерирует содержимое файла .vscode/tasks.json
    * @param crmConfig - конфигурация CRM
    * @returns - содержимое файла .vscode/tasks.json
    */

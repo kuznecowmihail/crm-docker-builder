@@ -24,7 +24,9 @@ export interface ValidateCrmResult {
 export interface ProjectConfig {
   projectName: string;
   projectPath: string;
-  modifiedOn: string;
+  modifiedOn: Date;
+  buildOn?: Date;
+  runOn?: Date;
   postgresConfig: PostgresConfig;
   pgAdminConfig: PgAdminConfig;
   redisConfig: RedisConfig;
