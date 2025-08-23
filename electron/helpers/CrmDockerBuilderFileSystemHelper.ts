@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { FileSystemHelper } from './FileSystemHelper';
 import { CrmConfig, ProjectConfig } from '@shared/crm-docker-builder';
+import { VscodeFilesHelper } from './VscodeFilesHelper';
 
 export class CrmDockerBuilderFileSystemHelper {
     /**
@@ -9,10 +10,16 @@ export class CrmDockerBuilderFileSystemHelper {
     private fileSystemHelper: FileSystemHelper;
 
     /**
+     * Помощник для работы с файлами VSCode
+     */
+    private vscodeFilesHelper: VscodeFilesHelper;
+
+    /**
      * Конструктор
      */
     constructor() {
         this.fileSystemHelper = new FileSystemHelper();
+        this.vscodeFilesHelper = new VscodeFilesHelper();
     }
 
     /**
@@ -20,13 +27,14 @@ export class CrmDockerBuilderFileSystemHelper {
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла docker-compose.yml
      */
-    public async buildDockerComposeFile(projectConfig: ProjectConfig): Promise<void> {
+    public async buildDockerComposeFile(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
         try {
             const dockerComposeFile = this.generateDockerComposeContent(projectConfig);
             const filePath = path.join(projectConfig.projectPath, 'docker-compose.yml');
             await this.fileSystemHelper.writeFile(filePath, dockerComposeFile);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл docker-compose.yml успешно создан`);
         } catch (error) {
-            console.error('Ошибка при создании файла docker-compose.yml:', error);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла docker-compose.yml: ${error}`);
 
             throw error;
         }
@@ -37,13 +45,14 @@ export class CrmDockerBuilderFileSystemHelper {
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла Dockerfile
      */
-    private async buildDockerFile(crmConfig: CrmConfig): Promise<void> {
+    private async buildDockerFile(crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
         try {
             const dockerFile = this.generateDockerFileContent();
             const filePath = path.join(crmConfig.appPath, 'DockerFile_bpmsoft_net8');
             await this.fileSystemHelper.writeFile(filePath, dockerFile);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл Dockerfile успешно создан`);
         } catch (error) {
-            console.error('Ошибка при создании файла Dockerfile:', error);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла Dockerfile: ${error}`);
 
             throw error;
         }
@@ -54,13 +63,14 @@ export class CrmDockerBuilderFileSystemHelper {
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла postgres.sh
      */
-    public async buildPostgresRestoreScript(projectConfig: ProjectConfig): Promise<void> {
+    public async buildPostgresRestoreScript(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
         try {
             const postgresRestoreScript = this.generatePostgresRestoreScriptContent();
             const filePath = path.join(projectConfig.projectPath, 'postgres-volumes', 'postgresql-data', 'postgres.sh');
             await this.fileSystemHelper.writeFile(filePath, postgresRestoreScript);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл postgres.sh успешно создан`);
         } catch (error) {
-            console.error('Ошибка при создании файла postgres.sh:', error);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла postgres.sh: ${error}`);
 
             throw error;
         }
@@ -71,13 +81,14 @@ export class CrmDockerBuilderFileSystemHelper {
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла CreateTypeCastsPostgreSql.sql
      */
-    public async buildCreateTypeCastsPostgreSql(projectConfig: ProjectConfig): Promise<void> {
+    public async buildCreateTypeCastsPostgreSql(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
         try {
             const createTypeCastsPostgreSql = this.generateCreateTypeCastsPostgreSqlContent();
             const filePath = path.join(projectConfig.projectPath, 'postgres-volumes', 'postgresql-data', 'CreateTypeCastsPostgreSql.sql');
             await this.fileSystemHelper.writeFile(filePath, createTypeCastsPostgreSql);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл CreateTypeCastsPostgreSql.sql успешно создан`);
         } catch (error) {
-            console.error('Ошибка при создании файла CreateTypeCastsPostgreSql.sql:', error);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла CreateTypeCastsPostgreSql.sql: ${error}`);
 
             throw error;
         }
@@ -88,9 +99,11 @@ export class CrmDockerBuilderFileSystemHelper {
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла docker-compose.yml
      */
-    public async handleCrmFiles(projectConfig: ProjectConfig): Promise<void> {
+    public async handleCrmFiles(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
         try {
             for (const crmConfig of projectConfig.crmConfigs) {
+                onLog?.(`[CrmDockerBuilderFileSystemHelper] Обработка файлов CRM для ${crmConfig.containerName}`);
+
                 const connectionStringsPath = path.join(crmConfig.appPath, 'ConnectionStrings.config');
                 const webHostConfigPath = path.join(crmConfig.appPath, 'BPMSoft.WebHost.dll.config');
                 const workspaceConsoleConfigPath = path.join(crmConfig.appPath, 'WorkspaceConsole', 'BPMSoft.Tools.WorkspaceConsole.dll.config');
@@ -104,15 +117,20 @@ export class CrmDockerBuilderFileSystemHelper {
                 const updatedWorkspaceConsoleConfigContent = this.updateWorkspaceConsoleConfig(workspaceConsoleConfigContent, projectConfig, crmConfig);
 
                 await this.fileSystemHelper.writeFile(connectionStringsPath, updatedConnectionStringsContent);
+                onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл ConnectionStrings.config успешно обновлен`);
+
                 await this.fileSystemHelper.writeFile(webHostConfigPath, updatedWebHostConfigContent);
+                onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл BPMSoft.WebHost.dll.config успешно обновлен`);
+
                 await this.fileSystemHelper.writeFile(workspaceConsoleConfigPath, updatedWorkspaceConsoleConfigContent);
+                onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл BPMSoft.Tools.WorkspaceConsole.dll.config успешно обновлен`);
 
-                await this.buildDockerFile(crmConfig);
+                await this.buildDockerFile(crmConfig, onLog);
 
-                console.log(`Обновлены файлы ConnectionStrings.config, BPMSoft.WebHost.dll.config и BPMSoft.Tools.WorkspaceConsole.dll.config для ${crmConfig.containerName}`);
+                await this.vscodeFilesHelper.buildVsCodeFiles(crmConfig, onLog);
             }
         } catch (error) {
-            console.error('Ошибка при обновлении файлов ConnectionStrings.config, BPMSoft.WebHost.dll.config и BPMSoft.Tools.WorkspaceConsole.dll.config:', error);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при обновлении файлов ConnectionStrings.config, BPMSoft.WebHost.dll.config и BPMSoft.Tools.WorkspaceConsole.dll.config: ${error}`);
 
             throw error;
         }

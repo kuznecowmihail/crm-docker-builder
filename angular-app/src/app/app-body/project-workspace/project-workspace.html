@@ -89,6 +89,10 @@
               <mat-icon>play_arrow</mat-icon>
               Запустить проект
             </button>
+            <button mat-button (click)="onSectionSelect('logs')">
+              <mat-icon>list</mat-icon>
+              Логи проекта
+            </button>
           </div>
         </mat-expansion-panel>
       </mat-accordion>
@@ -132,6 +136,14 @@
           [projectConfig]="projectConfig"
           [crmConfig]="selectedCrmConfig">
         </app-crm-settings>
+
+        <!-- Логи проекта -->
+        <app-project-logs 
+          *ngIf="activeSection === 'logs'"
+          [logs]="projectLogs"
+          [maxLogs]="200"
+          (clearLogsEvent)="onClearLogs()">
+        </app-project-logs>
         
         <!-- Заглушка для других секций -->
         <div class="section-placeholder" *ngIf="!activeSection">

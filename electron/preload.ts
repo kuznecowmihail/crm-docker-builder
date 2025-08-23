@@ -78,8 +78,8 @@ contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
-  buildProject: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, projectConfig),
-  runProject: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, projectConfig),
+  buildProject: (projectConfig: ProjectConfig, onLogCallback?: (log: string) => void) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, projectConfig, onLogCallback),
+  runProject: (projectConfig: ProjectConfig, onLogCallback?: (log: string) => void) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, projectConfig, onLogCallback),
 } as CrmDockerBuilderSystemAPI);
 
 contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
@@ -94,3 +94,13 @@ contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
   validateBackupPath: (backupPath: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_BACKUP_PATH, backupPath),
   validateAll: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_ALL, projectConfig),
 } as CrmDockerBuilderValidatorSystemAPI);
+
+// Экспонируем Electron API для работы с событиями
+contextBridge.exposeInMainWorld('electronAPI', {
+  on: (channel: string, callback: (event: any, ...args: any[]) => void) => {
+    ipcRenderer.on(channel, callback);
+  },
+  removeAllListeners: (channel: string) => {
+    ipcRenderer.removeAllListeners(channel);
+  }
+});

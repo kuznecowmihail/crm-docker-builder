@@ -1,0 +1,193 @@
+.project-logs-container {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.project-logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #333;
+  border-radius: 8px 8px 0 0;
+}
+
+.project-logs-header h3 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.project-logs-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logs-count {
+  color: #888;
+  font-size: 11px;
+}
+
+.clear-logs-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clear-logs-btn:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.clear-logs-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.scroll-bottom-btn {
+  background: #007acc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.scroll-bottom-btn:hover:not(:disabled) {
+  background: #005a9e;
+}
+
+.scroll-bottom-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.project-logs-content {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.no-logs {
+  padding: 32px 16px;
+  text-align: center;
+  color: #888;
+}
+
+.no-logs p {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.logs-list {
+  padding: 0 16px;
+}
+
+.log-item {
+  padding: 4px 0;
+  border-bottom: 1px solid #2a2a2a;
+  transition: background-color 0.2s;
+}
+
+.log-item:hover {
+  background: #2a2a2a;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.log-time {
+  color: #666;
+  font-size: 10px;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.log-text {
+  color: #e0e0e0;
+  word-break: break-word;
+  flex: 1;
+}
+
+/* Типы логов */
+.log-info {
+  border-left: 3px solid #007acc;
+}
+
+.log-success {
+  border-left: 3px solid #28a745;
+}
+
+.log-warning {
+  border-left: 3px solid #ffc107;
+}
+
+.log-error {
+  border-left: 3px solid #dc3545;
+}
+
+.log-success .log-text {
+  color: #28a745;
+}
+
+.log-warning .log-text {
+  color: #ffc107;
+}
+
+.log-error .log-text {
+  color: #dc3545;
+}
+
+.logs-truncated {
+  padding: 8px 16px;
+  background: #2a2a2a;
+  border-top: 1px solid #333;
+  text-align: center;
+}
+
+.logs-truncated p {
+  margin: 0;
+  color: #ffc107;
+  font-size: 11px;
+}
+
+/* Скроллбар */
+.project-logs-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.project-logs-content::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.project-logs-content::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.project-logs-content::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

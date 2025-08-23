@@ -1,19 +1,20 @@
 import { ChildProcess, spawn } from "child_process";
 
 export class DockerProcessHelper {
+    /**
+     * Процесс Docker
+     */
     private dockerProcess: ChildProcess | null = null;
-
-    constructor() {}
 
     /**
      * Создает Docker сеть для проекта
      * @param projectConfig - конфигурация проекта
      * @returns - Promise<void>
      */
-    private async createDockerNetwork(networkName: string): Promise<void> {
+    private async createDockerNetwork(networkName: string, onLog?: (log: string) => void): Promise<void> {
         try {
             await this.executeDockerCommand(['network', 'create', networkName]);
-            console.log(`Docker сеть ${networkName} успешно создана`);
+            onLog?.(`Docker сеть ${networkName} успешно создана`);
         } catch (error) {
             // Если сеть уже существует, это не ошибка
             if (error instanceof Error && error.message.includes('already exists')) {
@@ -36,11 +37,7 @@ export class DockerProcessHelper {
         try {
             // Создаем сеть с именем проекта
             const networkName = `${projectName}_network`;
-            await this.createDockerNetwork(networkName);
-
-            const onLog = (log: string) => {
-                console.log(`[Docker] ${log.trim()}`);
-            };
+            await this.createDockerNetwork(networkName, onLog);
 
             // Запускаем с ожиданием готовности всех контейнеров и логированием
             await this.executeDockerCommandWithLogs(
@@ -235,30 +232,27 @@ export class DockerProcessHelper {
 
             dockerProcess.stdout.on('data', (data) => {
                 const logLine = data.toString();
-                if (onLog) {
-                    onLog(logLine);
-                }
-                console.log(logLine);
+                onLog?.(`[DockerProcessHelper] ${logLine}`);
             });
 
             dockerProcess.stderr.on('data', (data) => {
                 const logLine = data.toString();
                 stderr += logLine;
-                if (onLog) {
-                    onLog(logLine);
-                }
-                console.error(logLine);
+                onLog?.(`[DockerProcessHelper] ${logLine}`);
             });
 
             dockerProcess.on('close', (code) => {
                 if (code === 0) {
+                    onLog?.(`[DockerProcessHelper] ✅ Docker команда завершилась с кодом ${code}`);
                     resolve();
                 } else {
+                    onLog?.(`[DockerProcessHelper] ❌ Docker команда завершилась с кодом ${code}. Stderr: ${stderr}`);
                     reject(new Error(`Docker команда завершилась с кодом ${code}. Stderr: ${stderr}`));
                 }
             });
 
             dockerProcess.on('error', (error) => {
+                onLog?.(`[DockerProcessHelper] ❌ Ошибка выполнения Docker команды: ${error.message}`);
                 reject(new Error(`Ошибка выполнения Docker команды: ${error.message}`));
             });
         });

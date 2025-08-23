@@ -5,6 +5,7 @@ import { FileSystemHelper } from './FileSystemHelper';
 import path from 'path';
 import { CrmDockerBuilderFileSystemHelper } from './CrmDockerBuilderFileSystemHelper';
 import { DockerProcessHelper } from './DockerProcessHelper';
+import { VscodeFilesHelper } from './VscodeFilesHelper';
 
 export class CrmDockerBuilderHelper {
   /**
@@ -19,11 +20,24 @@ export class CrmDockerBuilderHelper {
    * Помощник для работы с файловой системой
    */
   private crmDockerBuilderFileSystemHelper: CrmDockerBuilderFileSystemHelper;
+  /**
+   * Помощник для работы с vsdbg файлами
+   */
+  private vscodeFilesHelper: VscodeFilesHelper;
+  /**
+   * Помощник для работы с Docker
+   */
+  private dockerProcessHelper: DockerProcessHelper;
 
+  /**
+   * Конструктор
+   */
   constructor() {
     this.crmDockerBuilderValidatorHelper = new CrmDockerBuilderValidator();
     this.fileSystemHelper = new FileSystemHelper();
     this.crmDockerBuilderFileSystemHelper = new CrmDockerBuilderFileSystemHelper();
+    this.vscodeFilesHelper = new VscodeFilesHelper();
+    this.dockerProcessHelper = new DockerProcessHelper();
   }
 
     /**
@@ -448,9 +462,9 @@ export class CrmDockerBuilderHelper {
    * @param projectConfig - конфигурация проекта
    * @returns результат сборки проекта
    */
-  public async buildProject(projectConfig: ProjectConfig): Promise<InitProjectResult> {
+  public async buildProject(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<InitProjectResult> {
     try {
-      const validateResult = await this.crmDockerBuilderValidatorHelper.validateAll(projectConfig);
+      const validateResult = await this.crmDockerBuilderValidatorHelper.validateAll(projectConfig, onLogCallback);
       if (!validateResult.success) {
         return {
           success: false,
@@ -459,8 +473,10 @@ export class CrmDockerBuilderHelper {
         };
       }
 
-      await this.crmDockerBuilderFileSystemHelper.buildDockerComposeFile(projectConfig);
-      await this.crmDockerBuilderFileSystemHelper.handleCrmFiles(projectConfig);
+      await this.crmDockerBuilderFileSystemHelper.buildDockerComposeFile(projectConfig, onLogCallback);
+      await this.crmDockerBuilderFileSystemHelper.handleCrmFiles(projectConfig, onLogCallback);
+
+      onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно собран`);
 
       return {
         success: true,
@@ -469,6 +485,7 @@ export class CrmDockerBuilderHelper {
       };
     }
     catch (error) {
+      onLogCallback?.(`[CrmDockerBuilderHelper] ❌ Ошибка при сборке проекта: ${error instanceof Error ? error.message : String(error)}`);
       return {
         success: false,
         projectConfig: null,
@@ -482,7 +499,7 @@ export class CrmDockerBuilderHelper {
    * @param projectConfig - конфигурация проекта
    * @returns результат запуска проекта
    */
-  public async runProject(projectConfig: ProjectConfig): Promise<InitProjectResult> {
+  public async runProject(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<InitProjectResult> {
     try {
       const validateResult = await this.crmDockerBuilderValidatorHelper.validateAll(projectConfig);
       if (!validateResult.success) {
@@ -493,42 +510,55 @@ export class CrmDockerBuilderHelper {
         };
       }
 
-      const dockerHelper = new DockerProcessHelper();
+      // Скачиваем vsdbg файлы
+      await this.vscodeFilesHelper.buildVsdbgFilesWithLogs(projectConfig, onLogCallback);
 
       // Проверяем Docker
-      if (!await dockerHelper.isDockerInstalled()) {
+      if (!await this.dockerProcessHelper.isDockerInstalled()) {
         throw new Error('Docker не установлен');
       }
 
-      if (!await dockerHelper.isDockerRunning()) {
+      if (!await this.dockerProcessHelper.isDockerRunning()) {
         throw new Error('Docker daemon не запущен');
       }
 
-      await dockerHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName);
+      // Запускаем Docker Compose
+      await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, (log: string) => {
+        onLogCallback?.(`[DockerProcessHelper] ${log.trim()}`);
+      });
 
-      await this.crmDockerBuilderFileSystemHelper.buildPostgresRestoreScript(projectConfig);
-      await this.crmDockerBuilderFileSystemHelper.buildCreateTypeCastsPostgreSql(projectConfig);
+      // Создаем скрипт для восстановления бэкапа в PostgreSQL
+      await this.crmDockerBuilderFileSystemHelper.buildPostgresRestoreScript(projectConfig, onLogCallback);
+      // Создаем скрипт для создания типов данных в PostgreSQL
+      await this.crmDockerBuilderFileSystemHelper.buildCreateTypeCastsPostgreSql(projectConfig, onLogCallback);
 
       for (const crmConfig of projectConfig.crmConfigs) {
-        const onLog = (log: string) => {
-            console.log(`[${crmConfig.containerName}] ${log.trim()}`);
-        };
-        await this.fileSystemHelper.copyFile(crmConfig.backupPath, path.join(projectConfig.postgresConfig.volumePath, 'postgresql-data', `${crmConfig.containerName}.backup`));
-        // Делаем файл исполняемым
-        await dockerHelper.executeDockerCommandWithLogs(
+        // Копируем бэкап в папку postgres-volumes
+        await this.fileSystemHelper.copyFile(crmConfig.backupPath, path.join(projectConfig.postgresConfig.volumePath, 'postgresql-data', `${crmConfig.containerName}.backup`), onLogCallback);
+        // Делаем файл postgres.sh исполняемым
+        await this.dockerProcessHelper.executeDockerCommandWithLogs(
           ['exec', projectConfig.postgresConfig.containerName, 'chmod', '+x', '/var/lib/postgresql/data/postgres.sh'], 
           projectConfig.projectPath, 
-          onLog
+          onLogCallback
         );
-        
-        // Запускаем скрипт
-        await dockerHelper.executeDockerCommandWithLogs(
+        // Запускаем скрипт postgres.sh для восстановления бэкапа
+        await this.dockerProcessHelper.executeDockerCommandWithLogs(
           ['exec', projectConfig.postgresConfig.containerName, 'bash', '-c', `/var/lib/postgresql/data/postgres.sh ${crmConfig.containerName} ${projectConfig.postgresConfig.user} /var/lib/postgresql/data`], 
           projectConfig.projectPath, 
-          onLog
+          onLogCallback
+        );
+
+        // Копируем vsdbg файлы в папку приложения
+        await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, 'vsdbg'), path.join(crmConfig.volumePath, 'vsdbg'), onLogCallback);
+        // Делаем файл vsdbg исполняемым
+        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+          ['exec', crmConfig.containerName, 'chmod', '+x', '/app/vsdbg/vsdbg'], 
+          projectConfig.projectPath, 
+          onLogCallback
         );
       }
-      
+
+      onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен`);
       
       return {
         success: true,
@@ -537,6 +567,7 @@ export class CrmDockerBuilderHelper {
       };
     }
     catch (error) {
+      onLogCallback?.(`[CrmDockerBuilderHelper] ❌ Ошибка при запуске проекта: ${error instanceof Error ? error.message : String(error)}`);
       return {
         success: false,
         projectConfig: null,

@@ -41,8 +41,6 @@ export class ElectronService {
 
   /**
    * Получает API для работы с CRM Docker Builder Validator
-  /**
-   * Получает API для работы с CRM Docker Builder Validator
    */
   get crmDockerBuilderValidatorSystemAPI(): CrmDockerBuilderValidatorSystemAPI | null {
     return this.isElectron ? window.crmDockerBuilderValidatorSystemAPI : null;
@@ -151,6 +149,11 @@ export class ElectronService {
     return await this.fileSystemAPI.createDirectory(dirPath);
   }
 
+  /**
+   * Создает проект
+   * @param path - путь к проекту
+   * @returns результат создания проекта
+   */
   async createProject(path: string): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -159,6 +162,11 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.createProject(path);
   }
 
+  /**
+   * Открывает проект
+   * @param path - путь к проекту
+   * @returns результат открытия проекта
+   */
   async openProject(path: string): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -167,6 +175,11 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.openProject(path);
   }
 
+  /**
+   * Сохраняет настройки проекта
+   * @param projectConfig - конфигурация проекта
+   * @returns результат сохранения настроек проекта
+   */
   async saveGeneralProjectSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -174,6 +187,12 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.saveGeneralProjectSettings(projectConfig);
   }
 
+  /**
+   * Сохраняет настройки Postgres
+   * @param projectConfig - конфигурация проекта
+   * @param postgresConfig - конфигурация Postgres
+   * @returns результат сохранения настроек Postgres
+   */
   async savePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -181,6 +200,12 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.savePostgresSettings(projectConfig, postgresConfig);
   }
 
+  /**
+   * Сохраняет настройки PgAdmin
+   * @param projectConfig - конфигурация проекта
+   * @param pgAdminConfig - конфигурация PgAdmin
+   * @returns результат сохранения настроек PgAdmin
+   */
   async savePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -188,6 +213,12 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.savePgAdminSettings(projectConfig, pgAdminConfig);
   }
 
+  /**
+   * Сохраняет настройки Redis
+   * @param projectConfig - конфигурация проекта
+   * @param redisConfig - конфигурация Redis
+   * @returns результат сохранения настроек Redis
+   */
   async saveRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -195,6 +226,12 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.saveRedisSettings(projectConfig, redisConfig);
   }
 
+  /**
+   * Сохраняет настройки Rabbitmq
+   * @param projectConfig - конфигурация проекта
+   * @param rabbitmqConfig - конфигурация Rabbitmq
+   * @returns результат сохранения настроек Rabbitmq
+   */
   async saveRabbitmqSettings(projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig): Promise<InitProjectResult> {
 
     if (!this.crmDockerBuilderSystemAPI) {
@@ -203,6 +240,12 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.saveRabbitmqSettings(projectConfig, rabbitmqConfig);
   }
 
+  /**
+   * Сохраняет настройки CRM
+   * @param projectConfig - конфигурация проекта
+   * @param crmConfig - конфигурация CRM
+   * @returns результат сохранения настроек CRM
+   */
   async saveCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -210,6 +253,11 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.saveCrmSetting(projectConfig, crmConfig);
   }
 
+  /**
+   * Сохраняет настройки CRM
+   * @param projectConfig - конфигурация проекта
+   * @returns результат сохранения настроек CRM
+   */
   async saveCrmSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -217,20 +265,63 @@ export class ElectronService {
     return await this.crmDockerBuilderSystemAPI.saveCrmSettings(projectConfig);
   }
 
+  /**
+   * Собирает проект
+   * @param projectConfig - конфигурация проекта
+   * @returns результат сборки проекта
+   */
   async buildProject(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {
       throw new Error('Electron API недоступен');
     }
+
     return await this.crmDockerBuilderSystemAPI.buildProject(projectConfig);
   }
 
+  /**
+   * Запускает проект
+   * @param projectConfig - конфигурация проекта
+   * @returns результат запуска проекта
+   */
   async runProject(projectConfig: ProjectConfig): Promise<InitProjectResult> {
     if (!this.crmDockerBuilderSystemAPI) {  
       throw new Error('Electron API недоступен');
     }
+    
     return await this.crmDockerBuilderSystemAPI.runProject(projectConfig);
   }
 
+  /**
+   * Подписывается на логи проекта в реальном времени
+   * @param onLogCallback Колбэк для получения логов
+   */
+  subscribeToProjectLogs(onLogCallback: (log: string) => void): void {
+    if (!this.isElectron) {
+      console.warn('Electron API недоступен для подписки на логи');
+      return;
+    }
+    
+    window.electronAPI?.on('project-log', (event: any, log: string) => {
+      onLogCallback(log);
+    });
+  }
+
+  /**
+   * Отписывается от логов проекта
+   */
+  unsubscribeFromProjectLogs(): void {
+    if (!this.isElectron) {
+      return;
+    }
+    
+    window.electronAPI?.removeAllListeners('project-log');
+  }
+
+  /**
+   * Проверяет настройки проекта
+   * @param projectConfig - конфигурация проекта
+   * @returns результат проверки
+   */
   async validateGeneralProjectSettings(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -238,6 +329,12 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateGeneralProjectSettings(projectConfig);
   }
 
+  /**
+   * Проверяет настройки Postgres
+   * @param projectConfig - конфигурация проекта
+   * @param postgresConfig - конфигурация Postgres
+   * @returns результат проверки
+   */
   async validatePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -245,6 +342,12 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validatePostgresSettings(projectConfig, postgresConfig);
   }
   
+  /**
+   * Проверяет настройки PgAdmin
+   * @param projectConfig - конфигурация проекта
+   * @param pgAdminConfig - конфигурация PgAdmin
+   * @returns результат проверки
+   */
   async validatePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -252,6 +355,12 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validatePgAdminSettings(projectConfig, pgAdminConfig);
   }
   
+  /**
+   * Проверяет настройки Redis
+   * @param projectConfig - конфигурация проекта
+   * @param redisConfig - конфигурация Redis
+   * @returns результат проверки
+   */
   async validateRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -259,6 +368,12 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateRedisSettings(projectConfig, redisConfig);
   }
   
+  /**
+   * Проверяет настройки Rabbitmq
+   * @param projectConfig - конфигурация проекта
+   * @param rabbitmqConfig - конфигурация Rabbitmq
+   * @returns результат проверки
+   */
   async validateRabbitmqSettings(projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -266,6 +381,11 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateRabbitmqSettings(projectConfig, rabbitmqConfig);
   }
   
+  /**
+   * Проверяет настройки CRM
+   * @param projectConfig - конфигурация проекта
+   * @returns результат проверки
+   */
   async validateCrmSettings(projectConfig: ProjectConfig): Promise<ValidateCrmResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -274,6 +394,12 @@ export class ElectronService {
   }
   
   
+  /**
+   * Проверяет настройки CRM
+   * @param projectConfig - конфигурация проекта
+   * @param crmConfig - конфигурация CRM
+   * @returns результат проверки
+   */
   async validateCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -281,6 +407,12 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateCrmSetting(projectConfig, crmConfig);
   }
 
+  /**
+   * Проверяет путь к приложению
+   * @param projectPath - путь к проекту
+   * @param appPath - путь к приложению
+   * @returns результат проверки
+   */
   async validateAppPath(projectPath: string, appPath: string): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -288,7 +420,11 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateAppPath(projectPath, appPath);
   }
   
-  
+  /**
+   * Проверяет путь к бэкапу
+   * @param backupPath - путь к бэкапу
+   * @returns результат проверки
+   */
   async validateBackupPath(backupPath: string): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');
@@ -296,6 +432,11 @@ export class ElectronService {
     return await this.crmDockerBuilderValidatorSystemAPI.validateBackupPath(backupPath);
   }
   
+  /**
+   * Проверяет все настройки проекта
+   * @param projectConfig - конфигурация проекта
+   * @returns результат проверки
+   */
   async validateAll(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
     if (!this.crmDockerBuilderValidatorSystemAPI) {
       throw new Error('Electron API недоступен');

@@ -58,13 +58,25 @@ export class CrmDockerBuilderService implements IService {
     });
 
     // Сборка проекта
-    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, async (event, projectConfig: ProjectConfig) => {
-      return await this.helper.buildProject(projectConfig);
+    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, async (event: Electron.IpcMainInvokeEvent, projectConfig: ProjectConfig) => {
+      // Создаем колбэк для отправки логов в Angular
+      const onLogCallback = (log: string) => {
+        event.sender.send('project-log', log);
+        console.log(`[CrmDockerBuilderService] ${log.trim()}`);
+      };
+      
+      return await this.helper.buildProject(projectConfig, onLogCallback);
     });
 
     // Запуск проекта
-    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, async (event, projectConfig: ProjectConfig) => {
-      return await this.helper.runProject(projectConfig);
+    ipcMain.handle(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, async (event: Electron.IpcMainInvokeEvent, projectConfig: ProjectConfig) => {
+      // Создаем колбэк для отправки логов в Angular
+      const onLogCallback = (log: string) => {
+        event.sender.send('project-log', log);
+        console.log(`[CrmDockerBuilderService] ${log.trim()}`);
+      };
+      
+      return await this.helper.runProject(projectConfig, onLogCallback);
     });
   }
 }

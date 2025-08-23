@@ -132,13 +132,65 @@ export class FileSystemHelper {
    * Копирует файл
    * @param sourcePath - путь к исходному файлу
    * @param destinationPath - путь к конечному файлу
+   * @param onLogCallback - колбэк для отслеживания прогресса (опционально)
    */
-  public async copyFile(sourcePath: string, destinationPath: string): Promise<void> {
+  public async copyFile(sourcePath: string, destinationPath: string, onLogCallback?: (message: string) => void): Promise<void> {
     try {
+      onLogCallback?.(`[FileSystemHelper] 🚀 Начинаем копирование файла: ${sourcePath} -> ${destinationPath}`);
       await fs.copyFile(sourcePath, destinationPath);
+      onLogCallback?.(`[FileSystemHelper] ✅ Файл успешно скопирован: ${sourcePath} -> ${destinationPath}`);
     } catch (error) {
-      console.error(`Ошибка копирования файла: ${error}`);
-      throw new Error(`Ошибка копирования файла: ${error}`);
+      const errorMessage = `[FileSystemHelper] ❌ Ошибка копирования файла: ${error}`;
+      onLogCallback?.(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Копирует папку рекурсивно
+   * @param sourcePath - путь к исходной папке
+   * @param destinationPath - путь к конечной папке
+   * @param onLogCallback - колбэк для отслеживания прогресса (опционально)
+   */
+  public async copyDirectory(sourcePath: string, destinationPath: string, onLogCallback?: (message: string) => void): Promise<void> {
+    try {
+      onLogCallback?.(`[FileSystemHelper] 🚀 Начинаем копирование папки: ${sourcePath} -> ${destinationPath}`);
+      
+      // Проверяем, существует ли исходная папка
+      if (!await this.pathExists(sourcePath)) {
+        throw new Error(`[FileSystemHelper] Исходная папка не существует: ${sourcePath}`);
+      }
+
+      // Создаем целевую папку, если она не существует
+      await this.createDirectory(destinationPath);
+      onLogCallback?.(`[FileSystemHelper] 📁 Создана целевая папка: ${destinationPath}`);
+
+      // Получаем все элементы в исходной папке
+      const items = await fs.readdir(sourcePath);
+      
+      for (const item of items) {
+        const sourceItemPath = path.join(sourcePath, item);
+        const destinationItemPath = path.join(destinationPath, item);
+        
+        const stats = await fs.stat(sourceItemPath);
+        
+        if (stats.isDirectory()) {
+          // Если это папка - рекурсивно копируем её
+          onLogCallback?.(`[FileSystemHelper] 📂 Копируем папку: ${item}`);
+          await this.copyDirectory(sourceItemPath, destinationItemPath, onLogCallback);
+        } else {
+          // Если это файл - копируем его
+          onLogCallback?.(`[FileSystemHelper] 📄 Копируем файл: ${item}`);
+          await fs.copyFile(sourceItemPath, destinationItemPath);
+        }
+      }
+      
+      onLogCallback?.(`[FileSystemHelper] ✅ Папка успешно скопирована: ${sourcePath} -> ${destinationPath}`);
+      
+    } catch (error) {
+      const errorMessage = `[FileSystemHelper] ❌ Ошибка копирования папки ${sourcePath}: ${error}`;
+      onLogCallback?.(errorMessage);
+      throw new Error(errorMessage);
     }
   }
 }

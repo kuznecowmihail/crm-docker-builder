@@ -1,10 +1,7 @@
-import { ipcMain } from 'electron';
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { BaseContainerConfig, CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig, ValidateCrmResult, ValidateProjectResult } from '@shared/api';
-import { IPC_CHANNELS } from '../config/constants';
-import { IService } from '../interfaces/IService';
 import { FileSystemHelper } from './FileSystemHelper';
+
 export class CrmDockerBuilderValidator {
   private fileSystemHelper: FileSystemHelper;
 
@@ -20,7 +17,7 @@ export class CrmDockerBuilderValidator {
   private async validateBaseContainerSettings(containerConfig: BaseContainerConfig): Promise<ValidateProjectResult> {
     let result: ValidateProjectResult = {
       success: true,
-      message: ''
+      message: 'Все настройки корректны'
     };
     // Проверяем, существует ли название контейнера
     if (!containerConfig.containerName) {
@@ -55,7 +52,7 @@ export class CrmDockerBuilderValidator {
   public async validateGeneralProjectSettings(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
     let result: ValidateProjectResult = {
       success: true,
-      message: ''
+      message: 'Все настройки корректны'
     };
     // Проверяем, существует ли название проекта
     if (!projectConfig.projectName) {
@@ -360,36 +357,51 @@ export class CrmDockerBuilderValidator {
    * @param projectConfig - конфигурация проекта
    * @returns результат проверки
    */
-  public async validateAll(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
+  public async validateAll(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<ValidateProjectResult> {
     const generalProjectResult = await this.validateGeneralProjectSettings(projectConfig);
+    onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек проекта: ${generalProjectResult.message}`);
+    console.log(`[CrmDockerBuilderValidator] Проверка настроек проекта: ${generalProjectResult.message}`);
     if (!generalProjectResult.success) {
       return generalProjectResult;
     }
 
     const postgresResult = await this.validatePostgresSettings(projectConfig, projectConfig.postgresConfig);
+    onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек Postgres: ${postgresResult.message}`);
+    console.log(`[CrmDockerBuilderValidator] Проверка настроек Postgres: ${postgresResult.message}`);
     if (!postgresResult.success) {
       return postgresResult;
     }
 
     const pgAdminResult = await this.validatePgAdminSettings(projectConfig, projectConfig.pgAdminConfig);
+    onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек PgAdmin: ${pgAdminResult.message}`);
+    console.log(`[CrmDockerBuilderValidator] Проверка настроек PgAdmin: ${pgAdminResult.message}`);
     if (!pgAdminResult.success) {
       return pgAdminResult;
     }
 
     const redisResult = await this.validateRedisSettings(projectConfig, projectConfig.redisConfig);
+    onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек Redis: ${redisResult.message}`);
+    console.log(`[CrmDockerBuilderValidator] Проверка настроек Redis: ${redisResult.message}`);
     if (!redisResult.success) {
       return redisResult;
     }
 
     const rabbitmqResult = await this.validateRabbitmqSettings(projectConfig, projectConfig.rabbitmqConfig);
+    onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек Rabbitmq: ${rabbitmqResult.message}`);
+    console.log(`[CrmDockerBuilderValidator] Проверка настроек Rabbitmq: ${rabbitmqResult.message}`);
     if (!rabbitmqResult.success) {
       return rabbitmqResult;
     }
 
     const crmResult = await this.validateCrmSettings(projectConfig);
+    onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек CRM: ${crmResult.message}`);
+    console.log(`[CrmDockerBuilderValidator] Проверка настроек CRM: ${crmResult.message}`);
     if (!crmResult.success) {
       return crmResult;
     }
+
+    onLogCallback?.(`[CrmDockerBuilderValidator] Все настройки корректны`);
+    console.log(`[CrmDockerBuilderValidator] Все настройки корректны`);
 
     return {
       success: true,

@@ -14,6 +14,7 @@ import { PgAdminSettings } from './pgadmin-settings/pgadmin-settings';
 import { RedisSettings } from './redis-settings/redis-settings';
 import { RabbitMqSettings } from './rabbitmq-settings/rabbitmq-settings';
 import { CrmSettings } from './crm-settings/crm-settings';
+import { ProjectLogs } from './project-logs/project-logs';
 import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
@@ -34,6 +35,7 @@ import { ElectronService } from 'src/app/services/electron.service';
     RedisSettings,
     RabbitMqSettings,
     CrmSettings,
+    ProjectLogs,
   ],
   templateUrl: './project-workspace.html',
   styleUrl: './project-workspace.css'
@@ -47,6 +49,10 @@ export class ProjectWorkspace {
    * Поля для редактирования
    */
   projectName: string = '';
+
+  /**
+   * Путь к проекту
+   */
   projectPath: string = '';
 
   /**
@@ -58,6 +64,11 @@ export class ProjectWorkspace {
    * Выбранная конфигурация CRM
    */
   selectedCrmConfig: CrmConfig | null = null;
+
+  /**
+   * Логи проекта
+   */
+  projectLogs: string[] = [];
   
   /**
    * Конструктор
@@ -74,6 +85,8 @@ export class ProjectWorkspace {
       this.projectName = this.projectConfig.projectName || '';
       this.projectPath = this.projectConfig.projectPath || '';
     }
+    // Инициализируем массив логов
+    this.projectLogs = [];
   }
 
   /**
@@ -120,8 +133,18 @@ export class ProjectWorkspace {
       this.electronService.showNotification('Сборка проекта', crmSettingsResult.message);
       return;
     }
+    this.onClearLogs();
+    this.onSectionSelect('logs');
 
+    // Подписываемся на логи проекта
+    this.electronService.subscribeToProjectLogs((log: string) => {
+      console.log('[PROJECT LOG]', log);
+      this.projectLogs = [...this.projectLogs, log];
+    });
     const result = await this.electronService.buildProject(this.projectConfig);
+    // Отписываемся от логов проекта
+    this.electronService.unsubscribeFromProjectLogs();
+
     this.electronService.showNotification('Сборка проекта', result.message);
   }
 
@@ -133,7 +156,18 @@ export class ProjectWorkspace {
     if (!this.projectConfig) {
       return;
     }
+    this.onClearLogs();
+    this.onSectionSelect('logs');
+
+    // Подписываемся на логи проекта
+    this.electronService.subscribeToProjectLogs((log: string) => {
+      console.log('[PROJECT LOG]', log);
+      this.projectLogs = [...this.projectLogs, log];
+    });
     const result = await this.electronService.runProject(this.projectConfig);
+    // Отписываемся от логов проекта
+    this.electronService.unsubscribeFromProjectLogs();
+
     this.electronService.showNotification('Запуск проекта', result.message);
   }
 
@@ -170,6 +204,13 @@ export class ProjectWorkspace {
       netVersion: '8.0',
       crmType: 'bpmsoft'
     });
+  }
+
+  /**
+   * Обработчик очистки логов
+   */
+  onClearLogs() {
+    this.projectLogs = [];
   }
 
   /**

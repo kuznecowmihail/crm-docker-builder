@@ -1,0 +1,50 @@
+<div class="project-logs-container">
+  <div class="project-logs-header">
+    <h3>📋 Логи проекта</h3>
+    <div class="project-logs-controls">
+      <span class="logs-count">{{ logs.length }} логов</span>
+      <button 
+        class="scroll-bottom-btn" 
+        (click)="scrollToBottom()"
+        [disabled]="displayLogs.length === 0"
+        title="Скролл вниз">
+        ⬇️
+      </button>
+      <button 
+        class="clear-logs-btn" 
+        (click)="clearLogs()"
+        [disabled]="logs.length === 0">
+        🗑️ Очистить
+      </button>
+    </div>
+  </div>
+
+  <div class="project-logs-content" #logsContainer>
+    <div 
+      *ngIf="displayLogs.length === 0" 
+      class="no-logs">
+      <p>📝 Логи пока не появились...</p>
+      <p>Запустите сборку или запуск проекта, чтобы увидеть логи</p>
+    </div>
+
+    <div 
+      *ngIf="displayLogs.length > 0" 
+      class="logs-list">
+      <div 
+        *ngFor="let log of displayLogs; trackBy: trackByLog" 
+        class="log-item"
+        [ngClass]="'log-' + getLogType(log)">
+        <div class="log-content">
+          <span class="log-time">{{ getLogTime() }}</span>
+          <span class="log-text">{{ log }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div 
+      *ngIf="logs.length > maxLogs" 
+      class="logs-truncated">
+      <p>⚠️ Показаны последние {{ maxLogs }} логов из {{ logs.length }}</p>
+    </div>
+  </div>
+</div>
