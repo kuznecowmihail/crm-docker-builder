@@ -2,6 +2,7 @@ import * as path from 'path';
 import { FileSystemHelper } from './FileSystemHelper';
 import { CrmConfig, ProjectConfig } from '@shared/crm-docker-builder';
 import { VscodeFilesHelper } from './VscodeFilesHelper';
+import { ConstantValues } from '../config/constants';
 
 export class CrmDockerBuilderFileSystemHelper {
     /**
@@ -66,7 +67,7 @@ export class CrmDockerBuilderFileSystemHelper {
     public async buildPostgresRestoreScript(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
         try {
             const postgresRestoreScript = this.generatePostgresRestoreScriptContent();
-            const filePath = path.join(projectConfig.projectPath, 'postgres-volumes', 'postgresql-data', 'postgres.sh');
+            const filePath = path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES, 'postgresql-data', 'postgres.sh');
             await this.fileSystemHelper.writeFile(filePath, postgresRestoreScript);
             onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл postgres.sh успешно создан`);
         } catch (error) {
@@ -84,7 +85,7 @@ export class CrmDockerBuilderFileSystemHelper {
     public async buildCreateTypeCastsPostgreSql(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
         try {
             const createTypeCastsPostgreSql = this.generateCreateTypeCastsPostgreSqlContent();
-            const filePath = path.join(projectConfig.projectPath, 'postgres-volumes', 'postgresql-data', 'CreateTypeCastsPostgreSql.sql');
+            const filePath = path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES, 'postgresql-data', 'CreateTypeCastsPostgreSql.sql');
             await this.fileSystemHelper.writeFile(filePath, createTypeCastsPostgreSql);
             onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл CreateTypeCastsPostgreSql.sql успешно создан`);
         } catch (error) {
@@ -202,8 +203,8 @@ services:
       POSTGRES_PASSWORD: ${postgresConfig.password}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ./${getRelativePath(path.join(projectConfig.projectPath, 'postgres-volumes', 'init-database'))}:/docker-entrypoint-initdb.d
-      - ./${getRelativePath(path.join(projectConfig.projectPath, 'postgres-volumes', 'postgresql-data'))}:/var/lib/postgresql/data
+      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES, 'init-database'))}:/docker-entrypoint-initdb.d
+      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES, 'postgresql-data'))}:/var/lib/postgresql/data
     ports:
       - ${postgresConfig.port}:5432
     restart: unless-stopped
@@ -251,8 +252,8 @@ services:
     ports:
       - ${redisConfig.port}:6379
     volumes:
-      - ./${getRelativePath(path.join(projectConfig.projectPath, 'redis-volumes', 'data'))}:/data
-      - ./${getRelativePath(path.join(projectConfig.projectPath, 'redis-volumes', 'redis.conf'))}:/usr/local/etc/redis/redis.conf
+      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES, 'data'))}:/data
+      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES, 'redis.conf'))}:/usr/local/etc/redis/redis.conf
     environment:
       - REDIS_PASSWORD=${redisConfig.password}
       - REDIS_DATABASES=${redisConfig.dbCount}

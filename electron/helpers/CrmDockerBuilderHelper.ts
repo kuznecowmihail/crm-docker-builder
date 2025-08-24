@@ -2,10 +2,11 @@ import * as fs from 'fs/promises';
 import { CrmConfig, InitProjectResult, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from '@shared/api';
 import { CrmDockerBuilderValidator } from './CrmDockerBuilderValidator';
 import { FileSystemHelper } from './FileSystemHelper';
-import path from 'path';
+import * as path from 'path';
 import { CrmDockerBuilderFileSystemHelper } from './CrmDockerBuilderFileSystemHelper';
 import { DockerProcessHelper } from './DockerProcessHelper';
 import { VscodeFilesHelper } from './VscodeFilesHelper';
+import { ConstantValues } from '../config/constants';
 
 export class CrmDockerBuilderHelper {
   /**
@@ -42,17 +43,17 @@ export class CrmDockerBuilderHelper {
 
     /**
    * Создает проект
-   * @param path - путь к папке проекта
+   * @param projectPath - путь к папке проекта
    * @returns результат создания проекта
    */
-  public async createProject(path: string): Promise<InitProjectResult> {
+  public async createProject(projectPath: string): Promise<InitProjectResult> {
     try {
       // Проверяем, существует ли папка
-      const pathExists = await this.fileSystemHelper.pathExists(path);
+      const pathExists = await this.fileSystemHelper.pathExists(projectPath);
       
       if (pathExists) {
         // Проверяем, пустая ли папка
-        const isEmpty = await this.fileSystemHelper.isDirectoryEmpty(path);
+        const isEmpty = await this.fileSystemHelper.isDirectoryEmpty(projectPath);
         
         if (!isEmpty) {
           return {
@@ -71,45 +72,45 @@ export class CrmDockerBuilderHelper {
       
       // Создаем файл конфигурации проекта
       // Создаем необходимые папки для проекта
-      await this.createProjectDirectories(path);
+      await this.createProjectDirectories(projectPath);
 
       const configPath = `${path}/crm-docker-builder-config.json`;
       const сonfig: ProjectConfig = {
-        projectName: path.split('/').pop() || 'crm-docker-project',
-        projectPath: path,
+        projectName: projectPath.split('/').pop() || 'crm-docker-project',
+        projectPath: projectPath,
         modifiedOn: new Date(),
         postgresConfig: {
           id: this.generateId(),
-          containerName: 'postgres',
-          port: 5433,
-          volumePath: `${path}/postgres-volumes`,
-          user: 'puser',
-          password: 'puser'
+          containerName: ConstantValues.DEFAULT_POSTGRES_CONFIG.containerName,
+          port: ConstantValues.DEFAULT_POSTGRES_CONFIG.port,
+          volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES),
+          user: ConstantValues.DEFAULT_POSTGRES_CONFIG.user,
+          password: ConstantValues.DEFAULT_POSTGRES_CONFIG.password
         },
         pgAdminConfig: {
           id: this.generateId(),
-          containerName: 'pgadmin',
-          port: 5434,
-          volumePath: `${path}/pgadmin-volumes`,
-          email: 'admin@example.com',
-          password: 'puser'
+          containerName: ConstantValues.DEFAULT_PGADMIN_CONFIG.containerName,
+          port: ConstantValues.DEFAULT_PGADMIN_CONFIG.port,
+          volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.PGADMIN_VOLUMES),
+          email: ConstantValues.DEFAULT_PGADMIN_CONFIG.email,
+          password: ConstantValues.DEFAULT_PGADMIN_CONFIG.password
         },
         redisConfig: {
           id: this.generateId(),
-          containerName: 'redis',
-          port: 6380,
-          volumePath: `${path}/redis-volumes`,
-          password: 'redis',
-          dbCount: 16
+          containerName: ConstantValues.DEFAULT_REDIS_CONFIG.containerName,
+          port: ConstantValues.DEFAULT_REDIS_CONFIG.port,
+          volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES),
+          password: ConstantValues.DEFAULT_REDIS_CONFIG.password,
+          dbCount: ConstantValues.DEFAULT_REDIS_CONFIG.dbCount
         },
         rabbitmqConfig: {
           id: this.generateId(),
-          containerName: 'rabbitmq',
-          port: 15673,
-          amqpPort: 5673,
-          volumePath: `${path}/rabbitmq-volumes`,
-          user: 'rmuser',
-          password: 'rmpassword'
+          containerName: ConstantValues.DEFAULT_RABBITMQ_CONFIG.containerName,
+          port: ConstantValues.DEFAULT_RABBITMQ_CONFIG.port,
+          amqpPort: ConstantValues.DEFAULT_RABBITMQ_CONFIG.amqpPort,
+          volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.RABBITMQ_VOLUMES),
+          user: ConstantValues.DEFAULT_RABBITMQ_CONFIG.user,
+          password: ConstantValues.DEFAULT_RABBITMQ_CONFIG.password
         },
         crmConfigs: []
       };
@@ -590,11 +591,11 @@ export class CrmDockerBuilderHelper {
   private async createProjectDirectories(projectPath: string): Promise<void> {
     try {
       const directories = [
-        path.join(projectPath, 'postgres-volumes'),
-        path.join(projectPath, 'pgadmin-volumes'),
-        path.join(projectPath, 'redis-volumes'),
-        path.join(projectPath, 'rabbitmq-volumes'),
-        path.join(projectPath, 'crm-volumes')
+        path.join(projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES),
+        path.join(projectPath, ConstantValues.FOLDER_NAMES.PGADMIN_VOLUMES),
+        path.join(projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES),
+        path.join(projectPath, ConstantValues.FOLDER_NAMES.RABBITMQ_VOLUMES),
+        path.join(projectPath, ConstantValues.FOLDER_NAMES.CRM_VOLUMES)
       ];
 
       for (const dir of directories) {

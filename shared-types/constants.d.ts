@@ -1,43 +1,113 @@
 // Общие константы для Electron и Angular приложений
-
-// Конфигурация окна по умолчанию
-export const DEFAULT_WINDOW_CONFIG = {
-  width: 1200,
-  height: 800,
-  minWidth: 800,
-  minHeight: 600,
-} as const;
-
-// URL для разработки
-export const DEV_SERVER_URL = 'http://localhost:4200';
-
-// Пути к файлам
-export const PATHS = {
-  preload: '../preload.js',
-  productionApp: './angular-app/dist/angular-app/browser/index.html',
-} as const;
-
-// Названия IPC каналов
-export const IPC_CHANNELS = {
-  SYSTEM: {
-    INFO: 'system:info',
-    TITLE: 'system:title',
-    VERSION: 'system:version',
+export interface Constants {
+  DEFAULT_WINDOW_CONFIG: {
+    width: number;
+    height: number;
+    minWidth: number;
+    minHeight: number;
+  };
+  DEV_SERVER_URL: string;
+  PATHS: {
+    preload: string;
+    productionApp: string;
+  };
+  IPC_CHANNELS: {
+    SYSTEM: {
+      TITLE: string,
+      INFO: string,
+      VERSION: string,
+    },
+    DIALOG: {
+      OPEN_FOLDER: string,
+      OPEN_FILE: string,
+      SAVE_FILE: string,
+    },
+    NOTIFICATION: {
+      SHOW: string,
+    },
+    FILE_SYSTEM: {
+      READ_FILE: string,
+      WRITE_FILE: string,
+      FILE_EXISTS: string,
+      CREATE_DIR: string,
+    },
+    CRM_DOCKER_BUILDER_SYSTEM: {
+      CREATE_PROJECT: string,
+      OPEN_PROJECT: string,
+      SAVE_GENERAL_PROJECT_SETTINGS: string,
+      SAVE_POSTGRES_SETTINGS: string,
+      SAVE_PGADMIN_SETTINGS: string,
+      SAVE_REDIS_SETTINGS: string,
+      SAVE_RABBITMQ_SETTINGS: string,
+      SAVE_CRM_SETTING: string,
+      SAVE_CRM_SETTINGS: string,
+      BUILD_PROJECT: string,
+      RUN_PROJECT: string,
+    },
+    CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM: {
+      VALIDATE_GENERAL_PROJECT_SETTINGS: string,
+      VALIDATE_POSTGRES_SETTINGS: string,
+      VALIDATE_PGADMIN_SETTINGS: string,
+      VALIDATE_REDIS_SETTINGS: string,
+      VALIDATE_RABBITMQ_SETTINGS: string,
+      VALIDATE_CRM_SETTINGS: string,
+      VALIDATE_CRM_SETTING: string,
+      VALIDATE_APP_PATH: string,
+      VALIDATE_BACKUP_PATH: string,
+      VALIDATE_ALL: string,
+    },
+    CONSTANTS_SYSTEM: {
+      GET_CONSTANTS: string,
+    }
   },
-  DIALOG: {
-    OPEN_FOLDER: 'dialog:open-folder',
-    OPEN_FILE: 'dialog:open-file',
+  DEFAULT_POSTGRES_CONFIG: {
+    containerName: string,
+    port: number,
+    user: string,
+    password: string,
   },
-  NOTIFICATION: {
-    SHOW: 'notification:show',
+  DEFAULT_PGADMIN_CONFIG: {
+    containerName: string,
+    port: number,
+    email: string,
+    password: string,
   },
-  FILE_SYSTEM: {
-    READ_FILE: 'fs:read-file',
-    WRITE_FILE: 'fs:write-file',
-    FILE_EXISTS: 'fs:file-exists',
-    CREATE_DIR: 'fs:create-dir',
+  DEFAULT_REDIS_CONFIG: {
+    containerName: string,
+    port: number,
+    password: string,
+    dbCount: number,
   },
-  CRM_DOCKER_BUILDER_SYSTEM: {
-    CREATE_PROJECT: 'crm-docker-builder:create-project',
-  }
-} as const;
+  DEFAULT_RABBITMQ_CONFIG: {
+    containerName: string,
+    port: number,
+    user: string,
+    password: string,
+    amqpPort: number,
+  },
+  DEFAULT_CRM_CONFIG: {
+    containerName: string,
+    port: number,
+    redisDb: number,
+    dbType: string,
+    netVersion: string,
+    crmType: string,
+  },
+  NET_VERSIONS: string[],
+  DB_TYPES: string[],
+  CRM_TYPES: string[],
+  FOLDER_NAMES: {
+    POSTGRES_VOLUMES: string,
+    PGADMIN_VOLUMES: string,
+    REDIS_VOLUMES: string,
+    RABBITMQ_VOLUMES: string,
+    CRM_VOLUMES: string,
+  },
+}
+
+// Типы для файловой системы
+
+// API для работы с файловой системой
+export interface ConstantsAPI {
+  getConstants: () => Promise<Constants>;
+}

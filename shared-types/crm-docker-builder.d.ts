@@ -49,12 +49,12 @@ export interface PostgresConfig extends BaseContainerConfig {
 export interface PgAdminConfig extends BaseContainerConfig {
   email: string;
   password: string;
-  }
+}
 
-  export interface RedisConfig extends BaseContainerConfig {
-    password: string;
-    dbCount: number;
-  }
+export interface RedisConfig extends BaseContainerConfig {
+  password: string;
+  dbCount: number;
+}
 
 export interface RabbitmqConfig extends BaseContainerConfig {
   user: string;

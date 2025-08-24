@@ -1,18 +1,24 @@
 import { Notification, ipcMain } from 'electron';
 import { NotificationOptions } from '@shared/api';
-import { IPC_CHANNELS } from '../config/constants';
+import { ConstantValues } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
 export class NotificationService implements IService {
   public setupHandlers(): void {
     // Показать уведомление
-    ipcMain.handle(IPC_CHANNELS.NOTIFICATION.SHOW, async (event, title: string, body: string) => {
+    ipcMain.handle(ConstantValues.IPC_CHANNELS.NOTIFICATION.SHOW, async (event, title: string, body: string) => {
       return await this.showNotification(title, body);
     });
   }
 
+  /**
+   * Показать уведомление
+   * @param title - заголовок уведомления
+   * @param body - текст уведомления
+   * @param options - опции уведомления
+   */
   public showNotification(title: string, body: string, options?: Partial<NotificationOptions>): void {
-    if (Notification.isSupported()) {
+    if (this.isSupported()) {
       const notification = new Notification({
         title,
         body,
@@ -22,6 +28,10 @@ export class NotificationService implements IService {
     }
   }
 
+  /**
+   * Проверить поддержку уведомлений
+   * @returns - true, если уведомления поддерживаются
+   */
   public isSupported(): boolean {
     return Notification.isSupported();
   }

@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSliderModule } from '@angular/material/slider';
-import { ProjectConfig } from '@shared/api';
+import { Constants, ProjectConfig } from '@shared/api';
 import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
@@ -39,15 +39,20 @@ export class RedisSettings {
   /**
    * Поля для редактирования Redis
    */
-  containerName: string = 'redis';
-  port: number = 6380;
-  volumePath: string = 'redis-volumes';
-  password: string = 'password';
-  dbCount: number = 16;
+  containerName: string = '';
+  port: number = 0;
+  volumePath: string = '';
+  password: string = '';
+  dbCount: number = 0;
   isEnabled: boolean = true;
   maxMemory: string = '256mb';
   maxMemoryValue: number = 256;
   
+  /**
+   * Константы
+   */
+  constants: Constants | null = null;
+
   /**
    * Конструктор
    * @param electronService - сервис для работы с Electron
@@ -59,18 +64,27 @@ export class RedisSettings {
    */
   ngOnInit() {
     console.log('RedisSettings: Инициализация с конфигурацией:', this.projectConfig);
+    
     if (this.projectConfig?.redisConfig) {
       const config = this.projectConfig.redisConfig;
       this.containerName = config.containerName || '';
       this.port = config.port || 6380;
-      this.volumePath = config.volumePath || 'redis-volumes';
-      this.password = config.password || 'password';
+      this.volumePath = config.volumePath || '';
+      this.password = config.password || '';
       this.dbCount = config.dbCount || 16;
     }
-    
-    // Инициализация значения слайдера
-    this.maxMemoryValue = 256;
-    this.maxMemory = '256mb';
+
+    this.electronService.getConstants().then((constants) => {
+      this.constants = constants;
+
+      if (!this.projectConfig?.redisConfig) {
+        const config = this.constants?.DEFAULT_REDIS_CONFIG;
+        this.containerName = config.containerName;
+        this.port = config.port;
+        this.password = config.password;
+        this.dbCount = config.dbCount;
+      }
+    });
   }
 
   /**
@@ -126,11 +140,11 @@ export class RedisSettings {
     console.log('RedisSettings: Отмена изменений');
     if (this.projectConfig?.redisConfig) {
       const config = this.projectConfig.redisConfig;
-      this.containerName = config.containerName || '';
-      this.port = config.port || 6379;
+      this.containerName = config.containerName || this.constants?.DEFAULT_REDIS_CONFIG.containerName || '';
+      this.port = config.port || this.constants?.DEFAULT_REDIS_CONFIG.port || 0;
       this.volumePath = config.volumePath || '';
-      this.password = config.password || '';
-      this.dbCount = config.dbCount || 16;
+      this.password = config.password || this.constants?.DEFAULT_REDIS_CONFIG.password || '';
+      this.dbCount = config.dbCount || this.constants?.DEFAULT_REDIS_CONFIG.dbCount || 0;
     }
     
     // Сброс значений памяти

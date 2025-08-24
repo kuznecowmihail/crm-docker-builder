@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { BaseContainerConfig, CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig, ValidateCrmResult, ValidateProjectResult } from '@shared/api';
 import { FileSystemHelper } from './FileSystemHelper';
+import { ConstantValues } from '../config/constants';
 
 export class CrmDockerBuilderValidator {
   private fileSystemHelper: FileSystemHelper;
@@ -256,7 +257,7 @@ export class CrmDockerBuilderValidator {
     }
 
     // Проверяем, что appPath находится внутри projectPath
-    if (!this.fileSystemHelper.isPathInside(appPath, path.join(projectPath, 'crm-volumes'))) {
+    if (!this.fileSystemHelper.isPathInside(appPath, path.join(projectPath, ConstantValues.FOLDER_NAMES.CRM_VOLUMES))) {
       result.success = false;
       result.message = 'Папка приложения должна находиться внутри папки проекта';
       return result;

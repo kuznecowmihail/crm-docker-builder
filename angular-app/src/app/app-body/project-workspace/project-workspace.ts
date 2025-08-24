@@ -1,11 +1,11 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { CrmConfig, ProjectConfig } from '@shared/api';
+import { Constants, CrmConfig, ProjectConfig } from '@shared/api';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { GeneralProjectSettings } from './general-project-settings/general-project-settings';
@@ -69,12 +69,21 @@ export class ProjectWorkspace {
    * Логи проекта
    */
   projectLogs: string[] = [];
+
+  /**
+   * Константы
+   */
+  constants: Constants | null = null;
   
   /**
    * Конструктор
    * @param electronService - сервис для работы с Electron
    */
-  constructor(private electronService: ElectronService) {}
+  constructor(private electronService: ElectronService) {
+    this.electronService.getConstants().then((constants) => {
+      this.constants = constants;
+    });
+  }
 
   /**
    * Обработчик инициализации компоненты
@@ -136,20 +145,26 @@ export class ProjectWorkspace {
     this.onClearLogs();
     this.onSectionSelect('logs');
 
-    // Подписываемся на логи проекта
-    this.electronService.subscribeToProjectLogs((log: string) => {
-      console.log('[PROJECT LOG]', log);
-      this.projectLogs = [...this.projectLogs, log];
+    setTimeout(async () => {
+      if (!this.projectConfig) {
+        return;
+      }
+
+      // Подписываемся на логи проекта
+      this.electronService.subscribeToProjectLogs((log: string) => {
+        console.log('[PROJECT LOG]', log);
+        this.projectLogs = [...this.projectLogs, log];
+      });
+      const result = await this.electronService.buildProject(this.projectConfig);
+      // Отписываемся от логов проекта
+      this.electronService.unsubscribeFromProjectLogs();
+  
+      this.electronService.showNotification('Сборка проекта', result.message);
+  
+      this.projectConfig.buildOn = new Date();
+      this.projectConfig.modifiedOn = new Date();
+      this.electronService.saveGeneralProjectSettings(this.projectConfig);
     });
-    const result = await this.electronService.buildProject(this.projectConfig);
-    // Отписываемся от логов проекта
-    this.electronService.unsubscribeFromProjectLogs();
-
-    this.electronService.showNotification('Сборка проекта', result.message);
-
-    this.projectConfig.buildOn = new Date();
-    this.projectConfig.modifiedOn = new Date();
-    this.electronService.saveGeneralProjectSettings(this.projectConfig);
   }
 
   /**
@@ -171,20 +186,26 @@ export class ProjectWorkspace {
     this.onClearLogs();
     this.onSectionSelect('logs');
 
-    // Подписываемся на логи проекта
-    this.electronService.subscribeToProjectLogs((log: string) => {
-      console.log('[PROJECT LOG]', log);
-      this.projectLogs = [...this.projectLogs, log];
+    setTimeout(async () => {
+      if (!this.projectConfig) {
+        return;
+      }
+
+      // Подписываемся на логи проекта
+      this.electronService.subscribeToProjectLogs((log: string) => {
+        console.log('[PROJECT LOG]', log);
+        this.projectLogs = [...this.projectLogs, log];
+      });
+      const result = await this.electronService.runProject(this.projectConfig);
+      // Отписываемся от логов проекта
+      this.electronService.unsubscribeFromProjectLogs();
+  
+      this.electronService.showNotification('Запуск проекта', result.message);
+  
+      this.projectConfig.runOn = new Date();
+      this.projectConfig.modifiedOn = new Date();
+      this.electronService.saveGeneralProjectSettings(this.projectConfig);
     });
-    const result = await this.electronService.runProject(this.projectConfig);
-    // Отписываемся от логов проекта
-    this.electronService.unsubscribeFromProjectLogs();
-
-    this.electronService.showNotification('Запуск проекта', result.message);
-
-    this.projectConfig.runOn = new Date();
-    this.projectConfig.modifiedOn = new Date();
-    this.electronService.saveGeneralProjectSettings(this.projectConfig);
   }
 
   /**
@@ -208,18 +229,24 @@ export class ProjectWorkspace {
   onCrmAdd() {
     console.log('Добавление CRM');
 
-    this.projectConfig?.crmConfigs.push({
-      id: this.generateId(),
-      containerName: 'crm-bpmsoft',
-      port: 80,
-      volumePath: `${this.projectConfig?.projectPath}/crm-bpmsoft`,
-      appPath: `${this.projectConfig?.projectPath}/crm-bpmsoft`,
-      backupPath: `${this.projectConfig?.projectPath}/crm-bpmsoft/db`,
-      redisDb: 0,
-      dbType: 'postgres',
-      netVersion: '8.0',
-      crmType: 'bpmsoft'
-    });
+    if (this.constants) { 
+      let crmConfig: CrmConfig = {
+        id: this.generateId(),
+        containerName: this.constants?.DEFAULT_CRM_CONFIG.containerName || '',
+        port: this.constants?.DEFAULT_CRM_CONFIG.port || 0,
+        redisDb: this.constants?.DEFAULT_CRM_CONFIG.redisDb || 0,
+        dbType: this.constants?.DEFAULT_CRM_CONFIG.dbType || '',
+        netVersion: this.constants?.DEFAULT_CRM_CONFIG.netVersion || '',
+        crmType: this.constants?.DEFAULT_CRM_CONFIG.crmType || '',
+        volumePath: '',
+        appPath: '',
+        backupPath: ''
+      };
+
+      if (this.projectConfig) {
+        this.projectConfig.crmConfigs.push(crmConfig);
+      }
+    }
   }
 
   /**

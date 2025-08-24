@@ -1,17 +1,17 @@
 import { BrowserWindow, type BrowserWindowConstructorOptions } from 'electron';
 import * as path from 'path';
-import { DEFAULT_WINDOW_CONFIG, DEV_SERVER_URL, PATHS } from '../config/constants';
+import { ConstantValues } from '../config/constants';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
 
   private createWindowConfig(): BrowserWindowConstructorOptions {
     return {
-      ...DEFAULT_WINDOW_CONFIG,
+      ...ConstantValues.DEFAULT_WINDOW_CONFIG,
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
-        preload: path.join(__dirname, PATHS.preload),
+        preload: path.join(__dirname, ConstantValues.PATHS.preload),
       },
     };
   }
@@ -21,21 +21,28 @@ export class WindowManager {
 
     // В режиме разработки загружаем Angular dev server
     if (process.env.NODE_ENV === 'development') {
-      this.mainWindow.loadURL(DEV_SERVER_URL);
+      this.mainWindow.loadURL(ConstantValues.DEV_SERVER_URL);
       this.mainWindow.webContents.openDevTools();
     } else {
       // В продакшене загружаем собранное Angular приложение
-      const appPath = path.join(process.cwd(), PATHS.productionApp);
+      const appPath = path.join(process.cwd(), ConstantValues.PATHS.productionApp);
       this.mainWindow.loadFile(appPath);
     }
 
     return this.mainWindow;
   }
 
+  /**
+   * Получить главное окно
+   * @returns - главное окно
+   */
   public getMainWindow(): BrowserWindow | null {
     return this.mainWindow;
   }
 
+  /**
+   * Закрыть главное окно
+   */
   public closeMainWindow(): void {
     if (this.mainWindow) {
       this.mainWindow.close();
@@ -43,10 +50,18 @@ export class WindowManager {
     }
   }
 
+  /**
+   * Получить все окна
+   * @returns - все окна
+   */
   public getAllWindows(): BrowserWindow[] {
     return BrowserWindow.getAllWindows();
   }
 
+  /**
+   * Проверить наличие окон
+   * @returns - true, если есть окна
+   */
   public hasWindows(): boolean {
     return this.getAllWindows().length > 0;
   }

@@ -8,7 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { ProjectConfig } from '@shared/api';
+import { Constants, ProjectConfig } from '@shared/api';
 import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
@@ -37,14 +37,19 @@ export class RabbitMqSettings {
   /**
    * Поля для редактирования RabbitMQ
    */
-  containerName: string = 'rabbitmq';
-  port: number = 15673;
-  amqpPort: number = 5673;
-  volumePath: string = 'rabbitmq-volumes';
-  username: string = 'rmuser';
-  password: string = 'rmpassword';
+  containerName: string = '';
+  port: number = 0;
+  amqpPort: number = 0;
+  volumePath: string = '';
+  username: string = '';
+  password: string = '';
   isEnabled: boolean = true;
-  
+
+  /**
+   * Константы
+   */
+  constants: Constants | null = null;
+
   /**
    * Конструктор
    * @param electronService - сервис для работы с Electron
@@ -56,13 +61,28 @@ export class RabbitMqSettings {
    */
   ngOnInit() {
     console.log('RabbitMqSettings: Инициализация с конфигурацией:', this.projectConfig);
-    // Инициализация с дефолтными значениями, так как RabbitMQ конфигурация может отсутствовать
-    this.containerName = this.projectConfig?.rabbitmqConfig?.containerName || 'rabbitmq';
-    this.port = this.projectConfig?.rabbitmqConfig?.port || 15673;
-    this.amqpPort = this.projectConfig?.rabbitmqConfig?.amqpPort || 5673;
-    this.volumePath = this.projectConfig?.rabbitmqConfig?.volumePath || 'rabbitmq-volumes';
-    this.username = this.projectConfig?.rabbitmqConfig?.user || 'rmuser';
-    this.password = this.projectConfig?.rabbitmqConfig?.password || 'rmpassword';
+    if (this.projectConfig?.rabbitmqConfig) { 
+      const config = this.projectConfig.rabbitmqConfig;
+      this.containerName = config.containerName || '';
+      this.port = config.port || 0;
+      this.amqpPort = config.amqpPort || 0;
+      this.volumePath = config.volumePath || '';
+      this.username = config.user || '';
+      this.password = config.password || '';
+    }
+
+    this.electronService.getConstants().then((constants) => {
+      this.constants = constants;
+
+      if (!this.projectConfig?.rabbitmqConfig) {
+        const config = this.constants?.DEFAULT_RABBITMQ_CONFIG;
+        this.containerName = config.containerName;
+        this.port = config.port;
+        this.amqpPort = config.amqpPort;
+        this.username = config.user;
+        this.password = config.password;
+      }
+    });
   }
 
   /**
@@ -135,12 +155,12 @@ export class RabbitMqSettings {
     console.log('RabbitMqSettings: Отмена изменений');
     
     // Возвращаем дефолтные значения
-    this.containerName = this.projectConfig?.rabbitmqConfig?.containerName || 'rabbitmq';
-    this.port = this.projectConfig?.rabbitmqConfig?.port || 15673;
-    this.amqpPort = this.projectConfig?.rabbitmqConfig?.amqpPort || 5673;
-    this.volumePath = this.projectConfig?.rabbitmqConfig?.volumePath || 'rabbitmq-volumes';
-    this.username = this.projectConfig?.rabbitmqConfig?.user || 'rmuser';
-    this.password = this.projectConfig?.rabbitmqConfig?.password || 'rmpassword';
+    this.containerName = this.projectConfig?.rabbitmqConfig?.containerName || this.constants?.DEFAULT_RABBITMQ_CONFIG.containerName || '';
+    this.port = this.projectConfig?.rabbitmqConfig?.port || this.constants?.DEFAULT_RABBITMQ_CONFIG.port || 0;
+    this.amqpPort = this.projectConfig?.rabbitmqConfig?.amqpPort || this.constants?.DEFAULT_RABBITMQ_CONFIG.amqpPort || 0;
+    this.volumePath = this.projectConfig?.rabbitmqConfig?.volumePath || '';
+    this.username = this.projectConfig?.rabbitmqConfig?.user || this.constants?.DEFAULT_RABBITMQ_CONFIG.user || '';
+    this.password = this.projectConfig?.rabbitmqConfig?.password || this.constants?.DEFAULT_RABBITMQ_CONFIG.password || '';
   }
 
   /**

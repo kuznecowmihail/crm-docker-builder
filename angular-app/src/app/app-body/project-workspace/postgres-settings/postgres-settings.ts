@@ -8,7 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { ProjectConfig, PostgresConfig } from '@shared/api';
+import { Constants, ProjectConfig } from '@shared/api';
 import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
@@ -37,13 +37,18 @@ export class PostgresSettings {
   /**
    * Поля для редактирования PostgreSQL
    */
-  containerName: string = 'postgres';
+  containerName: string = '';
   port: number = 5432;
-  volumePath: string = 'postgres-volumes';
-  user: string = 'puser';
-  password: string = 'puser';
+  volumePath: string = '';
+  user: string = '';
+  password: string = '';
   isEnabled: boolean = true;
   
+  /**
+   * Константы
+   */
+  constants: Constants | null = null;
+
   /**
    * Конструктор
    * @param electronService - сервис для работы с Electron
@@ -57,12 +62,24 @@ export class PostgresSettings {
     console.log('PostgresSettings: Инициализация с конфигурацией:', this.projectConfig);
     if (this.projectConfig?.postgresConfig) {
       const config = this.projectConfig.postgresConfig;
-      this.containerName = config.containerName || 'postgres';
-      this.port = config.port || 5432;
-      this.volumePath = config.volumePath || 'postgres-volumes';
-      this.user = config.user || 'puser';
-      this.password = config.password || 'puser';
+      this.containerName = config.containerName || this.constants?.DEFAULT_POSTGRES_CONFIG.containerName || '';
+      this.port = config.port || this.constants?.DEFAULT_POSTGRES_CONFIG.port || 0;
+      this.volumePath = config.volumePath || '';
+      this.user = config.user || this.constants?.DEFAULT_POSTGRES_CONFIG.user || '';
+      this.password = config.password || this.constants?.DEFAULT_POSTGRES_CONFIG.password || '';
     }
+
+    this.electronService.getConstants().then((constants) => {
+      this.constants = constants;
+
+      if (!this.projectConfig?.postgresConfig) {
+        const config = this.constants?.DEFAULT_POSTGRES_CONFIG;
+        this.containerName = config.containerName;
+        this.port = config.port;
+        this.user = config.user;
+        this.password = config.password;
+      }
+    });
   }
 
   /**
@@ -125,10 +142,10 @@ export class PostgresSettings {
 
     if (this.projectConfig?.postgresConfig) {
       const config = this.projectConfig.postgresConfig;
-      this.containerName = config.containerName || 'postgres';
-      this.port = config.port || 5432;
-      this.user = config.user || 'puser';
-      this.password = config.password || 'puser';
+      this.containerName = config.containerName || this.constants?.DEFAULT_POSTGRES_CONFIG.containerName || '';
+      this.port = config.port || this.constants?.DEFAULT_POSTGRES_CONFIG.port || 0;
+      this.user = config.user || this.constants?.DEFAULT_POSTGRES_CONFIG.user || '';
+      this.password = config.password || this.constants?.DEFAULT_POSTGRES_CONFIG.password || '';
     }
   }
 

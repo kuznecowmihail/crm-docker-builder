@@ -8,7 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { ProjectConfig, PgAdminConfig } from '@shared/api';
+import { Constants, ProjectConfig } from '@shared/api';
 import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
@@ -37,12 +37,17 @@ export class PgAdminSettings {
   /**
    * Поля для редактирования pgAdmin
    */
-  containerName: string = 'pgadmin';
-  port: number = 5050;
-  volumePath: string = 'pgadmin-volumes';
-  email: string = 'admin@example.com';
-  password: string = 'puser';
+  containerName: string = '';
+  port: number = 0;
+  volumePath: string = '';
+  email: string = '';
+  password: string = '';
   isEnabled: boolean = true;
+
+  /**
+   * Константы
+   */
+  constants: Constants | null = null;
   
   /**
    * Конструктор
@@ -57,12 +62,24 @@ export class PgAdminSettings {
     console.log('PgAdminSettings: Инициализация с конфигурацией:', this.projectConfig);
     if (this.projectConfig?.pgAdminConfig) {
       const config = this.projectConfig.pgAdminConfig;
-      this.containerName = config.containerName || 'pgadmin';
-      this.port = config.port || 5050;
-      this.volumePath = config.volumePath || 'pgadmin-volumes';
-      this.email = config.email || 'admin@example.com';
-      this.password = config.password || 'puser';
+      this.containerName = config.containerName || this.constants?.DEFAULT_PGADMIN_CONFIG.containerName || '';
+      this.port = config.port || this.constants?.DEFAULT_PGADMIN_CONFIG.port || 0;
+      this.volumePath = config.volumePath || '';
+      this.email = config.email || this.constants?.DEFAULT_PGADMIN_CONFIG.email || '';
+      this.password = config.password || this.constants?.DEFAULT_PGADMIN_CONFIG.password || '';
     }
+
+    this.electronService.getConstants().then((constants) => {
+      this.constants = constants;
+
+      if (!this.projectConfig?.pgAdminConfig) {
+        const config = this.constants?.DEFAULT_PGADMIN_CONFIG;
+        this.containerName = config.containerName;
+        this.port = config.port;
+        this.email = config.email;
+        this.password = config.password;
+      }
+    });
   }
 
   /**
@@ -125,11 +142,11 @@ export class PgAdminSettings {
 
     if (this.projectConfig?.pgAdminConfig) {
       const config = this.projectConfig.pgAdminConfig;
-      this.containerName = config.containerName || 'pgadmin';
-      this.port = config.port || 5050;
-      this.volumePath = config.volumePath || 'pgadmin-volumes';
-      this.email = config.email || 'admin@example.com';
-      this.password = config.password || 'puser';
+      this.containerName = config.containerName || this.constants?.DEFAULT_PGADMIN_CONFIG.containerName || '';
+      this.port = config.port || this.constants?.DEFAULT_PGADMIN_CONFIG.port || 0;
+      this.volumePath = config.volumePath || '';
+      this.email = config.email || this.constants?.DEFAULT_PGADMIN_CONFIG.email || '';
+      this.password = config.password || this.constants?.DEFAULT_PGADMIN_CONFIG.password || '';
     }
   }
 

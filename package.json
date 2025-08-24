@@ -1,6 +1,6 @@
 {
   "name": "Crm Docker Builder",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Electron приложение с интеграцией Angular",
   "main": "electron/dist/main.js",
   "scripts": {

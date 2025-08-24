@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig } from '@shared/api';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig, ConstantsAPI, Constants } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -44,6 +44,13 @@ export class ElectronService {
    */
   get crmDockerBuilderValidatorSystemAPI(): CrmDockerBuilderValidatorSystemAPI | null {
     return this.isElectron ? window.crmDockerBuilderValidatorSystemAPI : null;
+  }
+
+  /**
+   * Получает API для работы с Constants
+   */
+  get constantsAPI(): ConstantsAPI | null {
+    return this.isElectron ? window.constantsAPI : null;
   }
 
   /**
@@ -442,5 +449,15 @@ export class ElectronService {
       throw new Error('Electron API недоступен');
     }
     return await this.crmDockerBuilderValidatorSystemAPI.validateAll(projectConfig);
+  }
+
+  /**
+   * Получает константы
+   */
+  async getConstants(): Promise<Constants> {
+    if (!this.constantsAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.constantsAPI.getConstants();
   }
 }

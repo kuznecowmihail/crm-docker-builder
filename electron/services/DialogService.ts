@@ -1,17 +1,17 @@
 import { dialog, ipcMain } from 'electron';
 import { OpenDialogOptions } from '@shared/api';
-import { IPC_CHANNELS } from '../config/constants';
+import { ConstantValues } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
 export class DialogService implements IService {
   public setupHandlers(): void {
     // Диалог открытия папки
-    ipcMain.handle(IPC_CHANNELS.DIALOG.OPEN_FOLDER, async (event, options: OpenDialogOptions) => {
+    ipcMain.handle(ConstantValues.IPC_CHANNELS.DIALOG.OPEN_FOLDER, async (event, options: OpenDialogOptions) => {
       return await this.openFolderDialog(options);
     });
 
     // Диалог открытия файла
-    ipcMain.handle(IPC_CHANNELS.DIALOG.OPEN_FILE, async (event, options) => {
+    ipcMain.handle(ConstantValues.IPC_CHANNELS.DIALOG.OPEN_FILE, async (event, options) => {
       return await this.openFileDialog(options);
     });
   }

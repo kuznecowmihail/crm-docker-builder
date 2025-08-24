@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig } from '@shared/api';
+import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig, ConstantsAPI } from '@shared/api';
 
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
@@ -46,6 +46,9 @@ const IPC_CHANNELS = {
     VALIDATE_APP_PATH: 'crm-docker-builder-validator:validate-app-path',
     VALIDATE_BACKUP_PATH: 'crm-docker-builder-validator:validate-backup-path',
     VALIDATE_ALL: 'crm-docker-builder-validator:validate-all'
+  },
+  CONSTANTS_SYSTEM: {
+    GET_CONSTANTS: 'constants:get-constants',
   }
 } as const;
 
@@ -104,3 +107,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners(channel);
   }
 });
+
+contextBridge.exposeInMainWorld('constantsAPI', {
+  getConstants: () => ipcRenderer.invoke(IPC_CHANNELS.CONSTANTS_SYSTEM.GET_CONSTANTS),
+} as ConstantsAPI);

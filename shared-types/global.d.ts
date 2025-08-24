@@ -13,6 +13,7 @@ declare global {
     fileSystemAPI: FileSystemAPI;
     crmDockerBuilderSystemAPI: CrmDockerBuilderSystemAPI;
     crmDockerBuilderValidatorSystemAPI: CrmDockerBuilderValidatorSystemAPI;
+    constantsAPI: ConstantsAPI;
     electronAPI?: ElectronAPI;
   }
 }

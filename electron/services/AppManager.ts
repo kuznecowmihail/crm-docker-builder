@@ -6,6 +6,7 @@ import { NotificationService } from './NotificationService';
 import { FileSystemService } from './FileSystemService';
 import { CrmDockerBuilderService } from './CrmDockerBuilderService';
 import { CrmDockerBuilderValidatorService } from './CrmDockerBuilderValidatorService';
+import { ConstService } from './ConstService';
 
 export class AppManager {
   private windowManager: WindowManager;
@@ -15,6 +16,7 @@ export class AppManager {
   private fileSystemService: FileSystemService;
   private crmDockerBuilderService: CrmDockerBuilderService;
   private crmDockerBuilderValidatorService: CrmDockerBuilderValidatorService;
+  private constService: ConstService;
 
   constructor() {
     this.windowManager = new WindowManager();
@@ -24,6 +26,7 @@ export class AppManager {
     this.fileSystemService = new FileSystemService();
     this.crmDockerBuilderService = new CrmDockerBuilderService();
     this.crmDockerBuilderValidatorService = new CrmDockerBuilderValidatorService();
+    this.constService = new ConstService();
   }
 
   public initialize(): void {
@@ -59,6 +62,7 @@ export class AppManager {
     this.fileSystemService.setupHandlers();
     this.crmDockerBuilderService.setupHandlers();
     this.crmDockerBuilderValidatorService.setupHandlers();
+    this.constService.setupHandlers();
   }
 
   // Геттеры для доступа к сервисам
