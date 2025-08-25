@@ -2,6 +2,7 @@ import { CrmConfig, ProjectConfig } from "@shared/crm-docker-builder";
 import { spawn } from 'child_process';
 import path from "path";
 import { FileSystemHelper } from "./FileSystemHelper";
+import { ConstantValues } from "../config/constants";
 
 export class VscodeFilesHelper {
   /**
@@ -56,7 +57,7 @@ export class VscodeFilesHelper {
       onLogCallback?.(`[VscodeFilesHelper] Платформа: ${platform}, Архитектура: ${arch}, Архитектура vsdbg: ${vsdbgArch}`);
 
       let command = '';
-      const vsdbgPath = path.join(projectConfig.projectPath, 'vsdbg');
+      const vsdbgPath = path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG);
 
       if (platform === 'win32') {
         // Windows - используем PowerShell
@@ -161,7 +162,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh"],
+          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "start"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -177,7 +178,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh", "status"],
+          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "status"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -193,7 +194,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh", "stop"],
+          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "stop"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -209,7 +210,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh", "stopall"],
+          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "stopall"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -225,7 +226,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh", "restart"],
+          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "restart"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -241,7 +242,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh", "restartall"],
+          "args": ["${workspaceFolder}/_app-handler.sh", "restartall"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -257,7 +258,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh", "logs"],
+          "args": ["${workspaceFolder}/_app-handler.sh", "logs"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -273,7 +274,7 @@ export class VscodeFilesHelper {
           "type": "node",
           "request": "launch",
           "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_start_docker.sh", "help"],
+          "args": ["${workspaceFolder}/_app-handler.sh", "help"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -300,12 +301,12 @@ export class VscodeFilesHelper {
           "pipeTransport": {
             "pipeProgram": "docker",
             "pipeArgs": ["exec", "-i", crmConfig.containerName],
-            "debuggerPath": "/app/vsdbg/vsdbg",
+            "debuggerPath": `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}/vsdbg`,
             "pipeCwd": "${workspaceRoot}",
             "quoteArgs": false
           },
           "sourceFileMap": {
-            "/app": "${workspaceRoot}"
+            [ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP]: "${workspaceRoot}"
           },
           "justMyCode": false,
           "requireExactSource": true,
@@ -319,12 +320,12 @@ export class VscodeFilesHelper {
           "pipeTransport": {
             "pipeProgram": "docker",
             "pipeArgs": ["exec", "-i", crmConfig.containerName],
-            "debuggerPath": "/app/vsdbg/vsdbg",
+            "debuggerPath": `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}/vsdbg`,
             "pipeCwd": "${workspaceRoot}",
             "quoteArgs": false
           },
           "sourceFileMap": {
-            "/app": "${workspaceRoot}"
+            [ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP]: "${workspaceRoot}"
           },
           "justMyCode": false,
           "requireExactSource": true,

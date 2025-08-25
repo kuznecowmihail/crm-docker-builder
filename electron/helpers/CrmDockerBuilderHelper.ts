@@ -226,7 +226,7 @@ export class CrmDockerBuilderHelper {
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
-        message: 'Настройки проекта успешно сохранены',
+        message: 'Настройки Postgres успешно сохранены',
         projectConfig: projectConfig
       };
     }
@@ -269,7 +269,7 @@ export class CrmDockerBuilderHelper {
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
-        message: 'Настройки проекта успешно сохранены',
+        message: 'Настройки PgAdmin успешно сохранены',
         projectConfig: projectConfig
       };
     }
@@ -312,7 +312,7 @@ export class CrmDockerBuilderHelper {
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectResult.projectConfig, null, 2));
       return {
         success: true,
-        message: 'Настройки проекта успешно сохранены',
+        message: 'Настройки Redis успешно сохранены',
         projectConfig: projectConfig
       };
     }
@@ -355,7 +355,7 @@ export class CrmDockerBuilderHelper {
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectResult.projectConfig, null, 2));
       return {
         success: true,
-        message: 'Настройки проекта успешно сохранены',
+        message: 'Настройки Rabbitmq успешно сохранены',
         projectConfig: projectConfig
       };
     }
@@ -408,7 +408,7 @@ export class CrmDockerBuilderHelper {
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
-        message: 'Настройки проекта успешно сохранены',
+        message: 'Настройки CRM успешно сохранены',
         projectConfig: projectConfig
       };
     }
@@ -447,7 +447,7 @@ export class CrmDockerBuilderHelper {
       await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
-        message: 'Настройки проекта успешно сохранены',
+        message: 'Настройки CRM успешно сохранены',
         projectConfig: projectConfig
       };
     }
@@ -531,7 +531,7 @@ export class CrmDockerBuilderHelper {
       }
 
       // Создаем сеть с именем проекта
-      await this.dockerProcessHelper.createDockerNetwork(`${projectConfig.projectName}_network`, onLogCallback);
+      await this.dockerProcessHelper.createDockerNetwork(`${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}`, onLogCallback);
       // Запускаем Docker Compose
       await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
 
@@ -542,25 +542,33 @@ export class CrmDockerBuilderHelper {
 
       for (const crmConfig of projectConfig.crmConfigs) {
         // Копируем бэкап в папку postgres-volumes
-        await this.fileSystemHelper.copyFile(crmConfig.backupPath, path.join(projectConfig.postgresConfig.volumePath, 'postgresql-data', `${crmConfig.containerName}.backup`), onLogCallback);
-        // Делаем файл postgres.sh исполняемым
+        await this.fileSystemHelper.copyFile(
+          crmConfig.backupPath,
+          path.join(
+            projectConfig.postgresConfig.volumePath,
+            ConstantValues.FOLDER_NAMES.POSTGRES_PATHS.POSTGRES_DATA,
+            `${crmConfig.containerName}.backup`
+          ),
+          onLogCallback
+        );
+        // Делаем файл ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} исполняемым
         await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', projectConfig.postgresConfig.containerName, 'chmod', '+x', '/var/lib/postgresql/data/postgres.sh'], 
+          ['exec', projectConfig.postgresConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}`], 
           projectConfig.projectPath, 
           onLogCallback
         );
-        // Запускаем скрипт postgres.sh для восстановления бэкапа
+        // Запускаем скрипт ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} для восстановления бэкапа
         await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', projectConfig.postgresConfig.containerName, 'bash', '-c', `/var/lib/postgresql/data/postgres.sh ${crmConfig.containerName} ${projectConfig.postgresConfig.user} /var/lib/postgresql/data`], 
+          ['exec', projectConfig.postgresConfig.containerName, 'bash', '-c', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} ${crmConfig.containerName} ${projectConfig.postgresConfig.user} ${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}`], 
           projectConfig.projectPath, 
           onLogCallback
         );
 
         // Копируем vsdbg файлы в папку приложения
-        await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, 'vsdbg'), path.join(crmConfig.volumePath, 'vsdbg'), onLogCallback);
+        await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), onLogCallback);
         // Делаем файл vsdbg исполняемым
         await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', crmConfig.containerName, 'chmod', '+x', '/app/vsdbg/vsdbg'], 
+          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}`], 
           projectConfig.projectPath, 
           onLogCallback
         );

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectorRef, NgZone, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -40,7 +40,7 @@ import { ElectronService } from 'src/app/services/electron.service';
   templateUrl: './project-workspace.html',
   styleUrl: './project-workspace.css'
 })
-export class ProjectWorkspace {
+export class ProjectWorkspace implements OnDestroy {
   /**
    * Конфигурация проекта
    */
@@ -76,10 +76,36 @@ export class ProjectWorkspace {
   constants: Constants | null = null;
   
   /**
+   * Буфер для логов
+   */
+  private logBuffer: string[] = [];
+  
+  /**
+   * Таймер для обработки буфера логов
+   */
+  private logBufferTimer: any = null;
+  
+  /**
+   * Флаг активности обработки логов
+   */
+  private isProcessingLogs = false;
+  
+  /**
+   * Максимальный размер буфера логов
+   */
+  private readonly MAX_BUFFER_SIZE = 1000;
+
+  /**
    * Конструктор
    * @param electronService - сервис для работы с Electron
+   * @param cdr - сервис для принудительной детекции изменений
+   * @param ngZone - сервис для работы с зоной Angular
    */
-  constructor(private electronService: ElectronService) {
+  constructor(
+    private electronService: ElectronService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {
     this.electronService.getConstants().then((constants) => {
       this.constants = constants;
     });
@@ -96,6 +122,67 @@ export class ProjectWorkspace {
     }
     // Инициализируем массив логов
     this.projectLogs = [];
+  }
+
+  /**
+   * Обрабатывает буфер логов
+   */
+  private processLogBuffer(): void {
+    if (this.logBuffer.length === 0 || this.isProcessingLogs) {
+      return;
+    }
+
+    this.isProcessingLogs = true;
+    
+    // Используем requestAnimationFrame для более плавного обновления UI
+    requestAnimationFrame(() => {
+      // Используем NgZone для корректной обработки изменений
+      this.ngZone.run(() => {
+        // Добавляем все логи из буфера разом
+        this.projectLogs = [...this.projectLogs, ...this.logBuffer];
+        
+        // Очищаем буфер
+        this.logBuffer = [];
+        
+        // Принудительно запускаем детекцию изменений
+        this.cdr.detectChanges();
+        
+        this.isProcessingLogs = false;
+      });
+    });
+  }
+
+  /**
+   * Добавляет лог в буфер
+   */
+  private addLogToBuffer(log: string): void {
+    this.logBuffer.push(log);
+    
+    // Если буфер превышает максимальный размер, обрабатываем его немедленно
+    if (this.logBuffer.length >= this.MAX_BUFFER_SIZE) {
+      this.processLogBuffer();
+      return;
+    }
+    
+    // Если буфер пустой, запускаем таймер
+    if (this.logBuffer.length === 1) {
+      this.scheduleLogProcessing();
+    }
+  }
+
+  /**
+   * Планирует обработку логов
+   */
+  private scheduleLogProcessing(): void {
+    // Очищаем предыдущий таймер
+    if (this.logBufferTimer) {
+      clearTimeout(this.logBufferTimer);
+    }
+    
+    // Устанавливаем новый таймер (обрабатываем каждые 50ms)
+    this.logBufferTimer = setTimeout(() => {
+      this.processLogBuffer();
+    }, 50);
   }
 
   /**
@@ -142,6 +229,7 @@ export class ProjectWorkspace {
       this.electronService.showNotification('Сборка проекта', crmSettingsResult.message);
       return;
     }
+    
     this.onClearLogs();
     this.onSectionSelect('logs');
 
@@ -153,11 +241,15 @@ export class ProjectWorkspace {
       // Подписываемся на логи проекта
       this.electronService.subscribeToProjectLogs((log: string) => {
         console.log('[PROJECT LOG]', log);
-        this.projectLogs = [...this.projectLogs, log];
+        // Добавляем лог в буфер вместо прямого обновления
+        this.addLogToBuffer(log);
       });
       const result = await this.electronService.buildProject(this.projectConfig);
       // Отписываемся от логов проекта
       this.electronService.unsubscribeFromProjectLogs();
+      
+      // Обрабатываем оставшиеся логи в буфере
+      this.processLogBuffer();
   
       this.electronService.showNotification('Сборка проекта', result.message);
   
@@ -183,6 +275,7 @@ export class ProjectWorkspace {
     if (!this.projectConfig) {
       return;
     }
+    
     this.onClearLogs();
     this.onSectionSelect('logs');
 
@@ -194,11 +287,15 @@ export class ProjectWorkspace {
       // Подписываемся на логи проекта
       this.electronService.subscribeToProjectLogs((log: string) => {
         console.log('[PROJECT LOG]', log);
-        this.projectLogs = [...this.projectLogs, log];
+        // Добавляем лог в буфер вместо прямого обновления
+        this.addLogToBuffer(log);
       });
       const result = await this.electronService.runProject(this.projectConfig);
       // Отписываемся от логов проекта
       this.electronService.unsubscribeFromProjectLogs();
+      
+      // Обрабатываем оставшиеся логи в буфере
+      this.processLogBuffer();
   
       this.electronService.showNotification('Запуск проекта', result.message);
   
@@ -254,6 +351,25 @@ export class ProjectWorkspace {
    */
   onClearLogs() {
     this.projectLogs = [];
+    // Очищаем буфер и таймер
+    this.logBuffer = [];
+    if (this.logBufferTimer) {
+      clearTimeout(this.logBufferTimer);
+      this.logBufferTimer = null;
+    }
+    this.isProcessingLogs = false;
+  }
+
+  /**
+   * Обработчик уничтожения компонента
+   */
+  ngOnDestroy(): void {
+    // Очищаем таймер при уничтожении компонента
+    if (this.logBufferTimer) {
+      clearTimeout(this.logBufferTimer);
+    }
+    // Отписываемся от логов проекта
+    this.electronService.unsubscribeFromProjectLogs();
   }
 
   /**

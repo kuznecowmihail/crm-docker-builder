@@ -102,7 +102,45 @@ export interface Constants {
     REDIS_VOLUMES: string,
     RABBITMQ_VOLUMES: string,
     CRM_VOLUMES: string,
+
+    POSTGRES_PATHS: {
+      INIT_DATABASE: string,
+      POSTGRES_DATA: string,
+    },
+    POSTGRES_PATHS_DOCKER: {
+      INIT_DATABASE: string,
+      POSTGRES_DATA: string,
+    },
+    PGADMIN_PATHS_DOCKER: {
+      PGADMIN_DATA: string,
+    },
+    REDIS_PATHS: {
+      REDIS_DATA: string,
+      REDIS_CONF: string,
+    },
+    REDIS_PATHS_DOCKER: {
+      REDIS_DATA: string,
+      REDIS_CONF: string,
+    },
+    RABBITMQ_PATHS_DOCKER: {
+      RABBITMQ_DATA: string,
+    },
+    CRM_PATHS_DOCKER: {
+      APP: string,
+      VSDBG: string,
+    },
   },
+  FILE_NAMES: {
+    DOCKER_COMPOSE: string,
+    DOCKERFILE_BPM_SOFT_NET8: string,
+    DOCKERFILE_BPM_SOFT_NET3: string,
+    DOCKERFILE_CREATIO_NET8: string,
+    DOCKERFILE_CREATIO_NET3: string,
+    POSTGRES_RESTORE_SCRIPT: string,
+    CREATE_TYPE_CASTS_POSTGRES_SQL: string,
+    APP_HANDLER: string,
+  },
+  NETWORK_PREFIX: string
 }
 
 // Типы для файловой системы

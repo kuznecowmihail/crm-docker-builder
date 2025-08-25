@@ -1,34 +1,34 @@
 .project-logs-container {
   background: #1e1e1e;
-  border: 1px solid #333;
   border-radius: 8px;
-  margin: 16px 0;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 12px;
-  line-height: 1.4;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Используем всю доступную высоту */
+  min-height: 300px; /* Минимальная высота */
 }
 
 .project-logs-header {
+  background: #2d2d2d;
+  padding: 16px;
+  border-bottom: 1px solid #333;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: #2d2d2d;
-  border-bottom: 1px solid #333;
-  border-radius: 8px 8px 0 0;
+  flex-shrink: 0; /* Фиксированная высота header */
 }
 
 .project-logs-header h3 {
   margin: 0;
   color: #e0e0e0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .project-logs-controls {
   display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 12px;
 }
 
 .logs-count {
@@ -40,14 +40,14 @@
   background: #dc3545;
   color: white;
   border: none;
+  padding: 6px 12px;
   border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.clear-logs-btn:hover:not(:disabled) {
+.clear-logs-btn:hover {
   background: #c82333;
 }
 
@@ -79,9 +79,11 @@
 }
 
 .project-logs-content {
-  max-height: 400px;
+  flex: 1; /* Занимает все доступное пространство */
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 8px 0;
+  min-height: 0; /* Важно для flexbox */
 }
 
 .no-logs {
@@ -190,4 +192,19 @@
 
 .project-logs-content::-webkit-scrollbar-thumb:hover {
   background: #777;
+}
+
+.max-logs-input {
+  background: #333;
+  border: 1px solid #555;
+  color: #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 80px;
+}
+
+.max-logs-input:focus {
+  outline: none;
+  border-color: #007acc;
 }

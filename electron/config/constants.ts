@@ -103,5 +103,43 @@ export const ConstantValues: Constants = {
     REDIS_VOLUMES: 'redis-volumes',
     RABBITMQ_VOLUMES: 'rabbitmq-volumes',
     CRM_VOLUMES: 'crm-volumes',
+
+    POSTGRES_PATHS: {
+      INIT_DATABASE: 'init-database',
+      POSTGRES_DATA: 'postgresql-data',
+    },
+    POSTGRES_PATHS_DOCKER: {
+      INIT_DATABASE: '/docker-entrypoint-initdb.d',
+      POSTGRES_DATA: '/var/lib/postgresql/data',
+    },
+    REDIS_PATHS: {
+      REDIS_DATA: 'data',
+      REDIS_CONF: 'redis.conf',
+    },
+    PGADMIN_PATHS_DOCKER: {
+      PGADMIN_DATA: '/var/lib/pgadmin',
+    },
+    REDIS_PATHS_DOCKER: {
+      REDIS_DATA: '/data',
+      REDIS_CONF: '/usr/local/etc/redis/redis.conf',
+    },
+    RABBITMQ_PATHS_DOCKER: {
+      RABBITMQ_DATA: '/var/lib/rabbitmq',
+    },
+    CRM_PATHS_DOCKER: {
+      APP: '/app',
+      VSDBG: 'vsdbg',
+    },
   },
+  FILE_NAMES: {
+    DOCKER_COMPOSE: 'docker-compose.yml',
+    DOCKERFILE_BPM_SOFT_NET8: 'DockerFile_bpmsoft_net8',
+    DOCKERFILE_BPM_SOFT_NET3: 'DockerFile_bpmsoft_net3',
+    DOCKERFILE_CREATIO_NET8: 'DockerFile_creation_net8',
+    DOCKERFILE_CREATIO_NET3: 'DockerFile_creation_net3',
+    POSTGRES_RESTORE_SCRIPT: 'restore.sh',
+    CREATE_TYPE_CASTS_POSTGRES_SQL: 'CreateTypeCastsPostgreSql.sql',
+    APP_HANDLER: '_app-handler.sh',
+  },
+  NETWORK_PREFIX: '-network',
 };

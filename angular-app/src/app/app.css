@@ -1,11 +1,43 @@
 /* Стили для Electron Angular приложения */
 .app-container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden; /* Предотвращаем скролл во всем окне */
+}
+
+app-header {
+  flex-shrink: 0; /* Фиксированная высота header */
 }
 
 app-body {
-  flex: 1;
+  flex: 1; /* Занимает все доступное пространство */
+  overflow: hidden; /* Предотвращаем скролл в app-body */
+  display: flex;
+  flex-direction: column;
+}
+
+app-footer {
+  flex-shrink: 0; /* Фиксированная высота footer */
+}
+
+/* Адаптивность для разных размеров экранов */
+@media (max-height: 600px) {
+  .app-container {
+    height: 100vh; /* На маленьких экранах используем полную высоту */
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    height: 100vh; /* На мобильных устройствах используем полную высоту */
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-height: 400px) {
+  .app-container {
+    height: 100vh;
+  }
 }

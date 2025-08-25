@@ -1,20 +1,31 @@
 
 .app-main {
-    padding: 2rem;
-  }
+  flex: 1; /* Занимает все доступное пространство в app-body */
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  overflow: hidden; /* Предотвращаем скролл в app-main */
+}
 
+.content {
+  flex: 1; /* Занимает все доступное пространство */
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* Скролл только внутри content */
+  overflow-x: hidden; /* Скрываем горизонтальный скролл */
+}
+
+/* Адаптивность для body */
+@media (max-width: 768px) {
+  .app-main {
+    padding: 1rem;
+  }
+  
   .content {
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
   }
-
-  /* Адаптивность для body */
-  @media (max-width: 768px) {
-    .content {
-      padding: 1rem;
-    }
-  }
+}

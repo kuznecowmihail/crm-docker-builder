@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import { ConstantValues } from "../config/constants";
 
 export class DockerProcessHelper {
     /**
@@ -53,7 +54,7 @@ export class DockerProcessHelper {
         try {
             // Запускаем с ожиданием готовности всех контейнеров и логированием
             await this.executeDockerCommandWithLogs(
-                ['compose', '-p', projectName, '-f', 'docker-compose.yml', 'up', '--detach', '--wait'], 
+                ['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'up', '--detach', '--wait'], 
                 projectPath, 
                 onLog
             );
@@ -73,7 +74,7 @@ export class DockerProcessHelper {
      */
     public async stopDockerCompose(projectPath: string, projectName: string, onLog?: (log: string) => void): Promise<void> {
         try {
-            await this.executeDockerCommand(['compose', '-p', projectName, '-f', 'docker-compose.yml', 'down'], projectPath);
+            await this.executeDockerCommand(['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'down'], projectPath);
             onLog?.(`Docker Compose успешно остановлен`);
         } catch (error) {
             onLog?.(`Ошибка при остановке Docker Compose: ${error}`);
@@ -107,7 +108,7 @@ export class DockerProcessHelper {
      */
     public async getDockerComposeStatus(projectPath: string, projectName: string): Promise<string> {
         try {
-            const result = await this.executeDockerCommandWithOutput(['compose', '-p', projectName, '-f', 'docker-compose.yml', 'ps'], projectPath);
+            const result = await this.executeDockerCommandWithOutput(['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'ps'], projectPath);
             return result;
         } catch (error) {
             console.error('Ошибка при получении статуса Docker Compose:', error);
@@ -124,7 +125,7 @@ export class DockerProcessHelper {
      */
     public async getDockerComposeLogs(projectPath: string, projectName: string, serviceName?: string): Promise<string> {
         try {
-            const args = ['compose', '-p', projectName, '-f', 'docker-compose.yml', 'logs'];
+            const args = ['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'logs'];
             if (serviceName) {
                 args.push(serviceName);
             }
@@ -146,7 +147,7 @@ export class DockerProcessHelper {
      */
     public async getDockerComposeLogsRealtime(projectPath: string, projectName: string, serviceName?: string): Promise<void> {
         try {
-            const args = ['compose', '-p', projectName, '-f', 'docker-compose.yml', 'logs', '--follow'];
+            const args = ['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'logs', '--follow'];
             if (serviceName) {
                 args.push(serviceName);
             }

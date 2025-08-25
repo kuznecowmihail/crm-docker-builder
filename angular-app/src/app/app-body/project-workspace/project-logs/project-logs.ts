@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, ElementRef, AfterViewChecked, NgZone, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./project-logs.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectLogs implements OnChanges, AfterViewChecked {
+export class ProjectLogs implements OnChanges, AfterViewChecked, OnDestroy {
   /**
    * Массив логов проекта
    */
@@ -30,7 +30,20 @@ export class ProjectLogs implements OnChanges, AfterViewChecked {
    */
   private previousLogsCount = 0;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  /**
+   * Таймер для debouncing обновлений логов
+   */
+  private logUpdateTimer: any = null;
+
+  /**
+   * Флаг для отслеживания изменений
+   */
+  private hasChanges = false;
+
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {}
 
   /**
    * Максимальное количество отображаемых логов
@@ -49,14 +62,29 @@ export class ProjectLogs implements OnChanges, AfterViewChecked {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['logs']) {
-      this.updateDisplayLogs();
-      // Проверяем, появились ли новые логи
-      if (this.logs.length > this.previousLogsCount) {
-        this.shouldScrollToBottom = true;
-        this.previousLogsCount = this.logs.length;
-      }
-      // Принудительно запускаем детекцию изменений
-      this.cdr.detectChanges();
+      // Используем NgZone для корректной обработки изменений
+      this.ngZone.run(() => {
+        this.updateDisplayLogs();
+        // Проверяем, появились ли новые логи
+        if (this.logs.length > this.previousLogsCount) {
+          this.shouldScrollToBottom = true;
+          this.previousLogsCount = this.logs.length;
+          this.hasChanges = true;
+
+          // Очищаем предыдущий таймер
+          if (this.logUpdateTimer) {
+            clearTimeout(this.logUpdateTimer);
+          }
+
+          // Устанавливаем новый таймер для debouncing (50ms)
+          this.logUpdateTimer = setTimeout(() => {
+            if (this.hasChanges) {
+              this.cdr.detectChanges();
+              this.hasChanges = false;
+            }
+          }, 50);
+        }
+      });
     }
   }
 
@@ -77,6 +105,26 @@ export class ProjectLogs implements OnChanges, AfterViewChecked {
     } else {
       // Показываем последние maxLogs логов
       this.displayLogs = this.logs.slice(-this.maxLogs);
+    }
+
+    // Очищаем предыдущий таймер
+    if (this.logUpdateTimer) {
+      clearTimeout(this.logUpdateTimer);
+    }
+
+    // Устанавливаем новый таймер для debouncing
+    this.logUpdateTimer = setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 50);
+  }
+
+  /**
+   * Обработчик уничтожения компонента
+   */
+  ngOnDestroy(): void {
+    // Очищаем таймер при уничтожении компонента
+    if (this.logUpdateTimer) {
+      clearTimeout(this.logUpdateTimer);
     }
   }
 

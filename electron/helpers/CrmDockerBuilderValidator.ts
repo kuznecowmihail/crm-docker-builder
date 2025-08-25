@@ -35,13 +35,6 @@ export class CrmDockerBuilderValidator {
       result.success = false;
       result.message = 'Путь к папке не может быть пустым';
     }
-
-    // Проверяем, существует ли путь к папке
-    const pathExists = await this.fileSystemHelper.pathExists(containerConfig.volumePath);
-    if (!pathExists) {
-      result.success = false;
-      result.message = 'Папка не существует';
-    }
     return result;
   }
 
@@ -256,18 +249,18 @@ export class CrmDockerBuilderValidator {
       return result;
     }
 
-    // Проверяем, что appPath находится внутри projectPath
-    if (!this.fileSystemHelper.isPathInside(appPath, path.join(projectPath, ConstantValues.FOLDER_NAMES.CRM_VOLUMES))) {
-      result.success = false;
-      result.message = 'Папка приложения должна находиться внутри папки проекта';
-      return result;
-    }
-
     // Проверяем, существует ли папка приложения
     const appPathExists = await this.fileSystemHelper.pathExists(appPath);
     if (!appPathExists) {
       result.success = false;
       result.message = 'Папка приложения не существует';
+      return result;
+    }
+
+    // Проверяем, что appPath находится внутри projectPath
+    if (!this.fileSystemHelper.isPathInside(appPath, path.join(projectPath, ConstantValues.FOLDER_NAMES.CRM_VOLUMES))) {
+      result.success = false;
+      result.message = 'Папка приложения должна находиться внутри папки проекта';
       return result;
     }
 
