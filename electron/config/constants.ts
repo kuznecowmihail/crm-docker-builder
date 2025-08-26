@@ -133,6 +133,7 @@ export const ConstantValues: Constants = {
     },
   },
   FILE_NAMES: {
+    CRM_DOCKER_BUILDER_CONFIG: 'crm-docker-builder-config.json',
     DOCKER_COMPOSE: 'docker-compose.yml',
     DOCKERFILE_BPM_SOFT_NET8: 'DockerFile_bpmsoft_net8',
     DOCKERFILE_BPM_SOFT_NET3: 'DockerFile_bpmsoft_net3',

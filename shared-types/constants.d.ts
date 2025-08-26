@@ -132,6 +132,7 @@ export interface Constants {
     },
   },
   FILE_NAMES: {
+    CRM_DOCKER_BUILDER_CONFIG: string,
     DOCKER_COMPOSE: string,
     DOCKERFILE_BPM_SOFT_NET8: string,
     DOCKERFILE_BPM_SOFT_NET3: string,

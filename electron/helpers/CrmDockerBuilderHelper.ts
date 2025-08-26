@@ -74,7 +74,7 @@ export class CrmDockerBuilderHelper {
       // Создаем необходимые папки для проекта
       await this.createProjectDirectories(projectPath);
 
-      const configPath = `${path}/crm-docker-builder-config.json`;
+      const configPath = path.join(projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG);
       const сonfig: ProjectConfig = {
         projectName: projectPath.split('/').pop() || 'crm-docker-project',
         projectPath: projectPath,
@@ -138,7 +138,7 @@ export class CrmDockerBuilderHelper {
    */
   public async openProject(projectPath: string): Promise<InitProjectResult> {
     try {
-      const configPath = path.join(projectPath, 'crm-docker-builder-config.json');
+      const configPath = path.join(projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG);
       console.log(configPath);
       const config = await fs.readFile(configPath, 'utf-8');
       return {
@@ -180,7 +180,7 @@ export class CrmDockerBuilderHelper {
         localProjectConfig.buildOn = projectConfig.buildOn;
         localProjectConfig.runOn = projectConfig.runOn;
       }
-      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
+      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
         message: 'Настройки проекта успешно сохранены',
@@ -223,7 +223,7 @@ export class CrmDockerBuilderHelper {
         localProjectConfig.postgresConfig = postgresConfig;
         localProjectConfig.modifiedOn = new Date();
       }
-      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
+      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
         message: 'Настройки Postgres успешно сохранены',
@@ -266,7 +266,7 @@ export class CrmDockerBuilderHelper {
         localProjectConfig.pgAdminConfig = pgAdminConfig;
         localProjectConfig.modifiedOn = new Date();
       }
-      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
+      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
         message: 'Настройки PgAdmin успешно сохранены',
@@ -309,7 +309,7 @@ export class CrmDockerBuilderHelper {
         localProjectConfig.redisConfig = redisConfig;
         localProjectConfig.modifiedOn = new Date();
       }
-      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectResult.projectConfig, null, 2));
+      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectResult.projectConfig, null, 2));
       return {
         success: true,
         message: 'Настройки Redis успешно сохранены',
@@ -352,7 +352,7 @@ export class CrmDockerBuilderHelper {
         localProjectConfig.rabbitmqConfig = rabbitmqConfig;
         localProjectConfig.modifiedOn = new Date();
       }
-      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectResult.projectConfig, null, 2));
+      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectResult.projectConfig, null, 2));
       return {
         success: true,
         message: 'Настройки Rabbitmq успешно сохранены',
@@ -405,7 +405,7 @@ export class CrmDockerBuilderHelper {
         }
         localProjectConfig.modifiedOn = new Date();
       }
-      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
+      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
         message: 'Настройки CRM успешно сохранены',
@@ -444,7 +444,7 @@ export class CrmDockerBuilderHelper {
         localProjectConfig.crmConfigs = projectConfig.crmConfigs;
         localProjectConfig.modifiedOn = new Date();
       }
-      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, 'crm-docker-builder-config.json'), JSON.stringify(localProjectConfig, null, 2));
+      await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
       return {
         success: true,
         message: 'Настройки CRM успешно сохранены',
