@@ -76,7 +76,7 @@ export class CrmDockerBuilderHelper {
 
       const configPath = path.join(projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG);
       const сonfig: ProjectConfig = {
-        projectName: projectPath.split('/').pop() || 'crm-docker-project',
+        projectName: path.basename(projectPath),
         projectPath: projectPath,
         modifiedOn: new Date(),
         postgresConfig: {

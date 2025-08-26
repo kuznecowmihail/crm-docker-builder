@@ -226,11 +226,11 @@ export class VscodeFilesHelper {
           }
         },
         {
-          "name": "🔥 Redis Flush All",
+          "name": "🔥 Redis Flush Db",
           "type": "node",
           "request": "launch",
           "runtimeExecutable": runtimeExecutable,
-          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${appHandlerFile}`, "redisflushall"],
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${appHandlerFile}`, "redisflushdb"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,

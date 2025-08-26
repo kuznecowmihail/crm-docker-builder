@@ -695,7 +695,7 @@ case "\${1:-}" in
         print_status "Контейнер $PROJECT_NAME перезапущен"
         exit 0  
         ;;
-    "redisflushall")
+    "redisflushdb")
         print_info "Очищаю Redis базу данных \${REDIS_DB_COUNT}..."
         docker exec -it $REDIS_NAME redis-cli -n \${REDIS_DB_COUNT} FLUSHDB
         print_status "Redis база данных \${REDIS_DB_COUNT} очищена"
@@ -1085,7 +1085,7 @@ function Start-Container {
     Write-Info "Запускаю контейнер $ContainerName..."
     
     # Проверяем, существует ли контейнер
-    $containerExists = docker ps -a --format "table {{.Names}}" | Select-String "^$ContainerName$"
+    $containerExists = docker ps -a --format "table {.Names}" | Select-String "^$ContainerName$"
     if (-not $containerExists) {
         Write-Warning "Контейнер $ContainerName не найден. Пропускаю..."
         return $false
@@ -1155,8 +1155,8 @@ function Show-Status {
     Write-Host ""
     
     foreach ($container in $CONTAINERS) {
-        $running = docker ps --format "table {{.Names}}" | Select-String "^$container$"
-        $exists = docker ps -a --format "table {{.Names}}" | Select-String "^$container$"
+        $running = docker ps --format "table {.Names}" | Select-String "^$container$"
+        $exists = docker ps -a --format "table {.Names}" | Select-String "^$container$"
         
         if ($running) {
             Write-Status "$container - запущен"
@@ -1170,7 +1170,7 @@ function Show-Status {
     Write-Host ""
     Write-Info "Использование ресурсов:"
     try {
-        docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
+        docker stats --no-stream --format "table {.Container}\t{.CPUPerc}\t{.MemUsage}\t{.NetIO}"
     } catch {
         Write-Warning "Не удалось получить статистику"
     }

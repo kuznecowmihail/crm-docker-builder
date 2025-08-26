@@ -65,7 +65,7 @@ export const ConstantValues: Constants = {
     containerName: 'postgres',
     port: 5432,
     user: 'puser',
-    password: 'ppassword',
+    password: 'password',
   },
   DEFAULT_PGADMIN_CONFIG: {
     containerName: 'pgadmin',
