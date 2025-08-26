@@ -10,7 +10,7 @@ export const ConstantValues: Constants = {
   DEV_SERVER_URL: 'http://localhost:4200',
   PATHS: {
     preload: '../preload.js',
-    productionApp: './angular-app/dist/angular-app/browser/index.html',
+    productionApp: './angular-app/dist/angular-app/browser/index.html'
   },
   IPC_CHANNELS: {
     SYSTEM: {

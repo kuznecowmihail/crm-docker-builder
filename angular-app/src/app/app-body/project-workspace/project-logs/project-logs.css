@@ -33,7 +33,27 @@
 
 .logs-count {
   color: #888;
-  font-size: 11px;
+  font-size: 12px;
+}
+
+.scroll-bottom-btn {
+  background: #333;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.scroll-bottom-btn:hover:not(:disabled) {
+  background: #555;
+}
+
+.scroll-bottom-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .clear-logs-btn {
@@ -47,35 +67,13 @@
   transition: background-color 0.2s;
 }
 
-.clear-logs-btn:hover {
+.clear-logs-btn:hover:not(:disabled) {
   background: #c82333;
 }
 
 .clear-logs-btn:disabled {
-  background: #555;
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.scroll-bottom-btn {
-  background: #007acc;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.scroll-bottom-btn:hover:not(:disabled) {
-  background: #005a9e;
-}
-
-.scroll-bottom-btn:disabled {
-  background: #555;
-  cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .project-logs-content {
@@ -192,19 +190,4 @@
 
 .project-logs-content::-webkit-scrollbar-thumb:hover {
   background: #777;
-}
-
-.max-logs-input {
-  background: #333;
-  border: 1px solid #555;
-  color: #e0e0e0;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  width: 80px;
-}
-
-.max-logs-input:focus {
-  outline: none;
-  border-color: #007acc;
 }

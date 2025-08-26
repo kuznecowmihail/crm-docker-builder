@@ -15,6 +15,7 @@
     "start": "npm run build && npm run start:electron",
     "dev": "concurrently \"npm run start:angular\" \"wait-on http://localhost:4200 && npm run build:electron && npm run start:electron\"",
     "clean": "rm -rf electron/dist angular-app/dist",
+    "generate:icons": "node scripts/generate-icons.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@angular/cli": "^20.1.6",
     "@types/node": "^24.2.1",
+    "canvas": "^3.2.0",
     "concurrently": "^9.2.0",
     "electron": "^37.2.6",
     "typescript": "^5.9.2",
