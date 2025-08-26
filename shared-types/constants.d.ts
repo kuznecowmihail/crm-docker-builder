@@ -128,6 +128,7 @@ export interface Constants {
     CRM_PATHS_DOCKER: {
       APP: string,
       VSDBG: string,
+      PROJ_FILES: string,
     },
   },
   FILE_NAMES: {
@@ -139,6 +140,9 @@ export interface Constants {
     POSTGRES_RESTORE_SCRIPT: string,
     CREATE_TYPE_CASTS_POSTGRES_SQL: string,
     APP_HANDLER: string,
+    APP_HANDLER_PS: string,
+    WORKSPACE_CONSOLE_HANDLER: string,
+    WORKSPACE_CONSOLE_HANDLER_PS: string,
   },
   NETWORK_PREFIX: string
 }

@@ -129,6 +129,7 @@ export const ConstantValues: Constants = {
     CRM_PATHS_DOCKER: {
       APP: '/app',
       VSDBG: 'vsdbg',
+      PROJ_FILES: 'crm-docker-files',
     },
   },
   FILE_NAMES: {
@@ -139,7 +140,10 @@ export const ConstantValues: Constants = {
     DOCKERFILE_CREATIO_NET3: 'DockerFile_creation_net3',
     POSTGRES_RESTORE_SCRIPT: 'restore.sh',
     CREATE_TYPE_CASTS_POSTGRES_SQL: 'CreateTypeCastsPostgreSql.sql',
-    APP_HANDLER: '_app-handler.sh',
+    APP_HANDLER: 'app-handler.sh',
+    APP_HANDLER_PS: 'app-handler.ps1',
+    WORKSPACE_CONSOLE_HANDLER: 'workspace-console-handler.sh',
+    WORKSPACE_CONSOLE_HANDLER_PS: 'workspace-console-handler.ps1',
   },
   NETWORK_PREFIX: '-network',
 };

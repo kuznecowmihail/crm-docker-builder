@@ -5,7 +5,7 @@ import { AppManager } from './services/AppManager';
 
 // Функция для установки иконки приложения
 function setAppIcon() {
-  const iconPath = path.join(process.cwd(), 'electron', 'assets', 'icons', 'icon-256x256.png');
+  const iconPath = path.join(process.cwd(), 'electron', 'assets', 'icons', 'icon-512x512.png');
   console.log('🎨 Установка иконки приложения...');
   console.log('📁 iconPath:', iconPath);
 

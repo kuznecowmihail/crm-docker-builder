@@ -9,15 +9,42 @@ import { CrmDockerBuilderValidatorService } from './CrmDockerBuilderValidatorSer
 import { ConstService } from './ConstService';
 
 export class AppManager {
+  /**
+   * Окно
+   */
   private windowManager: WindowManager;
+  /**
+   * Система
+   */
   private systemService: SystemService;
+  /**
+   * Диалог
+   */
   private dialogService: DialogService;
+  /**
+   * Уведомление
+   */
   private notificationService: NotificationService;
+  /**
+   * Файловая система
+   */
   private fileSystemService: FileSystemService;
+  /**
+   * CRM Docker Builder
+   */
   private crmDockerBuilderService: CrmDockerBuilderService;
+  /**
+   * CRM Docker Builder Validator
+   */
   private crmDockerBuilderValidatorService: CrmDockerBuilderValidatorService;
+  /**
+   * Константы
+   */
   private constService: ConstService;
 
+  /**
+   * Конструктор
+   */
   constructor() {
     this.windowManager = new WindowManager();
     this.systemService = new SystemService();
@@ -29,11 +56,17 @@ export class AppManager {
     this.constService = new ConstService();
   }
 
+  /**
+   * Инициализация приложения
+   */
   public initialize(): void {
     this.setupAppEventHandlers();
     this.setupIpcHandlers();
   }
 
+  /**
+   * Настройка обработчиков событий приложения
+   */
   private setupAppEventHandlers(): void {
     // Создаем окно когда приложение готово
     app.whenReady().then(() => {
@@ -55,6 +88,9 @@ export class AppManager {
     });
   }
 
+  /**
+   * Настройка IPC обработчиков
+   */
   private setupIpcHandlers(): void {
     this.systemService.setupHandlers();
     this.dialogService.setupHandlers();
@@ -63,26 +99,5 @@ export class AppManager {
     this.crmDockerBuilderService.setupHandlers();
     this.crmDockerBuilderValidatorService.setupHandlers();
     this.constService.setupHandlers();
-  }
-
-  // Геттеры для доступа к сервисам
-  public getWindowManager(): WindowManager {
-    return this.windowManager;
-  }
-
-  public getSystemService(): SystemService {
-    return this.systemService;
-  }
-
-  public getDialogService(): DialogService {
-    return this.dialogService;
-  }
-
-  public getNotificationService(): NotificationService {
-    return this.notificationService;
-  }
-
-  public getFileSystemService(): FileSystemService {
-    return this.fileSystemService;
   }
 }

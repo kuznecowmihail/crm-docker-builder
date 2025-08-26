@@ -154,6 +154,10 @@ export class VscodeFilesHelper {
    * @returns - содержимое файла .vscode/launch.json
    */
   private generateVsCodeLaunchJsonContent(crmConfig: CrmConfig): string {
+    const runtimeExecutable = process.platform === 'win32' ? 'powershell' : '/bin/bash';
+    const appHandlerFile = process.platform === 'win32' ? ConstantValues.FILE_NAMES.APP_HANDLER_PS : ConstantValues.FILE_NAMES.APP_HANDLER;
+    const workspaceConsoleHandlerFile = process.platform === 'win32' ? ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER_PS : ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER;
+
     return JSON.stringify({
       "version": "0.2.0",
       "configurations": [
@@ -161,24 +165,8 @@ export class VscodeFilesHelper {
           "name": "🚀 Start All Containers",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "start"],
-          "console": "integratedTerminal",
-          "presentation": {
-            "echo": true,
-            "reveal": "always",
-            "focus": false,
-            "panel": "shared",
-            "showReuseMessage": true,
-            "clear": false
-          }
-        },
-        {
-          "name": "📊 Show Status",
-          "type": "node",
-          "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "status"],
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${appHandlerFile}`, "start"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -193,8 +181,8 @@ export class VscodeFilesHelper {
           "name": "⏹️ Stop Container",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "stop"],
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${appHandlerFile}`, "stop"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -209,8 +197,8 @@ export class VscodeFilesHelper {
           "name": "⏹️ Stop All Containers",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "stopall"],
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${appHandlerFile}`, "stopall"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -225,8 +213,8 @@ export class VscodeFilesHelper {
           "name": "🔄 Restart Container",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": [`\${workspaceFolder}/${ConstantValues.FILE_NAMES.APP_HANDLER}`, "restart"],
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${appHandlerFile}`, "restart"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -238,11 +226,11 @@ export class VscodeFilesHelper {
           }
         },
         {
-          "name": "🔄 Restart All Containers",
+          "name": "🔥 Redis Flush All",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_app-handler.sh", "restartall"],
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${appHandlerFile}`, "redisflushall"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -254,11 +242,11 @@ export class VscodeFilesHelper {
           }
         },
         {
-          "name": "📋 Show Logs",
+          "name": "🔄 Load Packages To FileSystem",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_app-handler.sh", "logs"],
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${workspaceConsoleHandlerFile}`, "LoadPackagesToFileSystem"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
@@ -270,11 +258,75 @@ export class VscodeFilesHelper {
           }
         },
         {
-          "name": "❓ Show Help",
+          "name": "🔄 Load Packages To DB",
           "type": "node",
           "request": "launch",
-          "runtimeExecutable": "/bin/bash",
-          "args": ["${workspaceFolder}/_app-handler.sh", "help"],
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${workspaceConsoleHandlerFile}`, "LoadPackagesToDB"],
+          "console": "integratedTerminal",
+          "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+          }
+        },
+        {
+          "name": "🔄 Build Workspace",
+          "type": "node",
+          "request": "launch",
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${workspaceConsoleHandlerFile}`, "BuildWorkspace"],
+          "console": "integratedTerminal",
+          "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+          }
+        },
+        {
+          "name": "🔄 Rebuild Workspace",
+          "type": "node",
+          "request": "launch",
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${workspaceConsoleHandlerFile}`, "RebuildWorkspace"],
+          "console": "integratedTerminal",
+          "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+          }
+        },
+        {
+          "name": "🔄 Build Configuration",
+          "type": "node",
+          "request": "launch",
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${workspaceConsoleHandlerFile}`, "BuildConfiguration"],
+          "console": "integratedTerminal",
+          "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+          }
+        },
+        {
+          "name": "🔄 Regenerate Schema Sources",
+          "type": "node",
+          "request": "launch",
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${workspaceConsoleHandlerFile}`, "RegenerateSchemaSources"],
           "console": "integratedTerminal",
           "presentation": {
             "echo": true,
