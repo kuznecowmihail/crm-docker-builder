@@ -320,7 +320,7 @@ switch ($Command) {
     }
     default {
         Write-Error "Unknown command: $Command"
-        Write-Host "Available commands: status, start, stop, stopall, restart, redisflushall" -ForegroundColor Yellow
+        Write-Host "Available commands: start, stop, stopall, restart, redisflushdb" -ForegroundColor Yellow
         break
     }
 }`;
