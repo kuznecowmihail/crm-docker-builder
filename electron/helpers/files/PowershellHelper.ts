@@ -266,14 +266,14 @@ function Start-All {
     Write-Status "Все контейнеры запущены!"
     Write-Host ""
     Write-Info "Доступные сервисы:"
-    Write-Host "  • \${PROJECT_NAME}: http://localhost:\${CRM_PORT}" -ForegroundColor Green
-    Write-Host "  • PgAdmin: http://localhost:\${PGADMIN_PORT}" -ForegroundColor Green
+    Write-Host "  - $PROJECT_NAME: http://localhost:$CRM_PORT" -ForegroundColor Green
+    Write-Host "  - PgAdmin: http://localhost:$PGADMIN_PORT" -ForegroundColor Green
     Write-Host ""
     Write-Info "Для просмотра логов используйте:"
-    Write-Host "  docker logs -f \${PROJECT_NAME}" -ForegroundColor Yellow
+    Write-Host "  docker logs -f $PROJECT_NAME" -ForegroundColor Yellow
     Write-Host ""
     Write-Info "Для остановки всех контейнеров:"
-    Write-Host "  docker stop pgadmin postgres redis \${PROJECT_NAME}" -ForegroundColor Yellow
+    Write-Host "  docker stop pgadmin postgres redis $PROJECT_NAME" -ForegroundColor Yellow
     
     # Спрашиваем, открыть ли браузер
     Write-Host ""
