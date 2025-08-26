@@ -1,10 +1,10 @@
 import { CrmConfig, ProjectConfig } from "@shared/crm-docker-builder";
 import { spawn } from 'child_process';
-import path from "path";
-import { FileSystemHelper } from "./FileSystemHelper";
-import { ConstantValues } from "../config/constants";
+import { FileSystemHelper } from "../FileSystemHelper";
+import { ConstantValues } from "../../config/constants";
+import * as path from 'path';
 
-export class VscodeFilesHelper {
+export class VscodeHelper {
   /**
    * Помощник для работы с файловой системой
    */

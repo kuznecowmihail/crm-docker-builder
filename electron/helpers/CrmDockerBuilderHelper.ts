@@ -1,11 +1,14 @@
+import * as path from 'path';
 import * as fs from 'fs/promises';
 import { CrmConfig, InitProjectResult, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from '@shared/api';
 import { CrmDockerBuilderValidator } from './CrmDockerBuilderValidator';
 import { FileSystemHelper } from './FileSystemHelper';
-import * as path from 'path';
-import { CrmDockerBuilderFileSystemHelper } from './CrmDockerBuilderFileSystemHelper';
 import { DockerProcessHelper } from './DockerProcessHelper';
-import { VscodeFilesHelper } from './VscodeFilesHelper';
+import { CrmHelper } from './CrmHelper';
+import { BashHelper } from './files/BashHelper';
+import { SqlHelper } from './files/SqlHelper';
+import { VscodeHelper } from './files/VscodeHelper';
+import { DockerComposeHelper } from './files/DockerComposeHelper';
 import { ConstantValues } from '../config/constants';
 
 export class CrmDockerBuilderHelper {
@@ -17,18 +20,35 @@ export class CrmDockerBuilderHelper {
    * Помощник для валидации настроек проекта
    */
   private crmDockerBuilderValidatorHelper: CrmDockerBuilderValidator;
+
   /**
-   * Помощник для работы с файловой системой
+   * Помощник для работы с файлами CRM
    */
-  private crmDockerBuilderFileSystemHelper: CrmDockerBuilderFileSystemHelper;
+  private crmHelper: CrmHelper;
+
   /**
    * Помощник для работы с vsdbg файлами
    */
-  private vscodeFilesHelper: VscodeFilesHelper;
+  private vscodeHelper: VscodeHelper;
   /**
    * Помощник для работы с Docker
    */
   private dockerProcessHelper: DockerProcessHelper;
+
+  /**
+   * Помощник для работы с файлами Bash
+   */
+  private bashHelper: BashHelper;
+
+  /**
+   * Помощник для работы с файлами SQL
+   */
+  private sqlHelper: SqlHelper;
+
+  /**
+   * Помощник для работы с файлами Docker Compose
+   */
+  private dockerComposeHelper: DockerComposeHelper;
 
   /**
    * Конструктор
@@ -36,9 +56,12 @@ export class CrmDockerBuilderHelper {
   constructor() {
     this.crmDockerBuilderValidatorHelper = new CrmDockerBuilderValidator();
     this.fileSystemHelper = new FileSystemHelper();
-    this.crmDockerBuilderFileSystemHelper = new CrmDockerBuilderFileSystemHelper();
-    this.vscodeFilesHelper = new VscodeFilesHelper();
+    this.vscodeHelper = new VscodeHelper();
     this.dockerProcessHelper = new DockerProcessHelper();
+    this.crmHelper = new CrmHelper();
+    this.bashHelper = new BashHelper();
+    this.sqlHelper = new SqlHelper();
+    this.dockerComposeHelper = new DockerComposeHelper();
   }
 
     /**
@@ -479,11 +502,11 @@ export class CrmDockerBuilderHelper {
       }
 
       // Скачиваем vsdbg файлы
-      await this.vscodeFilesHelper.buildVsdbgFilesWithLogs(projectConfig, onLogCallback);
+      await this.vscodeHelper.buildVsdbgFilesWithLogs(projectConfig, onLogCallback);
       // Создаем файл docker-compose.yml
-      await this.crmDockerBuilderFileSystemHelper.buildDockerComposeFile(projectConfig, onLogCallback);
+      await this.buildDockerComposeFile(projectConfig, onLogCallback);
       // Обрабатываем файлы CRM
-      await this.crmDockerBuilderFileSystemHelper.handleCrmFiles(projectConfig, onLogCallback);
+      await this.crmHelper.handleCrmFiles(projectConfig, onLogCallback);
 
       onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно собран`);
 
@@ -536,9 +559,9 @@ export class CrmDockerBuilderHelper {
       await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
 
       // Создаем скрипт для восстановления бэкапа в PostgreSQL
-      await this.crmDockerBuilderFileSystemHelper.buildPostgresRestoreScript(projectConfig, onLogCallback);
+      await this.buildPostgresRestoreScript(projectConfig, onLogCallback);
       // Создаем скрипт для создания типов данных в PostgreSQL
-      await this.crmDockerBuilderFileSystemHelper.buildCreateTypeCastsPostgreSql(projectConfig, onLogCallback);
+      await this.buildCreateTypeCastsPostgreSql(projectConfig, onLogCallback);
 
       for (const crmConfig of projectConfig.crmConfigs) {
         // Копируем бэкап в папку postgres-volumes
@@ -602,6 +625,70 @@ export class CrmDockerBuilderHelper {
         message: `Ошибка при запуске проекта: ${error instanceof Error ? error.message : String(error)}`
       };
     }
+  }
+
+  /**
+   * Создает файл docker-compose.yml
+   * @param projectConfig - конфигурация проекта
+   * @returns - содержимое файла docker-compose.yml
+   */
+  private async buildDockerComposeFile(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
+      try {
+          const dockerComposeFile = this.dockerComposeHelper.generateDockerComposeContent(projectConfig);
+          const filePath = path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.DOCKER_COMPOSE);
+          await this.fileSystemHelper.writeFile(filePath, dockerComposeFile);
+          onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.DOCKER_COMPOSE} успешно создан`);
+      } catch (error) {
+          onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла ${ConstantValues.FILE_NAMES.DOCKER_COMPOSE}: ${error}`);
+
+          throw error;
+      }
+  }
+
+  /**
+   * Создает файл ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}
+   * @param projectConfig - конфигурация проекта
+   * @returns - содержимое файла ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}
+   */
+  private async buildPostgresRestoreScript(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
+      try {
+          const postgresRestoreScript = this.bashHelper.generatePostgresRestoreScriptContent();
+          const filePath = path.join(
+            projectConfig.projectPath,
+            ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES,
+            ConstantValues.FOLDER_NAMES.POSTGRES_PATHS.POSTGRES_DATA,
+            ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT
+          );
+          await this.fileSystemHelper.writeFile(filePath, postgresRestoreScript);
+          onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} успешно создан`);
+      } catch (error) {
+          onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}: ${error}`);
+
+          throw error;
+      }
+  }
+
+  /**
+   * Создает файл ${ConstantValues.FILE_NAMES.CREATE_TYPE_CASTS_POSTGRES_SQL}
+   * @param projectConfig - конфигурация проекта
+   * @returns - содержимое файла ${ConstantValues.FILE_NAMES.CREATE_TYPE_CASTS_POSTGRES_SQL}
+   */
+  private async buildCreateTypeCastsPostgreSql(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
+      try {
+          const createTypeCastsPostgreSql = this.sqlHelper.generateCreateTypeCastsPostgreSqlContent();
+          const filePath = path.join(
+            projectConfig.projectPath,
+            ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES,
+            ConstantValues.FOLDER_NAMES.POSTGRES_PATHS.POSTGRES_DATA,
+            ConstantValues.FILE_NAMES.CREATE_TYPE_CASTS_POSTGRES_SQL
+          );
+          await this.fileSystemHelper.writeFile(filePath, createTypeCastsPostgreSql);
+          onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.CREATE_TYPE_CASTS_POSTGRES_SQL} успешно создан`);
+      } catch (error) {
+          onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла ${ConstantValues.FILE_NAMES.CREATE_TYPE_CASTS_POSTGRES_SQL}: ${error}`);
+
+          throw error;
+      }
   }
 
   /**
