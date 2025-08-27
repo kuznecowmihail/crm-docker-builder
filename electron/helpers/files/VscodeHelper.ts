@@ -34,7 +34,6 @@ export class VscodeHelper {
    */
   public async buildVsdbgFilesWithLogs(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<void> {
     try {
-
       const platform = process.platform;
       const arch = process.arch;
 

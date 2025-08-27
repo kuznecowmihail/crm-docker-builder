@@ -14,14 +14,14 @@
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <mat-icon>build</mat-icon>
+              <mat-icon>home</mat-icon>
               Общие настройки
             </mat-panel-title>
           </mat-expansion-panel-header>
             <div class="panel-content">
               <button mat-button (click)="onSectionSelect('general')">
-                <mat-icon>settings</mat-icon>
-                Общие настройки проекта
+                <mat-icon>info</mat-icon>
+                Проект
               </button>
             </div>
         </mat-expansion-panel>
@@ -42,11 +42,11 @@
                 <mat-icon>admin_panel_settings</mat-icon>
                 PgAdmin
               </button>
-              <button mat-button (click)="onSectionSelect('redis')">
+              <button mat-button (click)="onSectionSelect('redis')" class="redis-button">
                 <mat-icon>memory</mat-icon>
                 Redis
               </button>
-              <button mat-button (click)="onSectionSelect('rabbitmq')">
+              <button mat-button (click)="onSectionSelect('rabbitmq')" class="rabbitmq-button">
                 <mat-icon>queue</mat-icon>
                 RabbitMQ
               </button>
@@ -56,19 +56,18 @@
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <mat-icon>settings</mat-icon>
+              <mat-icon>apps</mat-icon>
               Crm
             </mat-panel-title>
-            <mat-panel-description>
-              <button mat-button (click)="onCrmAdd()">
-                <mat-icon>playlist_add</mat-icon>
-              </button>
-            </mat-panel-description>
           </mat-expansion-panel-header>
           <div class="panel-content">
             <button *ngFor="let crm of projectConfig?.crmConfigs" mat-button (click)="onSectionSelect('crm', crm)">
               <mat-icon>business</mat-icon>
               {{crm.containerName}}
+            </button>
+            <button mat-button (click)="onCrmAdd()">
+              <mat-icon>playlist_add</mat-icon>
+              Добавить
             </button>
           </div>
         </mat-expansion-panel>
@@ -76,22 +75,22 @@
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <mat-icon>done</mat-icon>
+              <mat-icon>build</mat-icon>
               Действия
             </mat-panel-title>
           </mat-expansion-panel-header>
           <div class="panel-content">
             <button mat-button (click)="onBuildProject()">
               <mat-icon>build</mat-icon>
-              Собрать проект
+              Собрать
             </button>
             <button mat-button (click)="onRunProject()">
               <mat-icon>play_arrow</mat-icon>
-              Запустить проект
+              Запустить
             </button>
             <button mat-button (click)="onSectionSelect('logs')">
               <mat-icon>list</mat-icon>
-              Логи проекта
+              Логи
             </button>
           </div>
         </mat-expansion-panel>

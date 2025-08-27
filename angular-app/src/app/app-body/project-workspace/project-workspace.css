@@ -64,6 +64,14 @@
   border-radius: 2px;
 }
 
+.redis-button .mat-icon {
+  color: #dc382d !important;
+}
+
+.rabbitmq-button .mat-icon {
+  color: #ff6600 !important;
+}
+
 .workspace-main {
   flex: 1;
   padding: 1.5rem;

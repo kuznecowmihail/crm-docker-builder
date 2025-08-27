@@ -4,8 +4,8 @@ export const ConstantValues: Constants = {
   DEFAULT_WINDOW_CONFIG: {
     width: 1200,
     height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    minWidth: 1000,
+    minHeight: 700,
   },
   DEV_SERVER_URL: 'http://localhost:4200',
   PATHS: {

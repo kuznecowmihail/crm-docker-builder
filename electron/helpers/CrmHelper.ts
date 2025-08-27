@@ -227,15 +227,24 @@ export class CrmHelper {
     private async buildAppHandler(projectConfig: ProjectConfig, crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
       try {
         await this.fileSystemHelper.ensureDirectoryExists(path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES));
-        
-        const appHandlerContentBash = this.bashHelper.generateAppHandlerContent(projectConfig, crmConfig);
-        const appHandlerPowerShellContent = this.powershellHelper.generateAppHandlerContent(projectConfig, crmConfig);
-        
-        const appHandlerBashPath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.APP_HANDLER);
-        const appHandlerPowerShellPath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.APP_HANDLER_PS);
 
-        await this.fileSystemHelper.writeFile(appHandlerBashPath, appHandlerContentBash);
-        await this.fileSystemHelper.writeFile(appHandlerPowerShellPath, appHandlerPowerShellContent);
+        const platform = process.platform;
+        const arch = process.arch;
+
+        let appHandlerContent = '';
+        let appHandlerPath = '';
+
+        if (platform === 'win32' && (arch === 'x64' || arch === 'arm64')) {
+          appHandlerContent = this.powershellHelper.generateAppHandlerContent(projectConfig, crmConfig);
+          appHandlerPath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.APP_HANDLER_PS);
+        } else if (platform === 'darwin' || platform === 'linux') {
+          appHandlerContent = this.bashHelper.generateAppHandlerContent(projectConfig, crmConfig);
+          appHandlerPath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.APP_HANDLER);
+        } else {
+          throw new Error(`Неподдерживаемая платформа: ${platform}`);
+        }
+        
+        await this.fileSystemHelper.writeFile(appHandlerPath, appHandlerContent);
 
         onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл AppHandler успешно создан`);
       } catch (error) {
@@ -252,14 +261,24 @@ export class CrmHelper {
     private async buildWorkspaceConsoleHadler(crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
       try {
         await this.fileSystemHelper.ensureDirectoryExists(path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES));
-        const workspaceConsoleBashContent = this.bashHelper.generateWorkspaceConsoleHadlerContent(crmConfig);
-        const workspaceConsolePowerShellContent = this.powershellHelper.generateWorkspaceConsoleHadlerContent(crmConfig);
 
-        const workspaceConsoleBashPath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER);
-        const workspaceConsolePowerShellPath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER_PS);
+        const platform = process.platform;
+        const arch = process.arch;
 
-        await this.fileSystemHelper.writeFile(workspaceConsoleBashPath, workspaceConsoleBashContent);
-        await this.fileSystemHelper.writeFile(workspaceConsolePowerShellPath, workspaceConsolePowerShellContent);
+        let workspaceConsoleContent = '';
+        let workspaceConsolePath = '';
+
+        if (platform === 'win32' && (arch === 'x64' || arch === 'arm64')) {
+          workspaceConsoleContent = this.powershellHelper.generateWorkspaceConsoleHadlerContent(crmConfig);
+          workspaceConsolePath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER_PS);
+        } else if (platform === 'darwin' || platform === 'linux') {
+          workspaceConsoleContent = this.bashHelper.generateWorkspaceConsoleHadlerContent(crmConfig);
+          workspaceConsolePath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER);
+        } else {
+          throw new Error(`Неподдерживаемая платформа: ${platform}`);
+        }
+
+        await this.fileSystemHelper.writeFile(workspaceConsolePath, workspaceConsoleContent);
 
         onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл WorkspaceConsoleHandler успешно создан`);
       } catch (error) {
