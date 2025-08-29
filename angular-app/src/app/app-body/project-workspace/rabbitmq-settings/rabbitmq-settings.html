@@ -35,7 +35,6 @@
                    [(ngModel)]="port" 
                    (change)="onManagementPortChange()"
                    placeholder="15673"
-                   [disabled]="!isEditing"
                    min="1024"
                    max="65535"
                    required>
@@ -49,7 +48,6 @@
                    [(ngModel)]="amqpPort" 
                    (change)="onAmqpPortChange()"
                    placeholder="5672"
-                   [disabled]="!isEditing"
                    min="1024"
                    max="65535"
                    required>
@@ -98,7 +96,7 @@
       
       <div class="form-section">
         <h3>Доступ к интерфейсу</h3>
-        <div class="access-info" *ngIf="isEditing && containerName && port">
+        <div class="access-info">
           <div class="info-item">
             <span class="info-label">Host:</span>
             <span class="info-value">localhost</span>

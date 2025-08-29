@@ -7,7 +7,8 @@
         
         <app-project-workspace 
             *ngIf="isProjectInitialized"
-            [projectConfig]="projectConfig">
+            [projectConfig]="projectConfig"
+            (exitProject)="onExitProject()">
         </app-project-workspace>
     </div>
 </div>

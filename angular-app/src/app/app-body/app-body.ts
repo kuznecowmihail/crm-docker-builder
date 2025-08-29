@@ -36,4 +36,12 @@ export class AppBody {
     this.projectConfig = projectConfig;
     this.isProjectInitialized = true;
   }
+
+  /**
+   * Обработчик выхода из проекта
+   */
+  onExitProject() {
+    this.projectConfig = null;
+    this.isProjectInitialized = false;
+  }
 }

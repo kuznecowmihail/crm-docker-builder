@@ -1,6 +1,6 @@
 {
-  "name": "crm-docker-builder",
-  "version": "0.3.0",
+  "name": "CRM Docker Builder",
+  "version": "0.4.0",
   "description": "Electron приложение с интеграцией Angular",
   "main": "electron/dist/main.js",
   "homepage": "./",
@@ -37,7 +37,7 @@
     "docker",
     "builder"
   ],
-  "author": "CRM Infrastructure Team",
+  "author": "CRM Infrastructure Lisitsyn Team",
   "license": "ISC",
   "type": "commonjs",
   "build": {

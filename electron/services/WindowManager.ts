@@ -60,15 +60,19 @@ export class WindowManager {
     } else {
       // В продакшене загружаем собранное Angular приложение
       let appPath: string;
+      const defaultAppPath = path.join(process.cwd(), ConstantValues.PATHS.productionApp);
+      const resourcesAppPath = path.join(process.resourcesPath, 'app', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html');
+      console.log('defaultAppPath', defaultAppPath);
+      console.log('resourcesAppPath', resourcesAppPath);
       
       // Проверяем, запущено ли приложение из упакованного exe
-      if (process.env.NODE_ENV === 'production' || process.resourcesPath) {
+      if (process.env.NODE_ENV === 'production' || (process.resourcesPath && fs.existsSync(resourcesAppPath))) {
         // В упакованном приложении используем ресурсы
-        appPath = path.join(process.resourcesPath, 'app', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html');
+        appPath = resourcesAppPath;
         console.log('📦 Упакованное приложение, путь к ресурсам:', process.resourcesPath);
       } else {
         // В режиме разработки используем обычный путь
-        appPath = path.join(process.cwd(), ConstantValues.PATHS.productionApp);
+        appPath = defaultAppPath;
       }
       
       console.log('📁 Загружаем Angular приложение:', appPath);

@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ProjectConfig, CrmConfig } from '@shared/api';
+import { ProjectConfig, CrmConfig, Constants } from '@shared/api';
 import { ElectronService } from 'src/app/services/electron.service';
 
 @Component({
@@ -53,7 +53,16 @@ export class CrmSettings implements OnChanges {
   dbType: string = 'postgres';
   netVersion: string = '8.0';
   crmType: string = 'bpmsoft';
-  isEnabled: boolean = true;
+  
+  /**
+   * Флаг проекта в режиме редактирования
+   */
+  isEditing: boolean = false;
+
+  /**
+   * Константы
+   */
+  constants: Constants | null = null;
 
   /**
    * Состояние ошибки для поля резервной копии
@@ -90,6 +99,22 @@ export class CrmSettings implements OnChanges {
     if (this.crmConfig) {
       this.updateFormValues();
     }
+
+    this.electronService.getConstants().then((constants) => {
+      this.constants = constants;
+
+      if (!this.crmConfig) {
+        const config = this.constants?.DEFAULT_CRM_CONFIG;
+        this.containerName = config.containerName;
+        this.port = config.port;
+        this.redisDb = config.redisDb;
+        this.dbType = config.dbType;
+        this.netVersion = config.netVersion;
+        this.crmType = config.crmType;
+      }
+    });
+
+    this.isEditing = !Boolean(this.projectConfig?.runOn);
   }
 
   /**
@@ -213,8 +238,7 @@ export class CrmSettings implements OnChanges {
       redisDb: this.redisDb,
       dbType: this.dbType,
       netVersion: this.netVersion,
-      crmType: this.crmType,
-      isEnabled: this.isEnabled
+      crmType: this.crmType
     });
     
     if (this.crmConfig && this.projectConfig) {
@@ -238,30 +262,6 @@ export class CrmSettings implements OnChanges {
   onCancelChanges() {
     console.log('CrmSettings: Отмена изменений');
     this.updateFormValues();
-  }
-
-  /**
-   * Обработчик тестирования соединения
-   */
-  onTestConnection() {
-    console.log('CrmSettings: Тестирование соединения...');
-    // Здесь будет логика тестирования соединения
-  }
-
-  /**
-   * Обработчик запуска CRM
-   */
-  onStartCrm() {
-    console.log('CrmSettings: Запуск CRM...');
-    // Здесь будет логика запуска CRM
-  }
-
-  /**
-   * Обработчик остановки CRM
-   */
-  onStopCrm() {
-    console.log('CrmSettings: Остановка CRM...');
-    // Здесь будет логика остановки CRM
   }
 
   /**

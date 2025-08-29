@@ -21,7 +21,7 @@
                    [(ngModel)]="containerName" 
                    (change)="onContainerNameChange()"
                    placeholder="crm-container"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Уникальное имя для Docker контейнера CRM</mat-hint>
           </mat-form-field>
@@ -35,7 +35,6 @@
                    [(ngModel)]="port" 
                    (change)="onPortChange()"
                    placeholder="80"
-                   [disabled]="!isEnabled"
                    min="1"
                    max="65535"
                    required>
@@ -56,13 +55,13 @@
                    [(ngModel)]="appPath" 
                    (change)="onAppPathChange()"
                    placeholder="/path/to/crm/app"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <button matSuffix 
                     mat-icon-button 
                     type="button"
                     (click)="onSelectAppPath()"
-                    [disabled]="!isEnabled"
+                    [disabled]="!isEditing"
                     matTooltip="Выбрать папку приложения">
               <mat-icon>folder_open</mat-icon>
             </button>
@@ -82,13 +81,13 @@
                    [(ngModel)]="backupPath" 
                    (change)="onBackupPathChange()"
                    placeholder="/path/to/backups"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <button matSuffix 
                     mat-icon-button 
                     type="button"
                     (click)="onSelectBackupPath()"
-                    [disabled]="!isEnabled"
+                    [disabled]="!isEditing"
                     matTooltip="Выбрать папку для резервных копий">
               <mat-icon>folder_open</mat-icon>
             </button>
@@ -106,7 +105,7 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Тип CRM</mat-label>
-            <mat-select [(ngModel)]="crmType" [disabled]="!isEnabled" (change)="onCrmTypeChange()">
+            <mat-select [(ngModel)]="crmType" [disabled]="!isEditing" (change)="onCrmTypeChange()">
               <mat-option value="creatio">Creatio</mat-option>
               <mat-option value="bpmsoft">BPMSoft</mat-option>
             </mat-select>
@@ -115,7 +114,7 @@
           
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Тип базы данных</mat-label>
-            <mat-select [(ngModel)]="dbType" [disabled]="!isEnabled" (change)="onDbTypeChange()">
+            <mat-select [(ngModel)]="dbType" [disabled]="!isEditing" (change)="onDbTypeChange()">
               <mat-option value="postgres">PostgreSQL</mat-option>
               <mat-option value="mssql">Microsoft SQL Server</mat-option>
             </mat-select>
@@ -126,7 +125,7 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Версия .NET</mat-label>
-            <mat-select [(ngModel)]="netVersion" [disabled]="!isEnabled" (change)="onNetVersionChange()">
+            <mat-select [(ngModel)]="netVersion" [disabled]="!isEditing" (change)="onNetVersionChange()">
               <mat-option value="3.1">.NET 3.1</mat-option>
               <mat-option value="8.0">.NET 8.0</mat-option>
             </mat-select>
@@ -140,7 +139,6 @@
                    [(ngModel)]="redisDb" 
                    (change)="onRedisDbChange()"
                    placeholder="0"
-                   [disabled]="!isEnabled"
                    min="0"
                    max="15"
                    required>
@@ -151,7 +149,7 @@
       
       <div class="form-section">
         <h3>Информация о системе</h3>
-        <div class="system-info" *ngIf="isEnabled && containerName && port">
+        <div class="system-info">
           <div class="info-item">
             <span class="info-label">Тип CRM:</span>
             <span class="info-value">{{ crmType | titlecase }}</span>
@@ -178,36 +176,16 @@
     
     <mat-card-actions align="end">
       <button mat-button 
-              color="accent"
-              (click)="onTestConnection()"
-              [disabled]="!isEnabled || !containerName || !port">
-        <mat-icon>wifi</mat-icon>
-        Тест соединения
-      </button>
-      <button mat-button 
-              color="primary"
-              (click)="onStartCrm()"
-              [disabled]="!isEnabled">
-        <mat-icon>play_arrow</mat-icon>
-        Запустить
-      </button>
-      <button mat-button 
-              color="warn"
-              (click)="onStopCrm()"
-              [disabled]="!isEnabled">
-        <mat-icon>stop</mat-icon>
-        Остановить
-      </button>
-      <button mat-button 
               color="warn" 
-              (click)="onCancelChanges()">
+              (click)="onCancelChanges()"
+              [disabled]="!isEditing">
         <mat-icon>cancel</mat-icon>
         Отмена
       </button>
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !appPath || !backupPath">
+              [disabled]="!isEditing || !containerName || !port || !appPath || !backupPath || !crmType || !dbType || !netVersion || !redisDb">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

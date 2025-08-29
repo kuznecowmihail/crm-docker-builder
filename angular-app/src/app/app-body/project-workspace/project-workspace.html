@@ -5,6 +5,9 @@
       <p><strong>Название:</strong> {{ projectConfig.projectName }}</p>
       <p><strong>Путь:</strong> {{ projectConfig.projectPath }}</p>
     </div>
+    <button mat-button (click)="onExitProject()">
+      <mat-icon>exit_to_app</mat-icon>
+    </button>
   </div>
   
   <div class="workspace-content">
@@ -87,10 +90,6 @@
             <button mat-button (click)="onRunProject()">
               <mat-icon>play_arrow</mat-icon>
               Запустить
-            </button>
-            <button mat-button (click)="onSectionSelect('logs')">
-              <mat-icon>list</mat-icon>
-              Логи
             </button>
           </div>
         </mat-expansion-panel>

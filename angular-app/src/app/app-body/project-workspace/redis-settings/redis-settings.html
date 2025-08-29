@@ -34,8 +34,7 @@
                    type="number"
                    [(ngModel)]="port" 
                    (change)="onPortChange()"
-                   placeholder="6380"
-                   [disabled]="!isEditing"
+                   placeholder="6379"
                    min="1024"
                    max="65535"
                    required>
@@ -110,7 +109,7 @@
       
       <div class="form-section">
         <h3>Информация о соединении</h3>
-        <div class="connection-info" *ngIf="isEditing && containerName && port">
+        <div class="connection-info" >
           <div class="info-item">
             <span class="info-label">Host:</span>
             <span class="info-value">localhost</span>

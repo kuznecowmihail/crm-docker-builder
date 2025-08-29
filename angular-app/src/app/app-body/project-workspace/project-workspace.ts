@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectorRef, NgZone, OnDestroy } from '@angular/core';
+import { Component, Input, ChangeDetectorRef, NgZone, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -45,6 +45,12 @@ export class ProjectWorkspace implements OnDestroy {
    * Конфигурация проекта
    */
   @Input() projectConfig: ProjectConfig | null = null;
+
+  /**
+   * Событие выхода из проекта
+   */
+  @Output() exitProject: EventEmitter<void> = new EventEmitter<void>();
+
   /**
    * Поля для редактирования
    */
@@ -370,6 +376,14 @@ export class ProjectWorkspace implements OnDestroy {
     }
     // Отписываемся от логов проекта
     this.electronService.unsubscribeFromProjectLogs();
+  }
+
+  /**
+   * Обработчик выхода из проекта
+   */
+  onExitProject() {
+    this.projectConfig = null;
+    this.exitProject.emit();
   }
 
   /**
