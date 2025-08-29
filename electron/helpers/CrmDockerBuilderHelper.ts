@@ -607,6 +607,13 @@ export class CrmDockerBuilderHelper {
           projectConfig.projectPath, 
           onLogCallback
         );
+
+        // Перезапускаем контейнер CRM
+        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+          ['restart', crmConfig.containerName], 
+          projectConfig.projectPath, 
+          onLogCallback
+        );
       }
 
       onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен`);
