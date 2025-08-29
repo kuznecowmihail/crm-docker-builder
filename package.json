@@ -1,8 +1,9 @@
 {
-  "name": "Crm Docker Builder",
+  "name": "crm-docker-builder",
   "version": "0.3.0",
   "description": "Electron приложение с интеграцией Angular",
   "main": "electron/dist/main.js",
+  "homepage": "./",
   "scripts": {
     "build:electron": "tsc -p electron/tsconfig.json && tsc -p electron/tsconfig.preload.json",
     "build:angular": "cd angular-app && npm run build:electron",
@@ -16,18 +17,140 @@
     "dev": "concurrently \"npm run start:angular\" \"wait-on http://localhost:4200 && npm run build:electron && npm run start:electron\"",
     "clean": "rm -rf electron/dist angular-app/dist",
     "generate:icons": "node scripts/generate-icons.js",
+    "generate:dmg-background": "node scripts/generate-dmg-background.js",
+    "test:windows": "node scripts/test-windows-build.js",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:win:x64": "npm run build && electron-builder --win --x64",
+    "dist:win:arm64": "npm run build && electron-builder --win --arm64",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:mac:x64": "npm run build && electron-builder --mac --x64",
+    "dist:mac:arm64": "npm run build && electron-builder --mac --arm64",
+    "dist:linux": "npm run build && electron-builder --linux",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "electron",
+    "angular",
+    "crm",
+    "docker",
+    "builder"
+  ],
+  "author": "CRM Infrastructure Team",
   "license": "ISC",
   "type": "commonjs",
+  "build": {
+    "appId": "com.crm-docker-builder.app",
+    "productName": "CRM Docker Builder",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/dist/**/*",
+      "angular-app/dist/**/*",
+      "node_modules/**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!node_modules/*.d.ts",
+      "!node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ],
+    "extraResources": [
+      {
+        "from": "electron/assets/icons",
+        "to": "assets/icons"
+      },
+      {
+        "from": "angular-app/dist",
+        "to": "app/angular-app/dist"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "electron/assets/icons/icon-256x256.png",
+      "requestedExecutionLevel": "asInvoker",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "electron/assets/icons/icon-512x512.png",
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "electron/assets/entitlements.mac.plist",
+      "entitlementsInherit": "electron/assets/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "rpm",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "electron/assets/icons/icon-512x512.png",
+      "category": "Development"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CRM Docker Builder"
+    },
+    "dmg": {
+      "title": "CRM Docker Builder",
+      "icon": "electron/assets/icons/icon-512x512.png",
+      "background": "electron/assets/dmg-background.png",
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    }
+  },
   "devDependencies": {
     "@angular/cli": "^20.1.6",
     "@types/node": "^24.2.1",
     "canvas": "^3.2.0",
     "concurrently": "^9.2.0",
     "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
     "typescript": "^5.9.2",
     "wait-on": "^8.0.4"
   }

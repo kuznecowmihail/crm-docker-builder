@@ -49,3 +49,24 @@ coverage/
 # Temporary folders
 tmp/
 temp/
+
+# Electron Builder
+dist/
+*.dmg
+*.exe
+*.deb
+*.rpm
+*.AppImage
+*.zip
+*.blockmap
+latest-*.yml
+builder-debug.yml
+builder-effective-config.yaml
+.icon-icns/
+
+# Code signing
+*.p12
+*.pfx
+*.key
+*.crt
+*.pem

@@ -50,15 +50,89 @@ export class WindowManager {
       this.mainWindow.setIcon(iconPath);
     }
 
+    console.log('process.env.NODE_ENV', process.env.NODE_ENV);
+    console.log('process.resourcesPath', process.resourcesPath);
+
     // В режиме разработки загружаем Angular dev server
     if (process.env.NODE_ENV === 'development') {
       this.mainWindow.loadURL(ConstantValues.DEV_SERVER_URL);
       this.mainWindow.webContents.openDevTools();
     } else {
       // В продакшене загружаем собранное Angular приложение
-      const appPath = path.join(process.cwd(), ConstantValues.PATHS.productionApp);
-      this.mainWindow.loadFile(appPath);
+      let appPath: string;
+      
+      // Проверяем, запущено ли приложение из упакованного exe
+      if (process.env.NODE_ENV === 'production' || process.resourcesPath) {
+        // В упакованном приложении используем ресурсы
+        appPath = path.join(process.resourcesPath, 'app', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html');
+        console.log('📦 Упакованное приложение, путь к ресурсам:', process.resourcesPath);
+      } else {
+        // В режиме разработки используем обычный путь
+        appPath = path.join(process.cwd(), ConstantValues.PATHS.productionApp);
+      }
+      
+      console.log('📁 Загружаем Angular приложение:', appPath);
+      
+      // Проверяем существование файла
+      if (fs.existsSync(appPath)) {
+        console.log('✅ Файл index.html найден');
+        
+        // Используем file:// протокол для загрузки локального файла
+        const fileUrl = `file://${appPath.replace(/\\/g, '/')}`;
+        console.log('🔗 URL для загрузки:', fileUrl);
+        
+        this.mainWindow.loadURL(fileUrl);
+      } else {
+        console.error('❌ Файл index.html не найден:', appPath);
+        
+        // Попробуем альтернативные пути
+        const alternativePaths = [
+          path.join(process.cwd(), 'angular-app', 'dist', 'angular-app', 'browser', 'index.html'),
+          path.join(__dirname, '..', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html'),
+          path.join(process.resourcesPath || '', 'app', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html')
+        ];
+        
+        console.log('🔍 Проверяем альтернативные пути:');
+        for (const altPath of alternativePaths) {
+          console.log(`  - ${altPath}: ${fs.existsSync(altPath) ? '✅' : '❌'}`);
+        }
+        
+        // Показываем ошибку пользователю с дополнительной информацией
+        this.mainWindow.loadURL(`data:text/html,
+          <html>
+            <head><title>Ошибка загрузки</title></head>
+            <body">
+              <p>Не удалось найти файл: <code>${appPath}</code></p>
+              <p><strong>Отладочная информация:</strong></p>
+              <ul>
+                <li>process.cwd(): ${process.cwd()}</li>
+                <li>__dirname: ${__dirname}</li>
+                <li>process.resourcesPath: ${process.resourcesPath || 'undefined'}</li>
+                <li>NODE_ENV: ${process.env.NODE_ENV || 'undefined'}</li>
+              </ul>
+              <p>Убедитесь, что Angular приложение было собрано корректно.</p>
+            </body>
+          </html>
+        `);
+      }
     }
+
+    // Добавляем обработчики событий для диагностики
+    this.mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('❌ Ошибка загрузки страницы:', {
+        errorCode,
+        errorDescription,
+        validatedURL
+      });
+    });
+
+    this.mainWindow.webContents.on('did-finish-load', () => {
+      console.log('✅ Страница загружена успешно');
+    });
+
+    this.mainWindow.webContents.on('dom-ready', () => {
+      console.log('✅ DOM готов');
+    });
 
     return this.mainWindow;
   }
