@@ -44,10 +44,22 @@ export class RedisSettings {
   volumePath: string = '';
   password: string = '';
   dbCount: number = 0;
-  isEnabled: boolean = true;
-  maxMemory: string = '256mb';
-  maxMemoryValue: number = 256;
   
+  /**
+   * Флаг проекта в режиме редактирования
+   */
+  isEditing: boolean = false;
+
+  /**
+   * Максимальная память
+   */
+  maxMemory: string = '256mb';
+
+  /**
+   * Значение максимальной памяти
+   */
+  maxMemoryValue: number = 256;
+
   /**
    * Константы
    */
@@ -72,6 +84,7 @@ export class RedisSettings {
       this.volumePath = config.volumePath || '';
       this.password = config.password || '';
       this.dbCount = config.dbCount || 16;
+      this.isEditing = !Boolean(this.projectConfig.runOn);
     }
 
     this.electronService.getConstants().then((constants) => {
@@ -153,14 +166,6 @@ export class RedisSettings {
   }
 
   /**
-   * Обработчик тестирования соединения
-   */
-  onTestConnection() {
-    console.log('RedisSettings: Тестирование соединения...');
-    // Здесь будет логика тестирования соединения
-  }
-
-  /**
    * Обработчик генерации пароля
    */
   onGeneratePassword() {
@@ -170,14 +175,6 @@ export class RedisSettings {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     this.password = result;
-  }
-
-  /**
-   * Обработчик очистки кэша
-   */
-  onClearCache() {
-    console.log('RedisSettings: Очистка кэша...');
-    // Здесь будет логика очистки кэша
   }
 
   /**

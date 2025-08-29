@@ -21,7 +21,7 @@
                    [(ngModel)]="containerName" 
                    (change)="onContainerNameChange()"
                    placeholder="pgadmin-container"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Уникальное имя для Docker контейнера pgAdmin</mat-hint>
           </mat-form-field>
@@ -34,7 +34,7 @@
                    type="number"
                    [(ngModel)]="port" 
                    placeholder="5434"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    min="1024"
                    max="65535"
                    required>
@@ -54,7 +54,7 @@
                    (change)="onEmailChange()"
                    type="email"
                    placeholder="admin@example.com"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Email для входа в pgAdmin</mat-hint>
           </mat-form-field>
@@ -67,7 +67,7 @@
                    [(ngModel)]="password"
                    (change)="onPasswordChange()"
                    placeholder="Введите пароль"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Пароль для входа в pgAdmin</mat-hint>
           </mat-form-field>
@@ -75,7 +75,7 @@
           <button mat-icon-button 
                   type="button"
                   (click)="onGeneratePassword()"
-                  [disabled]="!isEnabled"
+                  [disabled]="!isEditing"
                   matTooltip="Сгенерировать пароль">
             <mat-icon>refresh</mat-icon>
           </button>
@@ -84,7 +84,7 @@
       
       <div class="form-section">
         <h3>Доступ к интерфейсу</h3>
-        <div class="access-info" *ngIf="isEnabled && containerName && port">
+        <div class="access-info" *ngIf="isEditing && containerName && port">
           <div class="info-item">
             <span class="info-label">Host:</span>
             <span class="info-value">localhost</span>
@@ -111,22 +111,16 @@
     
     <mat-card-actions align="end">
       <button mat-button 
-              color="accent"
-              (click)="onOpenPgAdmin()"
-              [disabled]="!isEnabled || !containerName || !port || !email || !password">
-        <mat-icon>open_in_new</mat-icon>
-        Открыть pgAdmin
-      </button>
-      <button mat-button 
               color="warn" 
-              (click)="onCancelChanges()">
+              (click)="onCancelChanges()"
+              [disabled]="!isEditing">
         <mat-icon>cancel</mat-icon>
         Отмена
       </button>
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !email || !password">
+              [disabled]="!isEditing || !containerName || !port || !email || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

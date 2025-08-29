@@ -21,7 +21,7 @@
                    [(ngModel)]="containerName" 
                    (change)="onContainerNameChange()"
                    placeholder="redis-container"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Уникальное имя для Docker контейнера Redis</mat-hint>
           </mat-form-field>
@@ -35,7 +35,7 @@
                    [(ngModel)]="port" 
                    (change)="onPortChange()"
                    placeholder="6380"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    min="1024"
                    max="65535"
                    required>
@@ -54,7 +54,7 @@
                    [(ngModel)]="password"
                    (change)="onPasswordChange()"
                    placeholder="Введите пароль"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Пароль для аутентификации в Redis</mat-hint>
           </mat-form-field>
@@ -62,7 +62,7 @@
           <button mat-icon-button 
                   type="button"
                   (click)="onGeneratePassword()"
-                  [disabled]="!isEnabled"
+                  [disabled]="!isEditing"
                   matTooltip="Сгенерировать пароль">
             <mat-icon>refresh</mat-icon>
           </button>
@@ -79,7 +79,7 @@
                    type="number"
                    [(ngModel)]="dbCount" 
                    placeholder="16"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    min="1"
                    max="100"
                    required>
@@ -91,7 +91,7 @@
           <div class="memory-slider-container">
             <label class="slider-label">Максимальная память: {{ maxMemory }}</label>
             <mat-slider 
-              [disabled]="!isEnabled"
+              [disabled]="!isEditing"
               [min]="64" 
               [max]="2048" 
               [step]="64"
@@ -110,7 +110,7 @@
       
       <div class="form-section">
         <h3>Информация о соединении</h3>
-        <div class="connection-info" *ngIf="isEnabled && containerName && port">
+        <div class="connection-info" *ngIf="isEditing && containerName && port">
           <div class="info-item">
             <span class="info-label">Host:</span>
             <span class="info-value">localhost</span>
@@ -137,29 +137,16 @@
     
     <mat-card-actions align="end">
       <button mat-button 
-              color="accent"
-              (click)="onTestConnection()"
-              [disabled]="!isEnabled || !containerName || !port || !password">
-        <mat-icon>wifi</mat-icon>
-        Тест соединения
-      </button>
-      <button mat-button 
-              color="warn"
-              (click)="onClearCache()"
-              [disabled]="!isEnabled">
-        <mat-icon>clear_all</mat-icon>
-        Очистить кэш
-      </button>
-      <button mat-button 
               color="warn" 
-              (click)="onCancelChanges()">
+              (click)="onCancelChanges()"
+              [disabled]="!isEditing">
         <mat-icon>cancel</mat-icon>
         Отмена
       </button>
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !password">
+              [disabled]="!isEditing || !containerName || !port || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

@@ -21,7 +21,7 @@
                    [(ngModel)]="containerName" 
                    (change)="onContainerNameChange()"
                    placeholder="rabbitmq-container"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Уникальное имя для Docker контейнера RabbitMQ</mat-hint>
           </mat-form-field>
@@ -35,7 +35,7 @@
                    [(ngModel)]="port" 
                    (change)="onManagementPortChange()"
                    placeholder="15673"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    min="1024"
                    max="65535"
                    required>
@@ -48,8 +48,8 @@
                    type="number"
                    [(ngModel)]="amqpPort" 
                    (change)="onAmqpPortChange()"
-                   placeholder="5673"
-                   [disabled]="!isEnabled"
+                   placeholder="5672"
+                   [disabled]="!isEditing"
                    min="1024"
                    max="65535"
                    required>
@@ -68,7 +68,7 @@
                    [(ngModel)]="username" 
                    (change)="onUsernameChange()"
                    placeholder="rmuser"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Имя пользователя для доступа к RabbitMQ</mat-hint>
           </mat-form-field>
@@ -81,7 +81,7 @@
                    [(ngModel)]="password"
                    (change)="onPasswordChange()"
                    placeholder="Введите пароль"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Пароль для доступа к RabbitMQ</mat-hint>
           </mat-form-field>
@@ -89,7 +89,7 @@
           <button mat-icon-button 
                   type="button"
                   (click)="onGeneratePassword()"
-                  [disabled]="!isEnabled"
+                  [disabled]="!isEditing"
                   matTooltip="Сгенерировать пароль">
             <mat-icon>refresh</mat-icon>
           </button>
@@ -98,7 +98,7 @@
       
       <div class="form-section">
         <h3>Доступ к интерфейсу</h3>
-        <div class="access-info" *ngIf="isEnabled && containerName && port">
+        <div class="access-info" *ngIf="isEditing && containerName && port">
           <div class="info-item">
             <span class="info-label">Host:</span>
             <span class="info-value">localhost</span>
@@ -129,22 +129,16 @@
     
     <mat-card-actions align="end">
       <button mat-button 
-              color="accent"
-              (click)="onOpenRabbitMqManagement()"
-              [disabled]="!isEnabled || !containerName || !port || !username || !password">
-        <mat-icon>open_in_new</mat-icon>
-        Открыть Management
-      </button>
-      <button mat-button 
               color="warn" 
-              (click)="onCancelChanges()">
+              (click)="onCancelChanges()"
+              [disabled]="!isEditing">
         <mat-icon>cancel</mat-icon>
         Отмена
       </button>
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !amqpPort || !username || !password">
+              [disabled]="!isEditing || !containerName || !port || !amqpPort || !username || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

@@ -42,7 +42,11 @@ export class PostgresSettings {
   volumePath: string = '';
   user: string = '';
   password: string = '';
-  isEnabled: boolean = true;
+
+  /**
+   * Флаг проекта в режиме редактирования
+   */
+  isEditing: boolean = false;
   
   /**
    * Константы
@@ -67,6 +71,7 @@ export class PostgresSettings {
       this.volumePath = config.volumePath || '';
       this.user = config.user || this.constants?.DEFAULT_POSTGRES_CONFIG.user || '';
       this.password = config.password || this.constants?.DEFAULT_POSTGRES_CONFIG.password || '';
+      this.isEditing = !Boolean(this.projectConfig.runOn);
     }
 
     this.electronService.getConstants().then((constants) => {
@@ -147,14 +152,6 @@ export class PostgresSettings {
       this.user = config.user || this.constants?.DEFAULT_POSTGRES_CONFIG.user || '';
       this.password = config.password || this.constants?.DEFAULT_POSTGRES_CONFIG.password || '';
     }
-  }
-
-  /**
-   * Обработчик тестирования соединения
-   */
-  onTestConnection() {
-    console.log('PostgresSettings: Тестирование соединения...');
-    // Здесь будет логика тестирования соединения
   }
 
   /**

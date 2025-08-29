@@ -33,7 +33,12 @@ export class GeneralProjectSettings {
   /**
    * Название проекта
    */
-  projectName: string = 'crm-docker-project';
+  projectName: string = '';
+
+  /**
+   * Флаг проекта в режиме редактирования
+   */
+  isEditing: boolean = false;
   
   /**
    * Конструктор
@@ -48,7 +53,8 @@ export class GeneralProjectSettings {
     console.log('GeneralProjectSettings: Инициализация с конфигурацией:', this.projectConfig);
     
     if (this.projectConfig) {
-      this.projectName = this.projectConfig.projectName || 'crm-docker-project';
+      this.projectName = this.projectConfig.projectName;
+      this.isEditing = !Boolean(this.projectConfig.runOn);
     }
   }
 

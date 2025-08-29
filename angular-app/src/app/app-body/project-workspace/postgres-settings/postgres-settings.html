@@ -21,7 +21,7 @@
                    [(ngModel)]="containerName" 
                    (change)="onContainerNameChange()"
                    placeholder="postgres-container"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Уникальное имя для Docker контейнера</mat-hint>
           </mat-form-field>
@@ -35,7 +35,7 @@
                    [(ngModel)]="port" 
                    (change)="onPortChange()"
                    placeholder="5432"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    min="1024"
                    max="65535"
                    required>
@@ -54,7 +54,7 @@
                    [(ngModel)]="user" 
                    (change)="onUserChange()"
                    placeholder="postgres"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Имя пользователя базы данных</mat-hint>
           </mat-form-field>
@@ -67,7 +67,7 @@
                    [(ngModel)]="password"
                    (change)="onPasswordChange()"
                    placeholder="Введите пароль"
-                   [disabled]="!isEnabled"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Пароль для пользователя базы данных</mat-hint>
           </mat-form-field>
@@ -75,7 +75,7 @@
           <button mat-icon-button 
                   type="button"
                   (click)="onGeneratePassword()"
-                  [disabled]="!isEnabled"
+                  [disabled]="!isEditing"
                   matTooltip="Сгенерировать пароль">
             <mat-icon>refresh</mat-icon>
           </button>
@@ -84,7 +84,7 @@
       
       <div class="form-section">
         <h3>Информация о соединении</h3>
-        <div class="connection-info" *ngIf="isEnabled && containerName && port && user">
+        <div class="connection-info" *ngIf="isEditing && containerName && port && user">
           <div class="info-item">
             <span class="info-label">Host:</span>
             <span class="info-value">localhost</span>
@@ -107,22 +107,16 @@
     
     <mat-card-actions align="end">
       <button mat-button 
-              color="accent"
-              (click)="onTestConnection()"
-              [disabled]="!isEnabled || !containerName || !port || !user || !password">
-        <mat-icon>wifi</mat-icon>
-        Тест соединения
-      </button>
-      <button mat-button 
               color="warn" 
-              (click)="onCancelChanges()">
+              (click)="onCancelChanges()"
+              [disabled]="!isEditing">
         <mat-icon>cancel</mat-icon>
         Отмена
       </button>
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEnabled || !containerName || !port || !user || !password">
+              [disabled]="!isEditing || !containerName || !port || !user || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

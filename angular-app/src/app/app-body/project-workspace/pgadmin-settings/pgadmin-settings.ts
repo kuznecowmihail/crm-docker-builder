@@ -42,7 +42,11 @@ export class PgAdminSettings {
   volumePath: string = '';
   email: string = '';
   password: string = '';
-  isEnabled: boolean = true;
+
+  /**
+   * Флаг проекта в режиме редактирования
+   */
+  isEditing: boolean = false;
 
   /**
    * Константы
@@ -67,6 +71,7 @@ export class PgAdminSettings {
       this.volumePath = config.volumePath || '';
       this.email = config.email || this.constants?.DEFAULT_PGADMIN_CONFIG.email || '';
       this.password = config.password || this.constants?.DEFAULT_PGADMIN_CONFIG.password || '';
+      this.isEditing = !Boolean(this.projectConfig.runOn);
     }
 
     this.electronService.getConstants().then((constants) => {
@@ -148,15 +153,6 @@ export class PgAdminSettings {
       this.email = config.email || this.constants?.DEFAULT_PGADMIN_CONFIG.email || '';
       this.password = config.password || this.constants?.DEFAULT_PGADMIN_CONFIG.password || '';
     }
-  }
-
-  /**
-   * Обработчик открытия pgAdmin
-   */
-  onOpenPgAdmin() {
-    console.log('PgAdminSettings: Открытие pgAdmin...');
-    const url = `http://localhost:${this.port}`;
-    window.open(url, '_blank');
   }
 
   /**

@@ -89,6 +89,11 @@
   font-weight: 600;
 }
 
+.status-inactive {
+  color: #dc3545 !important;
+  font-weight: 600;
+}
+
 /* Стили для кнопок */
 .mat-mdc-button,
 .mat-mdc-raised-button {

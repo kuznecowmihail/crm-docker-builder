@@ -43,7 +43,11 @@ export class RabbitMqSettings {
   volumePath: string = '';
   username: string = '';
   password: string = '';
-  isEnabled: boolean = true;
+  
+  /**
+   * Флаг проекта в режиме редактирования
+   */
+  isEditing: boolean = false;
 
   /**
    * Константы
@@ -69,6 +73,7 @@ export class RabbitMqSettings {
       this.volumePath = config.volumePath || '';
       this.username = config.user || '';
       this.password = config.password || '';
+      this.isEditing = !Boolean(this.projectConfig.runOn);
     }
 
     this.electronService.getConstants().then((constants) => {
@@ -161,15 +166,6 @@ export class RabbitMqSettings {
     this.volumePath = this.projectConfig?.rabbitmqConfig?.volumePath || '';
     this.username = this.projectConfig?.rabbitmqConfig?.user || this.constants?.DEFAULT_RABBITMQ_CONFIG.user || '';
     this.password = this.projectConfig?.rabbitmqConfig?.password || this.constants?.DEFAULT_RABBITMQ_CONFIG.password || '';
-  }
-
-  /**
-   * Обработчик открытия RabbitMQ Management
-   */
-  onOpenRabbitMqManagement() {
-    console.log('RabbitMqSettings: Открытие RabbitMQ Management...');
-    const url = `http://localhost:${this.port}`;
-    window.open(url, '_blank');
   }
 
   /**

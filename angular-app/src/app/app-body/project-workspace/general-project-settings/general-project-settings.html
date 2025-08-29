@@ -21,6 +21,7 @@
                    [(ngModel)]="projectName"
                    (change)="onProjectNameChange()"
                    placeholder="Введите название проекта"
+                   [disabled]="!isEditing"
                    required>
             <mat-hint>Укажите уникальное название вашего проекта</mat-hint>
           </mat-form-field>
@@ -41,7 +42,8 @@
           </div>
           <div class="info-item">
             <span class="info-label">Статус:</span>
-            <span class="info-value status-active">Активный</span>
+            <span *ngIf="projectConfig.runOn" class="info-value status-active">Активный</span>
+            <span *ngIf="!projectConfig.runOn" class="info-value status-inactive">Неактивный</span>
           </div>
         </div>
       </div>
@@ -50,14 +52,15 @@
     <mat-card-actions align="end">
       <button mat-button 
               color="warn" 
-              (click)="onCancelChanges()">
+              (click)="onCancelChanges()"
+              [disabled]="!isEditing">
         <mat-icon>cancel</mat-icon>
         Отмена
       </button>
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!projectName">
+              [disabled]="!isEditing || !projectName">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>
