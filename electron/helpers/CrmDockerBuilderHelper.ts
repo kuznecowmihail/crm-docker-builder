@@ -565,8 +565,14 @@ export class CrmDockerBuilderHelper {
       // Запускаем Docker Compose
       await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
 
-      // Создаем скрипт для восстановления бэкапа в PostgreSQL
+      // Создаем файл для восстановления бэкапа в PostgreSQL
       await this.buildPostgresRestoreScript(projectConfig, onLogCallback);
+      // Делаем файл для восстановления бэкапа в PostgreSQL исполняемым
+      await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        ['exec', projectConfig.postgresConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}`], 
+        projectConfig.projectPath, 
+        onLogCallback
+      );
       // Создаем скрипт для создания типов данных в PostgreSQL
       await this.buildCreateTypeCastsPostgreSql(projectConfig, onLogCallback);
 
@@ -581,43 +587,9 @@ export class CrmDockerBuilderHelper {
           ),
           onLogCallback
         );
-        // Делаем файл ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} исполняемым
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', projectConfig.postgresConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}`], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-        // Запускаем скрипт ${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} для восстановления бэкапа
+        // Запускаем файл для восстановления бэкапа в PostgreSQL
         await this.dockerProcessHelper.executeDockerCommandWithLogs(
           ['exec', projectConfig.postgresConfig.containerName, 'bash', '-c', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} ${crmConfig.containerName} ${projectConfig.postgresConfig.user} ${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}`], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-
-        // Копируем vsdbg файлы в папку приложения
-        await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), onLogCallback);
-        // Делаем файл vsdbg исполняемым
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}`], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-        // Делаем файл app-handler.sh исполняемым
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.APP_HANDLER}`], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-        // Делаем файл workspace-console-handler.sh исполняемым
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER}`], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-
-        // Перезапускаем контейнер CRM
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['restart', crmConfig.containerName], 
           projectConfig.projectPath, 
           onLogCallback
         );
@@ -638,8 +610,41 @@ export class CrmDockerBuilderHelper {
         onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен (второй раз)`);
       }
 
-      // После успешной сборки помечаем CRM контейнеры датой запуска
       for (const crmConfig of projectConfig.crmConfigs) {
+        const vsdbgPath = path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG);
+        const vsdgPathExists = await this.fileSystemHelper.pathExists(vsdbgPath);
+
+        if (!vsdgPathExists) {
+          // Копируем vsdbg файлы в папку приложения
+          await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), onLogCallback);
+          // Делаем файл vsdbg исполняемым
+          await this.dockerProcessHelper.executeDockerCommandWithLogs(
+            ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}`], 
+            projectConfig.projectPath, 
+            onLogCallback
+          );
+        }
+        // Делаем файл app-handler.sh исполняемым
+        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.APP_HANDLER}`], 
+          projectConfig.projectPath, 
+          onLogCallback
+        );
+        // Делаем файл workspace-console-handler.sh исполняемым
+        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER}`], 
+          projectConfig.projectPath, 
+          onLogCallback
+        );
+
+        // Перезапускаем контейнер CRM
+        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+          ['restart', crmConfig.containerName], 
+          projectConfig.projectPath, 
+          onLogCallback
+        );
+
+        // После успешной сборки помечаем CRM контейнеры датой запуска
         crmConfig.runOn = new Date();
         await this.saveCrmSetting(projectConfig, crmConfig);
       }
