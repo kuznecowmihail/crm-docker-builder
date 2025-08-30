@@ -22,6 +22,9 @@ export class FileSystemHelper {
    */
   public async writeFile(filePath: string, content: string): Promise<void> {
     try {
+      const directory = path.dirname(filePath);
+      await this.ensureDirectoryExists(directory);
+      
       await fs.writeFile(filePath, content, 'utf-8');
     } catch (error) {
       throw new Error(`Ошибка записи файла: ${error}`);
@@ -36,6 +39,9 @@ export class FileSystemHelper {
    */
   public async writeFileWithEncoding(filePath: string, content: string, encoding: BufferEncoding = 'utf-8'): Promise<void> {
     try {
+      const directory = path.dirname(filePath);
+      await this.ensureDirectoryExists(directory);
+      
       // Для PowerShell скриптов на Windows добавляем BOM
       if (path.extname(filePath).toLowerCase() === '.ps1' && process.platform === 'win32') {
         const fileBuffer = this.addBOMForPowerShell(content);

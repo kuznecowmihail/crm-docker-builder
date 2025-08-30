@@ -1,5 +1,5 @@
 {
-  "name": "CRM Docker Builder",
+  "name": "CRM-Docker-Builder",
   "version": "0.4.0",
   "description": "Electron приложение с интеграцией Angular",
   "main": "electron/dist/main.js",
@@ -18,7 +18,6 @@
     "clean": "rm -rf electron/dist angular-app/dist",
     "generate:icons": "node scripts/generate-icons.js",
     "generate:dmg-background": "node scripts/generate-dmg-background.js",
-    "test:windows": "node scripts/test-windows-build.js",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win",

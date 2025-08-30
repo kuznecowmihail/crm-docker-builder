@@ -84,12 +84,6 @@ node scripts/generate-dmg-background.js
 ```
 **Описание:** Генерация фона для macOS DMG
 
-### `test:windows`
-```bash
-node scripts/test-windows-build.js
-```
-**Описание:** Тестирование Windows сборки
-
 ## 📦 Скрипты упаковки
 
 ### `pack`
