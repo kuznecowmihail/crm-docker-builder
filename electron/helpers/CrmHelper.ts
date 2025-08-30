@@ -244,7 +244,7 @@ export class CrmHelper {
           throw new Error(`Неподдерживаемая платформа: ${platform}`);
         }
         
-        await this.fileSystemHelper.writeFile(appHandlerPath, appHandlerContent);
+        await this.fileSystemHelper.writeFileWithEncoding(appHandlerPath, appHandlerContent);
 
         onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл AppHandler успешно создан`);
       } catch (error) {
@@ -278,7 +278,7 @@ export class CrmHelper {
           throw new Error(`Неподдерживаемая платформа: ${platform}`);
         }
 
-        await this.fileSystemHelper.writeFile(workspaceConsolePath, workspaceConsoleContent);
+        await this.fileSystemHelper.writeFileWithEncoding(workspaceConsolePath, workspaceConsoleContent);
 
         onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл WorkspaceConsoleHandler успешно создан`);
       } catch (error) {

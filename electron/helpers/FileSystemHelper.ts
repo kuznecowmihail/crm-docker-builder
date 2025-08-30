@@ -29,6 +29,26 @@ export class FileSystemHelper {
   }
 
   /**
+   * Записывает в файл с правильной кодировкой для Windows
+   * @param filePath - путь к файлу
+   * @param content - содержимое файла
+   * @param encoding - кодировка (по умолчанию utf-8)
+   */
+  public async writeFileWithEncoding(filePath: string, content: string, encoding: BufferEncoding = 'utf-8'): Promise<void> {
+    try {
+      // Для PowerShell скриптов на Windows добавляем BOM
+      if (path.extname(filePath).toLowerCase() === '.ps1' && process.platform === 'win32') {
+        const fileBuffer = this.addBOMForPowerShell(content);
+        await fs.writeFile(filePath, fileBuffer);
+      } else {
+        await fs.writeFile(filePath, content, encoding);
+      }
+    } catch (error) {
+      throw new Error(`Ошибка записи файла: ${error}`);
+    }
+  }
+
+  /**
    * Проверяет, существует ли файл
    * @param filePath - путь к файлу
    * @returns true, если файл существует, false в противном случае
@@ -192,5 +212,16 @@ export class FileSystemHelper {
       onLogCallback?.(errorMessage);
       throw new Error(errorMessage);
     }
+  }
+  
+  /**
+   * Добавляет BOM для PowerShell скриптов на Windows
+   * @param content - содержимое файла
+   * @returns буфер с BOM
+   */
+  private addBOMForPowerShell(content: string): Buffer {
+    const BOM = Buffer.from([0xEF, 0xBB, 0xBF]);
+    const contentBuffer = Buffer.from(content, 'utf-8');
+    return Buffer.concat([BOM, contentBuffer]);
   }
 }
