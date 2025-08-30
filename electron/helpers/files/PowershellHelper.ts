@@ -12,6 +12,16 @@ export class PowershellHelper {
 # Author: CRM Infrastructure Team
 # Version: 1.0
 
+# Command line arguments processing
+param(
+    [string]$Command = ""
+)
+
+# Устанавливаем кодировку для корректного отображения русских символов
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+
 # CRM container name
 $PROJECT_NAME = "${crmConfig.containerName}"
 
@@ -22,11 +32,6 @@ $REBUILD_WORKSPACE_ARG = "-operation=RebuildWorkspace -force=True -autoExit=True
 $BUILD_CONFIGURATION_ARG = "-operation=BuildConfiguration -force=True -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -destinationPath=/app -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
 $INSTALL_FROM_REPOSITORY_ARG = "-operation=InstallFromRepository -workspaceName=Default -sourcePath=/app/_app_init/pkgs -destinationPath=/app/_app_init/temp -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -installPackageSqlScript=true -installPackageData=true -updateDBStructure=true -regenerateSchemaSources=true -continueIfError=true -skipValidateActions=true -updateSystemDBStructure=true -logPath=/app/WorkspaceConsoleLogs"
 $REGENERATE_SCHEMA_SOURCES_ARG = "-operation=RegenerateSchemaSources -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
-
-# Command line arguments processing
-param(
-    [string]$Command = ""
-)
 
 # Output functions
 function Write-Header {
@@ -86,6 +91,16 @@ switch ($Command) {
 # Author: CRM Infrastructure Team
 # Version: 1.0
 
+# Command line arguments processing
+param(
+    [string]$Command = "start"
+)
+
+# Устанавливаем кодировку для корректного отображения русских символов
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+
 # CRM container name
 $PROJECT_NAME = "${crmConfig.containerName}"
 
@@ -99,11 +114,6 @@ $RABBITMQ_NAME = "${projectConfig.rabbitmqConfig.containerName}"
 $PGADMIN_NAME = "${projectConfig.pgAdminConfig.containerName}"
 $REDIS_DB_COUNT = "${crmConfig.redisDb}"
 $CONTAINERS = @($RABBITMQ_NAME, $PGADMIN_NAME, $POSTGRES_NAME, $REDIS_NAME, $PROJECT_NAME)
-
-# Command line arguments processing
-param(
-    [string]$Command = "start"
-)
 
 # Output functions
 function Write-Header {
@@ -142,13 +152,6 @@ function Start-Container {
     
     Write-Host "[i] Starting container $ContainerName..." -ForegroundColor Cyan
     
-    # Check if container exists
-    $containerExists = docker ps -a --format "table {.Names}" | Select-String "^$ContainerName$"
-    if (-not $containerExists) {
-        Write-Host "[!] Container $ContainerName not found. Skipping..." -ForegroundColor Yellow
-        return $false
-    }
-    
     # Start container
     try {
         docker start $ContainerName | Out-Null
@@ -166,17 +169,20 @@ function Wait-ForPostgres {
     
     $maxAttempts = 30
     $attempt = 1
+    $postgresStatus = ''
+    $postgresAccess = $false
     
-    while ($attempt -le $maxAttempts) {
-        try {
-            docker exec $POSTGRES_NAME pg_isready -U $POSTGRES_USER | Out-Null
+    while (($attempt -le $maxAttempts) -and ($false -eq $postgresAccess)) {
+        $postgresStatus = docker exec -it $POSTGRES_NAME pg_isready
+        $postgresAccess = $postgresStatus -Match 'accepting connections'
+
+        if ($true -eq $postgresAccess) {
             Write-Host "[✓] PostgreSQL is ready" -ForegroundColor Green
             return $true
-        } catch {
-            Write-Host "[i] Attempt $attempt/$maxAttempts - PostgreSQL not ready yet..." -ForegroundColor Cyan
-            Start-Sleep -Seconds 2
-            $attempt++
         }
+        Write-Host "[i] Attempt $attempt/$maxAttempts - PostgreSQL not ready yet..." -ForegroundColor Cyan
+        Start-Sleep -Seconds 5
+        $attempt++
     }
     
     Write-Host "[✗] PostgreSQL not ready after $maxAttempts attempts" -ForegroundColor Red
@@ -189,17 +195,20 @@ function Wait-ForRedis {
     
     $maxAttempts = 15
     $attempt = 1
+    $redisStatus = ''
+    $redisAccess = $false
     
-    while ($attempt -le $maxAttempts) {
-        try {
-            docker exec $REDIS_NAME redis-cli ping | Out-Null
+    while (($attempt -le $maxAttempts) -and ($false -eq $redisAccess)) {
+        $redisStatus = docker exec -it $REDIS_NAME redis-cli ping
+        $redisAccess = $redisStatus -Match 'PONG'
+
+        if ($true -eq $redisAccess) {
             Write-Host "[✓] Redis is ready" -ForegroundColor Green
             return $true
-        } catch {
-            Write-Host "[i] Attempt $attempt/$maxAttempts - Redis not ready yet..." -ForegroundColor Cyan
-            Start-Sleep -Seconds 1
-            $attempt++
         }
+        Write-Host "[i] Attempt $attempt/$maxAttempts - Redis not ready yet..." -ForegroundColor Cyan
+        Start-Sleep -Seconds 2
+        $attempt++
     }
     
     Write-Host "[✗] Redis not ready after $maxAttempts attempts" -ForegroundColor Red
@@ -250,7 +259,7 @@ function Start-All {
     Write-Host "[✓] All containers started!" -ForegroundColor Green
     Write-Host ""
     Write-Host "[i] Available services:" -ForegroundColor Cyan
-    Write-Host "  - $PROJECT_NAME: http://localhost:$CRM_PORT" -ForegroundColor Green
+    Write-Host "  - \${PROJECT_NAME}: http://localhost:$CRM_PORT" -ForegroundColor Green
     Write-Host "  - PgAdmin: http://localhost:$PGADMIN_PORT" -ForegroundColor Green
     Write-Host ""
     Write-Host "[i] To view logs use:" -ForegroundColor Cyan
