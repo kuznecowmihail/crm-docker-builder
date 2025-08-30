@@ -605,7 +605,7 @@ export class CrmDockerBuilderHelper {
         onLogCallback?.(`[CrmDockerBuilderHelper] 🚀 Начинаем запуск проекта (второй раз)`);
         // Создаем файл docker-compose.yml (добавляются новые CRM контейнеры)
         await this.buildDockerComposeFile(projectConfig, true, onLogCallback);
-        // Запускаем Docker Compose
+        // Запускаем Docker Compose (добавляются новые CRM контейнеры)
         await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
         onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен (второй раз)`);
       }
@@ -624,15 +624,22 @@ export class CrmDockerBuilderHelper {
             onLogCallback
           );
         }
-        // Делаем файл app-handler.sh исполняемым
+        // // Делаем файл app-handler.sh исполняемым
+        // await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        //   ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.APP_HANDLER}`], 
+        //   projectConfig.projectPath, 
+        //   onLogCallback
+        // );
+        // // Делаем файл workspace-console-handler.sh исполняемым
+        // await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        //   ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER}`], 
+        //   projectConfig.projectPath, 
+        //   onLogCallback
+        // );
+
+        // Очищаем Redis базу данных
         await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.APP_HANDLER}`], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-        // Делаем файл workspace-console-handler.sh исполняемым
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER}`], 
+          ['exec', '-it', projectConfig.redisConfig.containerName, 'redis-cli', 'FLUSHALL'], 
           projectConfig.projectPath, 
           onLogCallback
         );
