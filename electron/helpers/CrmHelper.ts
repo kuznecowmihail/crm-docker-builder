@@ -100,13 +100,13 @@ export class CrmHelper {
         const { postgresConfig, redisConfig, rabbitmqConfig } = projectConfig;
         
         // Обновляем строку подключения к PostgreSQL (db)
-        const postgresConnectionString = `Pooling=true; Database=${crmConfig.containerName}; Host=${postgresConfig.containerName}; Port=5432; Username=${postgresConfig.user}; Password=${postgresConfig.password}; maxPoolSize=50; Timeout=5; CommandTimeout=400`;
+        const postgresConnectionString = `Pooling=true; Database=${crmConfig.containerName}; Host=${postgresConfig.containerName}; Port=${ConstantValues.DEFAULT_POSTGRES_CONFIG.port}; Username=${postgresConfig.user}; Password=${postgresConfig.password}; maxPoolSize=50; Timeout=5; CommandTimeout=400`;
         
         // Обновляем строку подключения к Redis
-        const redisConnectionString = `host=${redisConfig.containerName};db=${crmConfig.redisDb};port=6379`;
+        const redisConnectionString = `host=${redisConfig.containerName};db=${crmConfig.redisDb};port=${ConstantValues.DEFAULT_REDIS_CONFIG.port}`;
         
         // Обновляем строку подключения к RabbitMQ
-        const rabbitmqConnectionString = `amqp://${rabbitmqConfig.user}:${rabbitmqConfig.password}@${rabbitmqConfig.containerName}:${rabbitmqConfig.amqpPort}`;
+        const rabbitmqConnectionString = `amqp://${rabbitmqConfig.user}:${rabbitmqConfig.password}@${rabbitmqConfig.containerName}:${ConstantValues.DEFAULT_RABBITMQ_CONFIG.amqpPort}`;
         
         // Заменяем строки подключения в XML
         let updatedContent = xmlContent;
@@ -170,7 +170,7 @@ export class CrmHelper {
         const { postgresConfig } = projectConfig;
 
         // Обновляем строку подключения к PostgreSQL (db)
-        const postgresConnectionString = `Pooling=true; Database=db; Host=${postgresConfig.containerName}; Port=${postgresConfig.port}; Username=${postgresConfig.user}; Password=${postgresConfig.password}; maxPoolSize=50; Timeout=5; CommandTimeout=400`;
+        const postgresConnectionString = `Pooling=true; Database=${crmConfig.containerName}; Host=${postgresConfig.containerName}; Port=${ConstantValues.DEFAULT_POSTGRES_CONFIG.port}; Username=${postgresConfig.user}; Password=${postgresConfig.password}; maxPoolSize=50; Timeout=5; CommandTimeout=400`;
         
         // Заменяем строки подключения в XML
         let updatedContent = xmlContent;

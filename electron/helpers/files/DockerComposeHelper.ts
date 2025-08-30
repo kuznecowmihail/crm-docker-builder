@@ -9,7 +9,7 @@ export class DockerComposeHelper {
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла docker-compose.yml
      */
-    public generateDockerComposeContent(projectConfig: ProjectConfig): string {
+    public generateDockerComposeContent(projectConfig: ProjectConfig, secondRun: boolean = false): string {
         const { postgresConfig, pgAdminConfig, redisConfig, rabbitmqConfig, crmConfigs } = projectConfig;
         
         // Вспомогательная функция для создания относительных путей
@@ -18,7 +18,7 @@ export class DockerComposeHelper {
         };
         
         // Генерация сервисов CRM
-        const crmServices = crmConfigs.map((crmConfig, index) => {
+        const crmServices = crmConfigs.filter(crmConfig => Boolean(crmConfig.runOn) || secondRun).map((crmConfig, index) => {
             const serviceName = `${crmConfig.containerName.toLowerCase()}_container`;
             const containerName = crmConfig.containerName;
             const imageName = crmConfig.containerName.toLowerCase();

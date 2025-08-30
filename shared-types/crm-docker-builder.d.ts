@@ -69,6 +69,7 @@ export interface CrmConfig extends BaseContainerConfig {
   dbType: string;
   netVersion: string;
   crmType: string;
+  runOn?: Date;
 }
 
 // API для работы с системой CRM Docker Builder

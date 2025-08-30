@@ -504,7 +504,7 @@ export class CrmDockerBuilderHelper {
       // Скачиваем vsdbg файлы
       await this.vscodeHelper.buildVsdbgFilesWithLogs(projectConfig, onLogCallback);
       // Создаем файл docker-compose.yml
-      await this.buildDockerComposeFile(projectConfig, onLogCallback);
+      await this.buildDockerComposeFile(projectConfig, false, onLogCallback);
       // Обрабатываем файлы CRM
       await this.crmHelper.handleCrmFiles(projectConfig, onLogCallback);
 
@@ -533,6 +533,13 @@ export class CrmDockerBuilderHelper {
    */
   public async runProject(projectConfig: ProjectConfig, onLogCallback?: (log: string) => void): Promise<InitProjectResult> {
     try {
+      // Проблема:
+      // Если CRM контейнеры запускать первоначально с БД контейнерами, то docker-compose падает в ошибку
+      // Тк приложение еще не имеет БД и перезапускается
+      // Поэтому запускаем первый раз без новых CRM контейнеров (восстанвливаем БД новых CRM)
+      // А затем запускаем второй раз с новыми CRM контейнерами
+      let secondRun = false;
+      
       onLogCallback?.(`[CrmDockerBuilderHelper] 🚀 Начинаем запуск проекта`);
       
       const validateResult = await this.crmDockerBuilderValidatorHelper.validateAll(projectConfig);
@@ -614,9 +621,28 @@ export class CrmDockerBuilderHelper {
           projectConfig.projectPath, 
           onLogCallback
         );
+
+        if (!crmConfig.runOn) {
+          secondRun = true;
+        }
       }
 
       onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен`);
+
+      if (secondRun) {
+        onLogCallback?.(`[CrmDockerBuilderHelper] 🚀 Начинаем запуск проекта (второй раз)`);
+        // Создаем файл docker-compose.yml (добавляются новые CRM контейнеры)
+        await this.buildDockerComposeFile(projectConfig, true, onLogCallback);
+        // Запускаем Docker Compose
+        await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
+        onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен (второй раз)`);
+      }
+
+      // После успешной сборки помечаем CRM контейнеры датой запуска
+      for (const crmConfig of projectConfig.crmConfigs) {
+        crmConfig.runOn = new Date();
+        await this.saveCrmSetting(projectConfig, crmConfig);
+      }
       
       return {
         success: true,
@@ -639,9 +665,9 @@ export class CrmDockerBuilderHelper {
    * @param projectConfig - конфигурация проекта
    * @returns - содержимое файла docker-compose.yml
    */
-  private async buildDockerComposeFile(projectConfig: ProjectConfig, onLog?: (log: string) => void): Promise<void> {
+  private async buildDockerComposeFile(projectConfig: ProjectConfig, secondRun: boolean, onLog?: (log: string) => void): Promise<void> {
       try {
-          const dockerComposeFile = this.dockerComposeHelper.generateDockerComposeContent(projectConfig);
+          const dockerComposeFile = this.dockerComposeHelper.generateDockerComposeContent(projectConfig, secondRun);
           const filePath = path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.DOCKER_COMPOSE);
           await this.fileSystemHelper.writeFile(filePath, dockerComposeFile);
           onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.DOCKER_COMPOSE} успешно создан`);

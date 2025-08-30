@@ -69,7 +69,7 @@ export const ConstantValues: Constants = {
   },
   DEFAULT_PGADMIN_CONFIG: {
     containerName: 'pgadmin',
-    port: 5050,
+    port: 80,
     email: 'admin@example.com',
     password: 'pgpassword',
   },
@@ -84,7 +84,7 @@ export const ConstantValues: Constants = {
     port: 5672,
     user: 'rmuser',
     password: 'rmpassword',
-    amqpPort: 5673,
+    amqpPort: 5672,
   },
   DEFAULT_CRM_CONFIG: {
     containerName: 'crm-bpmsoft',
