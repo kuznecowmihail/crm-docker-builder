@@ -102,6 +102,7 @@ export interface Constants {
     REDIS_VOLUMES: string,
     RABBITMQ_VOLUMES: string,
     CRM_VOLUMES: string,
+    LOG_FILES: string,
 
     POSTGRES_PATHS: {
       INIT_DATABASE: string,

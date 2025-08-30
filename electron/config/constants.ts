@@ -103,6 +103,7 @@ export const ConstantValues: Constants = {
     REDIS_VOLUMES: 'redis-volumes',
     RABBITMQ_VOLUMES: 'rabbitmq-volumes',
     CRM_VOLUMES: 'crm-volumes',
+    LOG_FILES: 'log-files',
 
     POSTGRES_PATHS: {
       INIT_DATABASE: 'init-database',
