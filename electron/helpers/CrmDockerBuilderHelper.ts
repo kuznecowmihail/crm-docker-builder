@@ -154,8 +154,7 @@ export class CrmDockerBuilderHelper {
       // Запускаем Docker Compose
       await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
 
-      // Ждем готовности PostgreSQL
-      await this.waitForPostgresReady(projectConfig.postgresConfig.containerName, projectConfig.postgresConfig.user, onLogCallback);
+      await this.sleep(10000);
 
       // Создаем файл для восстановления бэкапа в PostgreSQL
       await this.buildPostgresRestoreScript(projectConfig, onLogCallback);
@@ -334,43 +333,5 @@ export class CrmDockerBuilderHelper {
    */
   private async sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Ожидает готовности PostgreSQL контейнера
-   * @param containerName - имя контейнера PostgreSQL
-   * @param userName - имя пользователя PostgreSQL
-   * @param onLogCallback - колбэк для логирования
-   */
-  private async waitForPostgresReady(containerName: string, userName: string, onLogCallback?: (log: string) => void): Promise<void> {
-    const maxAttempts = 30; // Максимум 30 попыток
-    const delayMs = 2000; // Задержка 2 секунды между попытками
-    
-    onLogCallback?.(`[CrmDockerBuilderHelper] 🔍 Ожидаем готовности PostgreSQL в контейнере ${containerName}...`);
-    
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        // Проверяем готовность PostgreSQL
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', containerName, 'pg_isready', '-U', userName],
-          process.cwd(),
-          onLogCallback
-        );
-        
-        // Если команда выполнилась без ошибок, PostgreSQL готов
-        onLogCallback?.(`[CrmDockerBuilderHelper] ✅ PostgreSQL готов к работе (попытка ${attempt}/${maxAttempts})`);
-        return;
-      } catch (error) {
-        // Игнорируем ошибки, продолжаем попытки
-      }
-      
-      if (attempt < maxAttempts) {
-        onLogCallback?.(`[CrmDockerBuilderHelper] ⏳ PostgreSQL еще не готов, попытка ${attempt}/${maxAttempts}, ждем ${delayMs/1000} сек...`);
-        await this.sleep(delayMs);
-      }
-    }
-    
-    // Если все попытки исчерпаны
-    onLogCallback?.(`[CrmDockerBuilderHelper] ⚠️ PostgreSQL не готов после ${maxAttempts} попыток, продолжаем...`);
   }
 }
