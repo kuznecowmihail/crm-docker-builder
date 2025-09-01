@@ -32,7 +32,7 @@ export class CrmDockerBuilderService implements IService {
     // Сборка проекта
     ipcMain.handle(ConstantValues.IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, async (event: Electron.IpcMainInvokeEvent, projectConfig: ProjectConfig) => {
       let logText = '';
-      const logName = `build-project-${projectConfig.projectName}-${new Date().toISOString().replace(':', '.').replace('T', '_')}.log`;
+      const logName = `build-project-${projectConfig.projectName}-${new Date().toISOString().replace(/:/g, '_').replace('T', '_').replace(/\./g, '_')}.log`;
       const logPath = path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.LOG_FILES, logName);
       await this.fileSystemHelper.ensureDirectoryExists(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.LOG_FILES));
       await this.fileSystemHelper.writeFile(logPath, logText);
@@ -53,7 +53,7 @@ export class CrmDockerBuilderService implements IService {
     // Запуск проекта
     ipcMain.handle(ConstantValues.IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, async (event: Electron.IpcMainInvokeEvent, projectConfig: ProjectConfig) => {
       let logText = '';
-      const logName = `run-project-${projectConfig.projectName}-${new Date().toISOString().replace(':', '.').replace('T', '_')}.log`;
+      const logName = `run-project-${projectConfig.projectName}-${new Date().toISOString().replace(/:/g, '_').replace('T', '_').replace(/\./g, '_')}.log`;
       const logPath = path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.LOG_FILES, logName);
       await this.fileSystemHelper.ensureDirectoryExists(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.LOG_FILES));
       await this.fileSystemHelper.writeFile(logPath, logText);

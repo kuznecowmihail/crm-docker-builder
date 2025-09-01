@@ -62,37 +62,37 @@ export class ProjectHelper {
             projectPath: projectPath,
             modifiedOn: new Date(),
             postgresConfig: {
-            id: this.generateId(),
-            containerName: ConstantValues.DEFAULT_POSTGRES_CONFIG.containerName,
-            port: ConstantValues.DEFAULT_POSTGRES_CONFIG.port,
-            volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES),
-            user: ConstantValues.DEFAULT_POSTGRES_CONFIG.user,
-            password: ConstantValues.DEFAULT_POSTGRES_CONFIG.password
+                id: this.generateId(),
+                containerName: ConstantValues.DEFAULT_POSTGRES_CONFIG.containerName,
+                port: ConstantValues.DEFAULT_POSTGRES_CONFIG.port,
+                volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES),
+                user: ConstantValues.DEFAULT_POSTGRES_CONFIG.user,
+                password: ConstantValues.DEFAULT_POSTGRES_CONFIG.password
             },
             pgAdminConfig: {
-            id: this.generateId(),
-            containerName: ConstantValues.DEFAULT_PGADMIN_CONFIG.containerName,
-            port: ConstantValues.DEFAULT_PGADMIN_CONFIG.port,
-            volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.PGADMIN_VOLUMES),
-            email: ConstantValues.DEFAULT_PGADMIN_CONFIG.email,
-            password: ConstantValues.DEFAULT_PGADMIN_CONFIG.password
+                id: this.generateId(),
+                containerName: ConstantValues.DEFAULT_PGADMIN_CONFIG.containerName,
+                port: ConstantValues.DEFAULT_PGADMIN_CONFIG.port,
+                volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.PGADMIN_VOLUMES),
+                email: ConstantValues.DEFAULT_PGADMIN_CONFIG.email,
+                password: ConstantValues.DEFAULT_PGADMIN_CONFIG.password
             },
             redisConfig: {
-            id: this.generateId(),
-            containerName: ConstantValues.DEFAULT_REDIS_CONFIG.containerName,
-            port: ConstantValues.DEFAULT_REDIS_CONFIG.port,
-            volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES),
-            password: ConstantValues.DEFAULT_REDIS_CONFIG.password,
-            dbCount: ConstantValues.DEFAULT_REDIS_CONFIG.dbCount
+                id: this.generateId(),
+                containerName: ConstantValues.DEFAULT_REDIS_CONFIG.containerName,
+                port: ConstantValues.DEFAULT_REDIS_CONFIG.port,
+                volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES),
+                password: ConstantValues.DEFAULT_REDIS_CONFIG.password,
+                dbCount: ConstantValues.DEFAULT_REDIS_CONFIG.dbCount
             },
             rabbitmqConfig: {
-            id: this.generateId(),
-            containerName: ConstantValues.DEFAULT_RABBITMQ_CONFIG.containerName,
-            port: ConstantValues.DEFAULT_RABBITMQ_CONFIG.port,
-            amqpPort: ConstantValues.DEFAULT_RABBITMQ_CONFIG.amqpPort,
-            volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.RABBITMQ_VOLUMES),
-            user: ConstantValues.DEFAULT_RABBITMQ_CONFIG.user,
-            password: ConstantValues.DEFAULT_RABBITMQ_CONFIG.password
+                id: this.generateId(),
+                containerName: ConstantValues.DEFAULT_RABBITMQ_CONFIG.containerName,
+                port: ConstantValues.DEFAULT_RABBITMQ_CONFIG.port,
+                amqpPort: ConstantValues.DEFAULT_RABBITMQ_CONFIG.amqpPort,
+                volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.RABBITMQ_VOLUMES),
+                user: ConstantValues.DEFAULT_RABBITMQ_CONFIG.user,
+                password: ConstantValues.DEFAULT_RABBITMQ_CONFIG.password
             },
             crmConfigs: []
         };

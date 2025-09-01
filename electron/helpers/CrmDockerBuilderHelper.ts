@@ -228,7 +228,7 @@ export class CrmDockerBuilderHelper {
 
         // Очищаем Redis базу данных
         await this.dockerProcessHelper.executeDockerCommandWithLogs(
-          ['exec', '-it', projectConfig.redisConfig.containerName, 'redis-cli', 'FLUSHALL'], 
+          ['exec', projectConfig.redisConfig.containerName, 'redis-cli', 'FLUSHALL'], 
           projectConfig.projectPath, 
           onLogCallback
         );

@@ -1,4 +1,4 @@
-import { Constants, CrmConfig } from '@shared/api';
+import { Constants } from '@shared/api';
 
 export const ConstantValues: Constants = {
   DEFAULT_WINDOW_CONFIG: {
@@ -83,14 +83,14 @@ export const ConstantValues: Constants = {
   },
   DEFAULT_RABBITMQ_CONFIG: {
     containerName: 'rabbitmq',
-    port: 5672,
+    port: 15672,
     user: 'rmuser',
     password: 'rmpassword',
     amqpPort: 5672,
   },
   DEFAULT_CRM_CONFIG: {
     containerName: 'crm-bpmsoft',
-    port: 80,
+    port: 8000,
     redisDb: 0,
     dbType: 'postgres',
     netVersion: '8.0',
