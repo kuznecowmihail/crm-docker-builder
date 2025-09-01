@@ -72,6 +72,19 @@ export interface CrmConfig extends BaseContainerConfig {
   runOn?: Date;
 }
 
+// API для работы с системой проекта
+export interface ProjectSystemAPI {
+  createProject: (path: string) => Promise<InitProjectResult>;
+  openProject: (path: string) => Promise<InitProjectResult>;
+  saveGeneralProjectSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+  savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => Promise<InitProjectResult>;
+  savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => Promise<InitProjectResult>;
+  saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<InitProjectResult>;
+  saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => Promise<InitProjectResult>;
+  saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
+  saveCrmSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+}
+
 // API для работы с системой CRM Docker Builder
 export interface CrmDockerBuilderSystemAPI {
   // Создание проекта

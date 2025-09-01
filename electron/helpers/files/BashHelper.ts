@@ -1,6 +1,7 @@
 import { CrmConfig, ProjectConfig } from "@shared/crm-docker-builder";
 import { ConstantValues } from "../../config/constants";
 
+// Помощник для работы с файлами Bash
 export class BashHelper {
   /**
    * Генерирует содержимое файла AppHandler

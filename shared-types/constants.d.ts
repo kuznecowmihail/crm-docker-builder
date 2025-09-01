@@ -31,7 +31,7 @@ export interface Constants {
       FILE_EXISTS: string,
       CREATE_DIR: string,
     },
-    CRM_DOCKER_BUILDER_SYSTEM: {
+    PROJECT_SYSTEM: {
       CREATE_PROJECT: string,
       OPEN_PROJECT: string,
       SAVE_GENERAL_PROJECT_SETTINGS: string,
@@ -41,6 +41,8 @@ export interface Constants {
       SAVE_RABBITMQ_SETTINGS: string,
       SAVE_CRM_SETTING: string,
       SAVE_CRM_SETTINGS: string,
+    },
+    CRM_DOCKER_BUILDER_SYSTEM: {
       BUILD_PROJECT: string,
       RUN_PROJECT: string,
     },

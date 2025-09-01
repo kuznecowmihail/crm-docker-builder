@@ -3,9 +3,17 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { ConstantValues } from '../config/constants';
 
+// Сервис для работы с окнами
 export class WindowManager {
+  /**
+   * Главное окно
+   */
   private mainWindow: BrowserWindow | null = null;
 
+  /**
+   * Получить путь к иконке приложения
+   * @returns - путь к иконке приложения
+   */
   private getIconPath(): string | undefined {
     console.log('🔍 Поиск иконки приложения...');
 
@@ -20,6 +28,10 @@ export class WindowManager {
     return undefined;
   }
 
+  /**
+   * Создать конфигурацию окна
+   * @returns - конфигурация окна
+   */
   private createWindowConfig(): BrowserWindowConstructorOptions {
     const iconPath = this.getIconPath();
     
@@ -40,6 +52,10 @@ export class WindowManager {
     return config;
   }
 
+  /**
+   * Создать главное окно
+   * @returns - главное окно
+   */
   public createMainWindow(): BrowserWindow {
     this.mainWindow = new BrowserWindow(this.createWindowConfig());
 

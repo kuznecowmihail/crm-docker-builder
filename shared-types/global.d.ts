@@ -11,6 +11,7 @@ declare global {
   interface Window {
     systemAPI: SystemAPI;
     fileSystemAPI: FileSystemAPI;
+    projectSystemAPI: ProjectSystemAPI;
     crmDockerBuilderSystemAPI: CrmDockerBuilderSystemAPI;
     crmDockerBuilderValidatorSystemAPI: CrmDockerBuilderValidatorSystemAPI;
     constantsAPI: ConstantsAPI;

@@ -3,7 +3,11 @@ import { OpenDialogOptions } from '@shared/api';
 import { ConstantValues } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
+// Сервис для работы с диалогами
 export class DialogService implements IService {
+  /**
+   * Настройка обработчиков
+   */
   public setupHandlers(): void {
     // Диалог открытия папки
     ipcMain.handle(ConstantValues.IPC_CHANNELS.DIALOG.OPEN_FOLDER, async (event, options: OpenDialogOptions) => {

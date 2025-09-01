@@ -2,6 +2,7 @@ import { ProjectConfig } from "@shared/crm-docker-builder";
 import { ConstantValues } from "../../config/constants";
 import path from "path";
 
+// Помощник для работы с файлами docker-compose.yml
 export class DockerComposeHelper {
 
     /**

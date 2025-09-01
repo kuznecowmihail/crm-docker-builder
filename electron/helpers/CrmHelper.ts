@@ -7,6 +7,7 @@ import { BashHelper } from "./files/BashHelper";
 import { PowershellHelper } from "./files/PowershellHelper";
 import { DockerFileHelper } from "./files/DockerFileHelper";
 
+// Помощник для работы с CRM
 export class CrmHelper {
 
     /**

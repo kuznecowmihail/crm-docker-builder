@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+// Помощник для работы с файловой системой
 export class FileSystemHelper {
   /**
    * Читает файл

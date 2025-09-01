@@ -3,7 +3,11 @@ import { NotificationOptions } from '@shared/api';
 import { ConstantValues } from '../config/constants';
 import { IService } from '../interfaces/IService';
 
+// Сервис для работы с уведомлениями
 export class NotificationService implements IService {
+  /**
+   * Настройка обработчиков
+   */
   public setupHandlers(): void {
     // Показать уведомление
     ipcMain.handle(ConstantValues.IPC_CHANNELS.NOTIFICATION.SHOW, async (event, title: string, body: string) => {

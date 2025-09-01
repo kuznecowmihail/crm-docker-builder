@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig, ConstantsAPI, Constants } from '@shared/api';
+import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig, ConstantsAPI, Constants, ProjectSystemAPI } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +30,13 @@ export class ElectronService {
    */
   get fileSystemAPI(): FileSystemAPI | null {
     return this.isElectron ? window.fileSystemAPI : null;
+  }
+
+  /**
+   * Получает API для работы с проектом
+   */
+  get projectAPI(): ProjectSystemAPI | null {
+    return this.isElectron ? window.projectSystemAPI : null;
   }
 
   /**
@@ -162,11 +169,11 @@ export class ElectronService {
    * @returns результат создания проекта
    */
   async createProject(path: string): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
 
-    return await this.crmDockerBuilderSystemAPI.createProject(path);
+    return await this.projectAPI.createProject(path);
   }
 
   /**
@@ -175,11 +182,11 @@ export class ElectronService {
    * @returns результат открытия проекта
    */
   async openProject(path: string): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
 
-    return await this.crmDockerBuilderSystemAPI.openProject(path);
+    return await this.projectAPI.openProject(path);
   }
 
   /**
@@ -188,10 +195,10 @@ export class ElectronService {
    * @returns результат сохранения настроек проекта
    */
   async saveGeneralProjectSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderSystemAPI.saveGeneralProjectSettings(projectConfig);
+    return await this.projectAPI.saveGeneralProjectSettings(projectConfig);
   }
 
   /**
@@ -201,10 +208,10 @@ export class ElectronService {
    * @returns результат сохранения настроек Postgres
    */
   async savePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderSystemAPI.savePostgresSettings(projectConfig, postgresConfig);
+    return await this.projectAPI.savePostgresSettings(projectConfig, postgresConfig);
   }
 
   /**
@@ -214,10 +221,10 @@ export class ElectronService {
    * @returns результат сохранения настроек PgAdmin
    */
   async savePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderSystemAPI.savePgAdminSettings(projectConfig, pgAdminConfig);
+    return await this.projectAPI.savePgAdminSettings(projectConfig, pgAdminConfig);
   }
 
   /**
@@ -227,10 +234,10 @@ export class ElectronService {
    * @returns результат сохранения настроек Redis
    */
   async saveRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderSystemAPI.saveRedisSettings(projectConfig, redisConfig);
+    return await this.projectAPI.saveRedisSettings(projectConfig, redisConfig);
   }
 
   /**
@@ -240,11 +247,10 @@ export class ElectronService {
    * @returns результат сохранения настроек Rabbitmq
    */
   async saveRabbitmqSettings(projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig): Promise<InitProjectResult> {
-
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderSystemAPI.saveRabbitmqSettings(projectConfig, rabbitmqConfig);
+    return await this.projectAPI.saveRabbitmqSettings(projectConfig, rabbitmqConfig);
   }
 
   /**
@@ -254,10 +260,10 @@ export class ElectronService {
    * @returns результат сохранения настроек CRM
    */
   async saveCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderSystemAPI.saveCrmSetting(projectConfig, crmConfig);
+    return await this.projectAPI.saveCrmSetting(projectConfig, crmConfig);
   }
 
   /**
@@ -266,10 +272,10 @@ export class ElectronService {
    * @returns результат сохранения настроек CRM
    */
   async saveCrmSettings(projectConfig: ProjectConfig): Promise<InitProjectResult> {
-    if (!this.crmDockerBuilderSystemAPI) {
+    if (!this.projectAPI) {
       throw new Error('Electron API недоступен');
     }
-    return await this.crmDockerBuilderSystemAPI.saveCrmSettings(projectConfig);
+    return await this.projectAPI.saveCrmSettings(projectConfig);
   }
 
   /**

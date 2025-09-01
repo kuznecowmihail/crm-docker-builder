@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import { ConstantValues } from "../config/constants";
 
+// Помощник для работы с Docker
 export class DockerProcessHelper {
     /**
      * Создает Docker сеть для проекта

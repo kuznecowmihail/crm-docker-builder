@@ -1,5 +1,6 @@
 import { ConstantValues } from "../../config/constants";
 
+// Помощник для работы с файлами Dockerfile
 export class DockerFileHelper {
     /**
      * Генерирует содержимое файла Dockerfile

@@ -3,13 +3,23 @@ import { ConstantValues } from '../config/constants';
 import { IService } from '../interfaces/IService';
 import { FileSystemHelper } from '../helpers/FileSystemHelper';
 
+// Сервис для работы с файловой системой
 export class FileSystemService implements IService {
+  /**
+   * Помощник для работы с файловой системой
+   */
   private helper: FileSystemHelper;
-
+  
+  /**
+   * Конструктор
+   */
   constructor() {
     this.helper = new FileSystemHelper();
   }
 
+  /**
+   * Настройка обработчиков
+   */
   public setupHandlers(): void {
     // Чтение файла
     ipcMain.handle(ConstantValues.IPC_CHANNELS.FILE_SYSTEM.READ_FILE, async (event, filePath: string) => {

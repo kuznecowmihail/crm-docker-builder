@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig, ConstantsAPI } from '@shared/api';
+import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig, ConstantsAPI, ProjectSystemAPI } from '@shared/api';
 
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
@@ -22,16 +22,18 @@ const IPC_CHANNELS = {
     FILE_EXISTS: 'fs:file-exists',
     CREATE_DIR: 'fs:create-dir',
   },
+  PROJECT_SYSTEM: {
+    CREATE_PROJECT: 'project:create-project',
+    OPEN_PROJECT: 'project:open-project',
+    SAVE_GENERAL_PROJECT_SETTINGS: 'project:save-general-project-settings',
+    SAVE_POSTGRES_SETTINGS: 'project:save-postgres-settings',
+    SAVE_PGADMIN_SETTINGS: 'project:save-pgadmin-settings',
+    SAVE_REDIS_SETTINGS: 'project:save-redis-settings',
+    SAVE_RABBITMQ_SETTINGS: 'project:save-rabbitmq-settings',
+    SAVE_CRM_SETTING: 'project:save-crm-setting',
+    SAVE_CRM_SETTINGS: 'project:save-crm-settings',
+  },
   CRM_DOCKER_BUILDER_SYSTEM: {
-    CREATE_PROJECT: 'crm-docker-builder:create-project',
-    OPEN_PROJECT: 'crm-docker-builder:open-project',
-    SAVE_GENERAL_PROJECT_SETTINGS: 'crm-docker-builder:save-general-project-settings',
-    SAVE_POSTGRES_SETTINGS: 'crm-docker-builder:save-postgres-settings',
-    SAVE_PGADMIN_SETTINGS: 'crm-docker-builder:save-pgadmin-settings',
-    SAVE_REDIS_SETTINGS: 'crm-docker-builder:save-redis-settings',
-    SAVE_RABBITMQ_SETTINGS: 'crm-docker-builder:save-rabbitmq-settings',
-    SAVE_CRM_SETTING: 'crm-docker-builder:save-crm-setting',
-    SAVE_CRM_SETTINGS: 'crm-docker-builder:save-crm-settings',
     BUILD_PROJECT: 'crm-docker-builder:build-project',
     RUN_PROJECT: 'crm-docker-builder:run-project',
   },
@@ -52,7 +54,7 @@ const IPC_CHANNELS = {
   }
 } as const;
 
-// Экспонируем API в безопасном контексте
+// Экспонируем API для работы с системой
 contextBridge.exposeInMainWorld('systemAPI', {
   getSystemInfo: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM.INFO),
   getAppTitle: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM.TITLE),
@@ -63,6 +65,7 @@ contextBridge.exposeInMainWorld('systemAPI', {
     ipcRenderer.invoke(IPC_CHANNELS.NOTIFICATION.SHOW, title, body),
 } as SystemAPI);
 
+// Экспонируем API для работы с файловой системой
 contextBridge.exposeInMainWorld('fileSystemAPI', {
   readFile: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_SYSTEM.READ_FILE, filePath),
   writeFile: (filePath: string, content: string) => 
@@ -71,20 +74,35 @@ contextBridge.exposeInMainWorld('fileSystemAPI', {
   createDirectory: (dirPath: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_SYSTEM.CREATE_DIR, dirPath),
 } as FileSystemAPI);
 
+// Экспонируем API для работы с системой проекта
+contextBridge.exposeInMainWorld('projectSystemAPI', {
+  createProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.CREATE_PROJECT, path),
+  openProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.OPEN_PROJECT, path),
+  saveGeneralProjectSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_GENERAL_PROJECT_SETTINGS, projectConfig),
+  savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
+  savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
+  saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
+  saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
+  saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
+  saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
+} as ProjectSystemAPI);
+
+// Экспонируем API для работы с системой CRM Docker Builder
 contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
-  createProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.CREATE_PROJECT, path),
-  openProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.OPEN_PROJECT, path),
-  saveGeneralProjectSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_GENERAL_PROJECT_SETTINGS, projectConfig),
-  savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
-  savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
-  saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
-  saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
-  saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
-  saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
+  createProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.CREATE_PROJECT, path),
+  openProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.OPEN_PROJECT, path),
+  saveGeneralProjectSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_GENERAL_PROJECT_SETTINGS, projectConfig),
+  savePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
+  savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
+  saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
+  saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
+  saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
+  saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
   buildProject: (projectConfig: ProjectConfig, onLogCallback?: (log: string) => void) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, projectConfig, onLogCallback),
   runProject: (projectConfig: ProjectConfig, onLogCallback?: (log: string) => void) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, projectConfig, onLogCallback),
 } as CrmDockerBuilderSystemAPI);
 
+// Экспонируем API для работы с системой CRM Docker Builder Validator
 contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
   validateGeneralProjectSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_GENERAL_PROJECT_SETTINGS, projectConfig),
   validatePostgresSettings: (projectConfig: ProjectConfig, postgresConfig: PostgresConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_POSTGRES_SETTINGS, projectConfig, postgresConfig),
@@ -108,6 +126,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }
 });
 
+// Экспонируем API для работы с константами
 contextBridge.exposeInMainWorld('constantsAPI', {
   getConstants: () => ipcRenderer.invoke(IPC_CHANNELS.CONSTANTS_SYSTEM.GET_CONSTANTS),
 } as ConstantsAPI);

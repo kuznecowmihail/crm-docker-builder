@@ -4,15 +4,25 @@ import { IService } from '../interfaces/IService';
 import { CrmDockerBuilderValidator } from '../helpers/CrmDockerBuilderValidator';
 import { CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from '@shared/api';
 
+// Сервис для работы с CRM Docker Builder Validator
 export class CrmDockerBuilderValidatorService implements IService {
+  /**
+   * Помощник для работы с CRM Docker Builder Validator
+   */
   private validator: CrmDockerBuilderValidator;
 
+  /**
+   * Конструктор
+   */
   constructor() {
     this.validator = new CrmDockerBuilderValidator();
   }
 
+  /**
+   * Настройка обработчиков
+   */
   public setupHandlers(): void {
-    // Создание проекта
+    // Проверка настроек проекта
     ipcMain.handle(ConstantValues.IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_GENERAL_PROJECT_SETTINGS, async (event, projectConfig: ProjectConfig) => {
       return await this.validator.validateGeneralProjectSettings(projectConfig);
     });
