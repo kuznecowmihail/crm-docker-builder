@@ -63,7 +63,7 @@ export class CrmDockerBuilderService implements IService {
         event.sender.send('project-log', log);
         console.log(`[CrmDockerBuilderService] ${log.trim()}`);
         
-        logText += `${log.trim()}\n`;
+        logText += `${new Date().toISOString()} ${log.trim()}\n`;
       };
       const result = await this.helper.runProject(projectConfig, onLogCallback);
       await this.fileSystemHelper.writeFile(logPath, logText);
