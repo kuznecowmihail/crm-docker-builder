@@ -154,6 +154,8 @@ export class CrmDockerBuilderHelper {
       // Запускаем Docker Compose
       await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
 
+      await this.sleep(5000);
+
       // Создаем файл для восстановления бэкапа в PostgreSQL
       await this.buildPostgresRestoreScript(projectConfig, onLogCallback);
       // Делаем файл для восстановления бэкапа в PostgreSQL исполняемым
@@ -323,5 +325,13 @@ export class CrmDockerBuilderHelper {
 
           throw error;
       }
+  }
+
+  /**
+   * Задержка выполнения на указанное количество миллисекунд
+   * @param ms - время задержки в миллисекундах
+   */
+  private async sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
