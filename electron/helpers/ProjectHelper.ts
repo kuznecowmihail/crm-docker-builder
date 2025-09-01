@@ -373,17 +373,18 @@ export class ProjectHelper {
         if (localProjectResult.success && localProjectConfig) {
             let existsCrmConfig = localProjectConfig.crmConfigs.find(crm => crm.id === crmConfig.id);
             if (existsCrmConfig) {
-            existsCrmConfig.containerName = crmConfig.containerName;
-            existsCrmConfig.port = crmConfig.port;
-            existsCrmConfig.volumePath = crmConfig.volumePath;
-            existsCrmConfig.appPath = crmConfig.appPath;
-            existsCrmConfig.backupPath = crmConfig.backupPath;
-            existsCrmConfig.redisDb = crmConfig.redisDb;
-            existsCrmConfig.dbType = crmConfig.dbType;
-            existsCrmConfig.netVersion = crmConfig.netVersion;
-            existsCrmConfig.crmType = crmConfig.crmType;
+                existsCrmConfig.containerName = crmConfig.containerName;
+                existsCrmConfig.port = crmConfig.port;
+                existsCrmConfig.volumePath = crmConfig.volumePath;
+                existsCrmConfig.appPath = crmConfig.appPath;
+                existsCrmConfig.backupPath = crmConfig.backupPath;
+                existsCrmConfig.redisDb = crmConfig.redisDb;
+                existsCrmConfig.dbType = crmConfig.dbType;
+                existsCrmConfig.netVersion = crmConfig.netVersion;
+                existsCrmConfig.crmType = crmConfig.crmType;
+                existsCrmConfig.runOn = crmConfig.runOn;
             } else {
-            localProjectConfig.crmConfigs.push(crmConfig);
+                localProjectConfig.crmConfigs.push(crmConfig);
             }
             localProjectConfig.modifiedOn = new Date();
         }

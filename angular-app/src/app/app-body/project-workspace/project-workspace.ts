@@ -307,6 +307,10 @@ export class ProjectWorkspace implements OnDestroy {
   
       this.projectConfig.runOn = new Date();
       this.projectConfig.modifiedOn = new Date();
+
+      for (let crmConfig of this.projectConfig.crmConfigs) {
+        crmConfig.runOn = new Date();
+      }
       this.electronService.saveGeneralProjectSettings(this.projectConfig);
     });
   }
