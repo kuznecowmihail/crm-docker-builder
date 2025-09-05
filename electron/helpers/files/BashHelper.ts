@@ -364,10 +364,35 @@ dbName=\"$1\"
 postgresUser=\"$2\"
 pgDataPath=\"$3\"
 
+# Функция для проверки готовности PostgreSQL
+wait_for_postgres() {
+  echo -e "Ожидаю готовности PostgreSQL..."
+  
+  local max_attempts=30
+  local attempt=1
+  
+  while [ $attempt -le $max_attempts ]; do
+      if pg_isready -U $postgresUser > /dev/null 2>&1; then
+          echo -e "PostgreSQL готов к работе"
+          return 0
+      fi
+      
+      print_info "Попытка $attempt/$max_attempts - PostgreSQL еще не готов..."
+      sleep 2
+      attempt=$((attempt + 1))
+  done
+  
+  echo -e "PostgreSQL не готов после $max_attempts попыток"
+  return 1
+}
+
+# Ждем готовности PostgreSQL
+wait_for_postgres
+
 if psql -lqt -h localhost -U $postgresUser | cut -d \\| -f 1 | grep -qw \"$dbName\"; then
   echo -e \"\${YELLOW}Database \$dbName already exists\${RESET}\"
 else
-  psql -h localhost -U $postgresUser -d postgres -c \"CREATE DATABASE $dbName WITH OWNER = puser ENCODING='UTF8' CONNECTION LIMIT = -1\"
+  psql -h localhost -U $postgresUser -d postgres -c \"CREATE DATABASE $dbName WITH OWNER = $postgresUser ENCODING='UTF8' CONNECTION LIMIT = -1\"
   pg_restore -h localhost -U $postgresUser -d $dbName --no-owner --no-privileges $pgDataPath/$dbName.backup --verbose
   psql -h localhost -U $postgresUser -d $dbName --file=$pgDataPath/${ConstantValues.FILE_NAMES.CREATE_TYPE_CASTS_POSTGRES_SQL}
   echo -e \"\${GREEN}Database \$dbName restored\${RESET}\"

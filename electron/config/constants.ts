@@ -66,14 +66,14 @@ export const ConstantValues: Constants = {
   DEFAULT_POSTGRES_CONFIG : {
     containerName: 'postgres',
     port: 5432,
-    user: 'puser',
-    password: 'password',
+    user: 'postgres',
+    password: 'postgres',
   },
   DEFAULT_PGADMIN_CONFIG: {
     containerName: 'pgadmin',
     port: 80,
-    email: 'admin@example.com',
-    password: 'pgpassword',
+    email: 'puser@pgadmin.com',
+    password: 'puser',
   },
   DEFAULT_REDIS_CONFIG: {
     containerName: 'redis',

@@ -85,7 +85,6 @@ export class CrmSettings implements OnChanges {
    */
   ngOnChanges(changes: SimpleChanges) {
     console.log('CrmSettings: Изменения входных параметров:', changes);
-    
     if (changes['crmConfig'] && this.crmConfig) {
       this.updateFormValues();
     }
@@ -99,22 +98,6 @@ export class CrmSettings implements OnChanges {
     if (this.crmConfig) {
       this.updateFormValues();
     }
-
-    this.electronService.getConstants().then((constants) => {
-      this.constants = constants;
-
-      if (!this.crmConfig) {
-        const config = this.constants?.DEFAULT_CRM_CONFIG;
-        this.containerName = config.containerName;
-        this.port = config.port;
-        this.redisDb = config.redisDb;
-        this.dbType = config.dbType;
-        this.netVersion = config.netVersion;
-        this.crmType = config.crmType;
-      }
-    });
-
-    this.isEditing = !Boolean(this.projectConfig?.runOn);
   }
 
   /**
@@ -130,9 +113,25 @@ export class CrmSettings implements OnChanges {
       this.dbType = this.crmConfig.dbType || 'postgres';
       this.netVersion = this.crmConfig.netVersion || '8.0';
       this.crmType = this.crmConfig.crmType || 'bpmsoft';
-      this.backupPathError = false; // Сбрасываем ошибку
-      this.appPathError = false; // Сбрасываем ошибку
+      this.backupPathError = false;
+      this.appPathError = false;
     }
+
+    this.isEditing = !Boolean(this.crmConfig?.runOn);
+
+    this.electronService.getConstants().then((constants) => {
+      this.constants = constants;
+
+      if (!this.crmConfig) {
+        const config = this.constants?.DEFAULT_CRM_CONFIG;
+        this.containerName = config.containerName;
+        this.port = config.port;
+        this.redisDb = config.redisDb;
+        this.dbType = config.dbType;
+        this.netVersion = config.netVersion;
+        this.crmType = config.crmType;
+      }
+    });
   }
 
   /**

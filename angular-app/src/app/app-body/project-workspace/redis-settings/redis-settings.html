@@ -137,15 +137,14 @@
     <mat-card-actions align="end">
       <button mat-button 
               color="warn" 
-              (click)="onCancelChanges()"
-              [disabled]="!isEditing">
+              (click)="onCancelChanges()">
         <mat-icon>cancel</mat-icon>
         Отмена
       </button>
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEditing || !containerName || !port || !password">
+              [disabled]="!containerName || !port || !password">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>
