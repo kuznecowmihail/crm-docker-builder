@@ -56,9 +56,11 @@ export class CrmHelper {
             for (const crmConfig of projectConfig.crmConfigs) {
                 onLog?.(`[CrmDockerBuilderFileSystemHelper] Обработка файлов CRM для ${crmConfig.containerName}`);
 
+                let crmPrefix = crmConfig.crmType === 'bpmsoft' ? 'BPMSoft' : 'Terrasoft';
+
                 const connectionStringsPath = path.join(crmConfig.appPath, 'ConnectionStrings.config');
-                const webHostConfigPath = path.join(crmConfig.appPath, 'BPMSoft.WebHost.dll.config');
-                const workspaceConsoleConfigPath = path.join(crmConfig.appPath, 'WorkspaceConsole', 'BPMSoft.Tools.WorkspaceConsole.dll.config');
+                const webHostConfigPath = path.join(crmConfig.appPath, `${crmPrefix}.WebHost.dll.config`);
+                const workspaceConsoleConfigPath = path.join(crmConfig.appPath, 'WorkspaceConsole', `${crmPrefix}.Tools.WorkspaceConsole.dll.config`);
 
                 const connectionStringsContent = await this.fileSystemHelper.readFile(connectionStringsPath);
                 const webHostConfigContent = await this.fileSystemHelper.readFile(webHostConfigPath);
@@ -72,10 +74,10 @@ export class CrmHelper {
                 onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл ConnectionStrings.config успешно обновлен`);
 
                 await this.fileSystemHelper.writeFile(webHostConfigPath, updatedWebHostConfigContent);
-                onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл BPMSoft.WebHost.dll.config успешно обновлен`);
+                onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл ${crmPrefix}.WebHost.dll.config успешно обновлен`);
 
                 await this.fileSystemHelper.writeFile(workspaceConsoleConfigPath, updatedWorkspaceConsoleConfigContent);
-                onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл BPMSoft.Tools.WorkspaceConsole.dll.config успешно обновлен`);
+                onLog?.(`[CrmDockerBuilderFileSystemHelper] Файл ${crmPrefix}.Tools.WorkspaceConsole.dll.config успешно обновлен`);
 
                 await this.buildDockerFile(crmConfig, onLog);
                 await this.buildAppHandler(projectConfig, crmConfig, onLog);
@@ -84,7 +86,7 @@ export class CrmHelper {
                 await this.vscodeHelper.buildVsCodeFiles(crmConfig, onLog);
             }
         } catch (error) {
-            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при обновлении файлов ConnectionStrings.config, BPMSoft.WebHost.dll.config и BPMSoft.Tools.WorkspaceConsole.dll.config: ${error}`);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при обновлении файлов ConnectionStrings.config, ...WebHost.dll.config и ...Tools.WorkspaceConsole.dll.config: ${error}`);
 
             throw error;
         }
@@ -208,7 +210,7 @@ export class CrmHelper {
      */
     private async buildDockerFile(crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
         try {
-            const dockerFileContent = this.dockerFileHelper.generateDockerFileContent();
+            const dockerFileContent = this.dockerFileHelper.generateDockerFileContent(crmConfig);
             const filePath = path.join(crmConfig.appPath, ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8);
             await this.fileSystemHelper.writeFile(filePath, dockerFileContent);
             onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8} успешно создан`);

@@ -392,8 +392,9 @@ export class VscodeHelper {
    * @returns - содержимое файла .vscode/settings.json
    */
   private generateVsCodeSettingsJsonContent(crmConfig: CrmConfig): string {
-      return JSON.stringify({
-        "dotnet.defaultSolution": "BPMSoft.Configuration/BPMSoft.Configuration.Dev.sln",
+    let crmPrefix = crmConfig.crmType === 'bpmsoft' ? 'BPMSoft' : 'Terrasoft';
+    return JSON.stringify({
+        "dotnet.defaultSolution": `${crmPrefix}.Configuration/${crmPrefix}.Configuration.Dev.sln`,
         "cSpell.words": [
           "accountingreports"
         ]

@@ -96,7 +96,7 @@ export const ConstantValues: Constants = {
     netVersion: '8.0',
     crmType: 'bpmsoft',
   },
-  NET_VERSIONS: ['8.0', '3.1'],
+  NET_VERSIONS: ['8.0', '6.0', '3.1'],
   DB_TYPES: ['postgres', 'mysql'],
   CRM_TYPES: ['bpmsoft', 'creatio'],
   FOLDER_NAMES: {

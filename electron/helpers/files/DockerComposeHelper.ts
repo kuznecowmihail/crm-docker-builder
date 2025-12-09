@@ -50,7 +50,7 @@ export class DockerComposeHelper {
   # postgres
   postgres_container:
     container_name: ${postgresConfig.containerName}
-    image: 'postgres:alpine'
+    image: 'postgres:17-alpine'
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U ${postgresConfig.user} -d db'"]
       interval: 10s
@@ -70,7 +70,6 @@ export class DockerComposeHelper {
       POSTGRES_PASSWORD: ${postgresConfig.password}
       PGDATA: ${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/pgdata
     volumes:
-      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES, ConstantValues.FOLDER_NAMES.POSTGRES_PATHS.INIT_DATABASE))}:${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.INIT_DATABASE}
       - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES, ConstantValues.FOLDER_NAMES.POSTGRES_PATHS.POSTGRES_DATA))}:${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}
     ports:
       - ${postgresConfig.port}:5432

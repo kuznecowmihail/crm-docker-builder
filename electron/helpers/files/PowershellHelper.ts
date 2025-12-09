@@ -8,6 +8,7 @@ export class PowershellHelper {
      * @returns - content of WorkspaceConsoleHandler.ps1 file
      */
     public generateWorkspaceConsoleHadlerContent(crmConfig: CrmConfig): string {
+      let crmPrefix = crmConfig.crmType === 'bpmsoft' ? 'BPMSoft' : 'Terrasoft';
       return `# PowerShell script for Workspace Console on Windows
 # Author: CRM Infrastructure Team
 # Version: 1.0
@@ -25,13 +26,13 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 # CRM container name
 $PROJECT_NAME = "${crmConfig.containerName}"
 
-$LOAD_PACKAGES_TO_FILE_SYSTEM_ARG = "-operation=LoadPackagesToFileSystem -workspaceName=Default -autoExit=True -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
-$LOAD_PACKAGES_TO_DB_ARG = "-operation=LoadPackagesToDB -workspaceName=Default -autoExit=True -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
-$BUILD_WORKSPACE_ARG = "-operation=BuildWorkspace -force=True -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
-$REBUILD_WORKSPACE_ARG = "-operation=RebuildWorkspace -force=True -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
-$BUILD_CONFIGURATION_ARG = "-operation=BuildConfiguration -force=True -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -destinationPath=/app -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
-$INSTALL_FROM_REPOSITORY_ARG = "-operation=InstallFromRepository -workspaceName=Default -sourcePath=/app/_app_init/pkgs -destinationPath=/app/_app_init/temp -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -installPackageSqlScript=true -installPackageData=true -updateDBStructure=true -regenerateSchemaSources=true -continueIfError=true -skipValidateActions=true -updateSystemDBStructure=true -logPath=/app/WorkspaceConsoleLogs"
-$REGENERATE_SCHEMA_SOURCES_ARG = "-operation=RegenerateSchemaSources -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/BPMSoft.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
+$LOAD_PACKAGES_TO_FILE_SYSTEM_ARG = "-operation=LoadPackagesToFileSystem -workspaceName=Default -autoExit=True -webApplicationPath=/app -configurationPath=/app/${crmPrefix}.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
+$LOAD_PACKAGES_TO_DB_ARG = "-operation=LoadPackagesToDB -workspaceName=Default -autoExit=True -webApplicationPath=/app -configurationPath=/app/${crmPrefix}.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
+$BUILD_WORKSPACE_ARG = "-operation=BuildWorkspace -force=True -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/${crmPrefix}.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
+$REBUILD_WORKSPACE_ARG = "-operation=RebuildWorkspace -force=True -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/${crmPrefix}.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
+$BUILD_CONFIGURATION_ARG = "-operation=BuildConfiguration -force=True -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/${crmPrefix}.Configuration -destinationPath=/app -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
+$INSTALL_FROM_REPOSITORY_ARG = "-operation=InstallFromRepository -workspaceName=Default -sourcePath=/app/_app_init/pkgs -destinationPath=/app/_app_init/temp -webApplicationPath=/app -configurationPath=/app/${crmPrefix}.Configuration -confRuntimeParentDirectory=/app/conf -installPackageSqlScript=true -installPackageData=true -updateDBStructure=true -regenerateSchemaSources=true -continueIfError=true -skipValidateActions=true -updateSystemDBStructure=true -logPath=/app/WorkspaceConsoleLogs"
+$REGENERATE_SCHEMA_SOURCES_ARG = "-operation=RegenerateSchemaSources -autoExit=True -workspaceName=Default -webApplicationPath=/app -configurationPath=/app/${crmPrefix}.Configuration -confRuntimeParentDirectory=/app/conf -logPath=/app/WorkspaceConsoleLogs"
 
 # Output functions
 function Write-Header {
@@ -44,32 +45,32 @@ function Write-Header {
 switch ($Command) {
     "LoadPackagesToFileSystem" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/BPMSoft.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_FILE_SYSTEM_ARG"
+        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_FILE_SYSTEM_ARG"
         break
     }
     "LoadPackagesToDB" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/BPMSoft.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_DB_ARG"
+        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_DB_ARG"
         break
     }
     "BuildWorkspace" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/BPMSoft.Tools.WorkspaceConsole.dll $BUILD_WORKSPACE_ARG"
+        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_WORKSPACE_ARG"
         break
     }
     "RebuildWorkspace" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/BPMSoft.Tools.WorkspaceConsole.dll $REBUILD_WORKSPACE_ARG"
+        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REBUILD_WORKSPACE_ARG"
         break
     }
     "BuildConfiguration" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/BPMSoft.Tools.WorkspaceConsole.dll $BUILD_CONFIGURATION_ARG"
+        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_CONFIGURATION_ARG"
         break
     }
     "RegenerateSchemaSources" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/BPMSoft.Tools.WorkspaceConsole.dll $REGENERATE_SCHEMA_SOURCES_ARG"
+        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REGENERATE_SCHEMA_SOURCES_ARG"
         break
     }
     default {
