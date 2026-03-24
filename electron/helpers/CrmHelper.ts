@@ -210,12 +210,11 @@ export class CrmHelper {
      */
     private async buildDockerFile(crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
         try {
-            const dockerFileContent = this.dockerFileHelper.generateDockerFileContent(crmConfig);
-            const filePath = path.join(crmConfig.appPath, ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8);
-            await this.fileSystemHelper.writeFile(filePath, dockerFileContent);
-            onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8} успешно создан`);
+            const dockerFile = this.dockerFileHelper.generateDockerFileContent(crmConfig);
+            await this.fileSystemHelper.writeFile(dockerFile.filePath, dockerFile.content);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${dockerFile.filePath} успешно создан`);
         } catch (error) {
-            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла ${ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8}: ${error}`);
+            onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла Dockerfile для ${crmConfig.crmType} ${crmConfig.netVersion}: ${error}`);
 
             throw error;
         }

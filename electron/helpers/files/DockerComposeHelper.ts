@@ -31,7 +31,7 @@ export class DockerComposeHelper {
     image: ${imageName}
     restart: unless-stopped
     build:
-      dockerfile: ${ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8}
+      dockerfile: ${crmConfig.netVersion === '8.0' ? ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8 : ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET3}
       context: ./${appPath}
     ports:
       - ${appPort}:5000

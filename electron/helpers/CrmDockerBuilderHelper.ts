@@ -268,10 +268,11 @@ export class CrmDockerBuilderHelper {
    */
   private async buildDockerComposeFile(projectConfig: ProjectConfig, secondRun: boolean, onLog?: (log: string) => void): Promise<void> {
       try {
+          console.log('buildDockerComposeFile');
           const dockerComposeFile = this.dockerComposeHelper.generateDockerComposeContent(projectConfig, secondRun);
           const filePath = path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.DOCKER_COMPOSE);
           await this.fileSystemHelper.writeFile(filePath, dockerComposeFile);
-          onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.DOCKER_COMPOSE} успешно создан`);
+          onLog?.(`[CrmDockerBuilderFileSystemHelper] ✅ Файл ${ConstantValues.FILE_NAMES.DOCKER_COMPOSE} успешно создан.`);
       } catch (error) {
           onLog?.(`[CrmDockerBuilderFileSystemHelper] ❌ Ошибка при создании файла ${ConstantValues.FILE_NAMES.DOCKER_COMPOSE}: ${error}`);
 
