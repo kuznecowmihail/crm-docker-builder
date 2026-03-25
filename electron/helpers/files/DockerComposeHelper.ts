@@ -20,18 +20,30 @@ export class DockerComposeHelper {
         
         // Генерация сервисов CRM
         const crmServices = crmConfigs.filter(crmConfig => Boolean(crmConfig.runOn) || secondRun).map((crmConfig, index) => {
-            const serviceName = `${crmConfig.containerName.toLowerCase()}_container`;
-            const containerName = crmConfig.containerName;
-            const imageName = crmConfig.containerName.toLowerCase();
-            const appPort = crmConfig.port;
-            const appPath = getRelativePath(crmConfig.appPath);
-            
-            return `  ${serviceName}:
+          let dockerFile = '';
+          if (crmConfig.crmType === "creatio" && crmConfig.netVersion === "8.0") {
+            dockerFile = ConstantValues.FILE_NAMES.DOCKERFILE_CREATIO_NET8;
+          } else if (crmConfig.crmType === "bpmsoft" && crmConfig.netVersion === "8.0") {
+            dockerFile = ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8;
+          } else if (crmConfig.crmType === "bpmsoft" && crmConfig.netVersion === "3.1") {
+            dockerFile = ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET3;
+          } else if (crmConfig.crmType === "creatio" && crmConfig.netVersion === "3.1") {
+            dockerFile = ConstantValues.FILE_NAMES.DOCKERFILE_CREATIO_NET3;
+          } else {
+            throw new Error(`Not supported crm type with .net version: ${crmConfig.crmType} ${crmConfig.netVersion}`)
+          }
+          const serviceName = `${crmConfig.containerName.toLowerCase()}_container`;
+          const containerName = crmConfig.containerName;
+          const imageName = crmConfig.containerName.toLowerCase();
+          const appPort = crmConfig.port;
+          const appPath = getRelativePath(crmConfig.appPath);
+          
+          return `  ${serviceName}:
     container_name: ${containerName}
     image: ${imageName}
     restart: unless-stopped
     build:
-      dockerfile: ${crmConfig.netVersion === '8.0' ? ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET8 : ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET3}
+      dockerfile: ${dockerFile}
       context: ./${appPath}
     ports:
       - ${appPort}:5000
