@@ -24,6 +24,11 @@ export class DockerFileHelper {
                 content: this.getBPMSoftNet3(),
                 filePath: path.join(crmConfig.appPath, ConstantValues.FILE_NAMES.DOCKERFILE_BPM_SOFT_NET3)
             };
+        } else if (crmConfig.crmType === "creatio" && crmConfig.netVersion === "3.1") {
+            return {
+                content: this.getCreatioNet3(),
+                filePath: path.join(crmConfig.appPath, ConstantValues.FILE_NAMES.DOCKERFILE_CREATIO_NET3)
+            };
         } else {
             throw new Error("Not supported crm type with .net version")
         }
@@ -111,5 +116,31 @@ ENV ASPNETCORE_ENVIRONMENT Development \
 
 ENV COMPlus_ThreadPool_ForceMinWorkerThreads 100
 ENTRYPOINT ["dotnet", "BPMSoft.WebHost.dll"]`;
+    }
+
+    /**
+     * Генерирует содержимое файла Dockerfile для Creatio .NET3
+     * @returns содержимое файла Dockerfile
+     */
+    private getCreatioNet3(): string {
+        return `FROM mcr.microsoft.com/dotnet/core/sdk:3.1
+
+ENV ASPNETCORE_ENVIRONMENT=Development \
+    TZ=Europe/Moscow
+
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install \
+    libgdiplus \
+    libc6-dev \
+    gss-ntlmssp && \
+    apt-get clean all && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
+    sed -i 's/openssl_conf/#openssl_conf/g' /etc/ssl/openssl.cnf
+
+WORKDIR /app
+COPY . ./
+
+EXPOSE 5000 5002
+ENTRYPOINT ["dotnet", "Terrasoft.WebHost.dll"]`;
     }
 }

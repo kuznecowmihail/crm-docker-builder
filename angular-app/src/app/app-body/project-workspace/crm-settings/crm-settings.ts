@@ -247,6 +247,9 @@ export class CrmSettings implements OnChanges {
       this.crmConfig.volumePath = this.appPath;
       this.crmConfig.backupPath = this.backupPath;
       this.crmConfig.redisDb = this.redisDb;
+      this.crmConfig.dbType = this.dbType;
+      this.crmConfig.netVersion = this.netVersion;
+      this.crmConfig.crmType = this.crmType;
 
       const result = await this.electronService.saveCrmSetting(this.projectConfig, this.crmConfig);
       console.log('result', result);
