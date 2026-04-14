@@ -65,6 +65,7 @@ export const ConstantValues: Constants = {
   },
   DEFAULT_POSTGRES_CONFIG : {
     containerName: 'postgres',
+    dockerImageName: 'postgres:17-alpine',
     port: 5432,
     user: 'postgres',
     password: 'postgres',

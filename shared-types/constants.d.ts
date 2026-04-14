@@ -64,6 +64,7 @@ export interface Constants {
   },
   DEFAULT_POSTGRES_CONFIG: {
     containerName: string,
+    dockerImageName: string,
     port: number,
     user: string,
     password: string,

@@ -26,6 +26,17 @@
             <mat-hint>Уникальное имя для Docker контейнера</mat-hint>
           </mat-form-field>
         </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Версия СУБД</mat-label>
+            <mat-select [(ngModel)]="dockerImageName" [disabled]="!isEditing" (change)="onDockerImageNameChange()">
+              <mat-option value="postgres:14-alpine">14</mat-option>
+              <mat-option value="postgres:17-alpine">17</mat-option>
+            </mat-select>
+            <mat-hint>Выберите версию СУБД</mat-hint>
+          </mat-form-field>
+        </div>
         
         <div class="form-row">
           <mat-form-field appearance="outline" class="port-field">

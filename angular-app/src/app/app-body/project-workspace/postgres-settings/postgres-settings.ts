@@ -38,6 +38,7 @@ export class PostgresSettings {
    * Поля для редактирования PostgreSQL
    */
   containerName: string = '';
+  dockerImageName: string = 'postgres:17-alpine';
   port: number = 5432;
   volumePath: string = '';
   user: string = '';
@@ -67,6 +68,7 @@ export class PostgresSettings {
     if (this.projectConfig?.postgresConfig) {
       const config = this.projectConfig.postgresConfig;
       this.containerName = config.containerName || this.constants?.DEFAULT_POSTGRES_CONFIG.containerName || '';
+      this.dockerImageName = config.dockerImageName || this.constants?.DEFAULT_POSTGRES_CONFIG.dockerImageName || 'postgres:17-alpine';
       this.port = config.port || this.constants?.DEFAULT_POSTGRES_CONFIG.port || 0;
       this.volumePath = config.volumePath || '';
       this.user = config.user || this.constants?.DEFAULT_POSTGRES_CONFIG.user || '';
@@ -80,6 +82,7 @@ export class PostgresSettings {
       if (!this.projectConfig?.postgresConfig) {
         const config = this.constants?.DEFAULT_POSTGRES_CONFIG;
         this.containerName = config.containerName;
+        this.dockerImageName = config.dockerImageName;
         this.port = config.port;
         this.user = config.user;
         this.password = config.password;
@@ -92,6 +95,13 @@ export class PostgresSettings {
    */
   onContainerNameChange() {
     console.log('PostgresSettings: Изменение названия контейнера:', this.containerName);
+  }
+
+  /**
+   * Обработчик изменения версии СУБД
+   */
+  onDockerImageNameChange() {
+    console.log('PostgresSettings: Изменение версии СУБД:', this.dockerImageName);
   }
 
   /**
@@ -128,6 +138,7 @@ export class PostgresSettings {
 
     if (this.projectConfig?.postgresConfig) {
       this.projectConfig.postgresConfig.containerName = this.containerName;
+      this.projectConfig.postgresConfig.dockerImageName = this.dockerImageName;
       this.projectConfig.postgresConfig.port = this.port;
       this.projectConfig.postgresConfig.user = this.user;
       this.projectConfig.postgresConfig.password = this.password;
@@ -148,6 +159,7 @@ export class PostgresSettings {
     if (this.projectConfig?.postgresConfig) {
       const config = this.projectConfig.postgresConfig;
       this.containerName = config.containerName || this.constants?.DEFAULT_POSTGRES_CONFIG.containerName || '';
+      this.dockerImageName = config.dockerImageName || this.constants?.DEFAULT_POSTGRES_CONFIG.dockerImageName || 'postgres:17-alpine';
       this.port = config.port || this.constants?.DEFAULT_POSTGRES_CONFIG.port || 0;
       this.user = config.user || this.constants?.DEFAULT_POSTGRES_CONFIG.user || '';
       this.password = config.password || this.constants?.DEFAULT_POSTGRES_CONFIG.password || '';

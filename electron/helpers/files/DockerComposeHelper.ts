@@ -41,6 +41,7 @@ export class DockerComposeHelper {
           return `  ${serviceName}:
     container_name: ${containerName}
     image: ${imageName}
+    pull_policy: never
     restart: unless-stopped
     build:
       dockerfile: ${dockerFile}
@@ -58,11 +59,15 @@ export class DockerComposeHelper {
       - ${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}`
         }).join('\n\n');
 
+        console.log(crmConfigs);
+        console.log(crmConfigs.filter(crmConfig => Boolean(crmConfig.runOn) || secondRun));
+        console.log(crmServices);
+
         return `services:
   # postgres
   postgres_container:
     container_name: ${postgresConfig.containerName}
-    image: 'postgres:17-alpine'
+    image: ${postgresConfig.dockerImageName}
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U ${postgresConfig.user} -d db'"]
       interval: 10s

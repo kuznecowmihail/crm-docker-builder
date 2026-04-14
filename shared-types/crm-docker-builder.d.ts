@@ -42,6 +42,7 @@ export interface BaseContainerConfig {
 }
 
 export interface PostgresConfig extends BaseContainerConfig {
+  dockerImageName: string;
   user: string;
   password: string;
 }

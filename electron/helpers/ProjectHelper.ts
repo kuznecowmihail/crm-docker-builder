@@ -64,6 +64,7 @@ export class ProjectHelper {
             postgresConfig: {
                 id: this.generateId(),
                 containerName: ConstantValues.DEFAULT_POSTGRES_CONFIG.containerName,
+                dockerImageName: ConstantValues.DEFAULT_POSTGRES_CONFIG.dockerImageName,
                 port: ConstantValues.DEFAULT_POSTGRES_CONFIG.port,
                 volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES),
                 user: ConstantValues.DEFAULT_POSTGRES_CONFIG.user,
