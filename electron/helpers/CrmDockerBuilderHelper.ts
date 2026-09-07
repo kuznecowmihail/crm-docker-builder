@@ -38,11 +38,6 @@ export class CrmDockerBuilderHelper {
    */
   private vscodeHelper: VscodeHelper;
   /**
-   * Помощник для работы с Docker
-   */
-  private dockerProcessHelper: DockerProcessHelper;
-
-  /**
    * Помощник для работы с файлами Bash
    */
   private bashHelper: BashHelper;
@@ -65,7 +60,6 @@ export class CrmDockerBuilderHelper {
     this.fileSystemHelper = new FileSystemHelper();
     this.projectHelper = new ProjectHelper();
     this.vscodeHelper = new VscodeHelper();
-    this.dockerProcessHelper = new DockerProcessHelper();
     this.crmHelper = new CrmHelper();
     this.bashHelper = new BashHelper();
     this.sqlHelper = new SqlHelper();
@@ -140,24 +134,28 @@ export class CrmDockerBuilderHelper {
         };
       }
 
-      // Проверяем Docker
-      if (!await this.dockerProcessHelper.isDockerInstalled()) {
-        throw new Error('Docker не установлен');
+      const containerRuntime = projectConfig.containerRuntime ?? 'docker';
+      const runtimeName = containerRuntime.charAt(0).toUpperCase() + containerRuntime.slice(1);
+      const processHelper = new DockerProcessHelper(containerRuntime);
+
+      // Проверяем контейнерный runtime
+      if (!await processHelper.isRuntimeInstalled()) {
+        throw new Error(`${runtimeName} не установлен`);
       }
 
-      if (!await this.dockerProcessHelper.isDockerRunning()) {
-        throw new Error('Docker daemon не запущен');
+      if (!await processHelper.isRuntimeRunning()) {
+        throw new Error(`${runtimeName} daemon не запущен`);
       }
 
       // Создаем сеть с именем проекта
-      await this.dockerProcessHelper.createDockerNetwork(`${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}`, onLogCallback);
-      // Запускаем Docker Compose
-      await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
+      await processHelper.createNetwork(`${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}`, onLogCallback);
+      // Запускаем Compose
+      await processHelper.startCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
 
       // Создаем файл для восстановления бэкапа в PostgreSQL
       await this.buildPostgresRestoreScript(projectConfig, onLogCallback);
       // Делаем файл для восстановления бэкапа в PostgreSQL исполняемым
-      await this.dockerProcessHelper.executeDockerCommandWithLogs(
+      await processHelper.executeCommandWithLogs(
         ['exec', projectConfig.postgresConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}`], 
         projectConfig.projectPath, 
         onLogCallback
@@ -177,7 +175,7 @@ export class CrmDockerBuilderHelper {
           onLogCallback
         );
         // Запускаем файл для восстановления бэкапа в PostgreSQL
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        await processHelper.executeCommandWithLogs(
           ['exec', projectConfig.postgresConfig.containerName, 'bash', '-c', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} ${crmConfig.containerName} ${projectConfig.postgresConfig.user} ${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}`], 
           projectConfig.projectPath, 
           onLogCallback
@@ -194,8 +192,8 @@ export class CrmDockerBuilderHelper {
         onLogCallback?.(`[CrmDockerBuilderHelper] 🚀 Начинаем запуск проекта (второй раз)`);
         // Создаем файл docker-compose.yml (добавляются новые CRM контейнеры)
         await this.buildDockerComposeFile(projectConfig, true, onLogCallback);
-        // Запускаем Docker Compose (добавляются новые CRM контейнеры)
-        await this.dockerProcessHelper.startDockerCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
+        // Запускаем Compose (добавляются новые CRM контейнеры)
+        await processHelper.startCompose(projectConfig.projectPath, projectConfig.projectName, onLogCallback);
         onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен (второй раз)`);
       }
 
@@ -207,34 +205,34 @@ export class CrmDockerBuilderHelper {
           // Копируем vsdbg файлы в папку приложения
           await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), onLogCallback);
           // Делаем файл vsdbg исполняемым
-          await this.dockerProcessHelper.executeDockerCommandWithLogs(
+          await processHelper.executeCommandWithLogs(
             ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}`], 
             projectConfig.projectPath, 
             onLogCallback
           );
         }
         // // Делаем файл app-handler.sh исполняемым
-        // await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        // await processHelper.executeCommandWithLogs(
         //   ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.APP_HANDLER}`], 
         //   projectConfig.projectPath, 
         //   onLogCallback
         // );
         // // Делаем файл workspace-console-handler.sh исполняемым
-        // await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        // await processHelper.executeCommandWithLogs(
         //   ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER}`], 
         //   projectConfig.projectPath, 
         //   onLogCallback
         // );
 
         // Очищаем Redis базу данных
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        await processHelper.executeCommandWithLogs(
           ['exec', projectConfig.redisConfig.containerName, 'redis-cli', 'FLUSHALL'], 
           projectConfig.projectPath, 
           onLogCallback
         );
 
         // Перезапускаем контейнер CRM
-        await this.dockerProcessHelper.executeDockerCommandWithLogs(
+        await processHelper.executeCommandWithLogs(
           ['restart', crmConfig.containerName], 
           projectConfig.projectPath, 
           onLogCallback

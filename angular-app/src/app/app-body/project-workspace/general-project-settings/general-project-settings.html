@@ -27,6 +27,21 @@
           </mat-form-field>
         </div>
 
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Движок контейнеров</mat-label>
+            <mat-select [(ngModel)]="containerRuntime"
+                        [disabled]="!isEditing"
+                        (selectionChange)="onContainerRuntimeChange()"
+                        required>
+              <mat-option *ngFor="let option of containerRuntimeOptions" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+            <mat-hint>Docker или Podman для запуска контейнеров проекта</mat-hint>
+          </mat-form-field>
+        </div>
+
       </div>
       
       <div class="form-section">
@@ -60,7 +75,7 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSaveChanges()"
-              [disabled]="!isEditing || !projectName">
+              [disabled]="!isEditing || !projectName || !containerRuntime">
         <mat-icon>save</mat-icon>
         Сохранить изменения
       </button>

@@ -20,10 +20,14 @@ export interface ValidateCrmResult {
   crmConfig: CrmConfig | null;
 }
 
+/** Движок контейнеров проекта */
+export type ContainerRuntime = 'docker' | 'podman';
+
 // Конфиг проекта
 export interface ProjectConfig {
   projectName: string;
   projectPath: string;
+  containerRuntime: ContainerRuntime;
   modifiedOn: Date;
   buildOn?: Date;
   runOn?: Date;

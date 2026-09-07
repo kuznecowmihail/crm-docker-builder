@@ -60,6 +60,7 @@ export class ProjectHelper {
         const сonfig: ProjectConfig = {
             projectName: path.basename(projectPath),
             projectPath: projectPath,
+            containerRuntime: 'docker',
             modifiedOn: new Date(),
             postgresConfig: {
                 id: this.generateId(),
@@ -124,10 +125,14 @@ export class ProjectHelper {
         const configPath = path.join(projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG);
         console.log(configPath);
         const config = await this.fileSystemHelper.readFile(configPath);
+        const projectConfig: ProjectConfig = JSON.parse(config);
+        if (!projectConfig.containerRuntime) {
+            projectConfig.containerRuntime = 'docker';
+        }
         return {
             success: true,
             message: 'Проект успешно открыт',
-            projectConfig: JSON.parse(config)
+            projectConfig
         };
         }
         catch (error) {
@@ -159,6 +164,7 @@ export class ProjectHelper {
 
         if (localProjectResult.success && localProjectConfig) {
             localProjectConfig.projectName = projectConfig.projectName;
+            localProjectConfig.containerRuntime = projectConfig.containerRuntime;
             localProjectConfig.modifiedOn = projectConfig.modifiedOn;
             localProjectConfig.buildOn = projectConfig.buildOn;
             localProjectConfig.runOn = projectConfig.runOn;

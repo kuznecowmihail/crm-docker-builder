@@ -1,102 +1,118 @@
 import { spawn } from "child_process";
+import { ContainerRuntime } from "@shared/api";
 import { ConstantValues } from "../config/constants";
 
 // Помощник для работы с Docker
 export class DockerProcessHelper {
+    private readonly containerRuntime: ContainerRuntime;
+
+    constructor(containerRuntime: ContainerRuntime = 'docker') {
+        this.containerRuntime = containerRuntime;
+    }
+
+    private getRuntimeDisplayName(): string {
+        return this.containerRuntime.charAt(0).toUpperCase() + this.containerRuntime.slice(1);
+    }
+
     /**
-     * Создает Docker сеть для проекта
+     * Создает сеть для проекта
      * @param networkName - имя сети
      * @param onLog - callback для логов в реальном времени
      * @returns - Promise<void>
      */
-    public async createDockerNetwork(networkName: string, onLog?: (log: string) => void): Promise<void> {
+    public async createNetwork(networkName: string, onLog?: (log: string) => void): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
-            await this.executeDockerCommand(['network', 'create', networkName]);
-            onLog?.(`Docker сеть ${networkName} успешно создана`);
+            await this.executeCommand(['network', 'create', networkName]);
+            onLog?.(`${runtimeName} сеть ${networkName} успешно создана`);
         } catch (error) {
             // Если сеть уже существует, это не ошибка
             if (error instanceof Error && error.message.includes('already exists')) {
-                console.log(`Docker сеть ${networkName} уже существует`);
+                console.log(`${runtimeName} сеть ${networkName} уже существует`);
             } else {
-                console.error(`Ошибка при создании Docker сети ${networkName}:`, error);
+                console.error(`Ошибка при создании ${runtimeName} сети ${networkName}:`, error);
                 throw error;
             }
         }
     }
     /**
-     * Удаляет Docker сеть для проекта
+     * Удаляет сеть для проекта
      * @param networkName - имя сети
      * @param onLog - callback для логов в реальном времени
      * @returns - Promise<void>
      */
-    public async removeDockerNetwork(networkName: string, onLog?: (log: string) => void): Promise<void> {
+    public async removeNetwork(networkName: string, onLog?: (log: string) => void): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
-            await this.executeDockerCommand(['network', 'rm', networkName]);
-            onLog?.(`Docker сеть ${networkName} успешно удалена`);
+            await this.executeCommand(['network', 'rm', networkName]);
+            onLog?.(`${runtimeName} сеть ${networkName} успешно удалена`);
         } catch (error) {
             // Если сеть не существует, это не ошибка
             if (error instanceof Error && error.message.includes('not found')) {
-                console.log(`Docker сеть ${networkName} не существует`);
+                console.log(`${runtimeName} сеть ${networkName} не существует`);
             } else {
-                console.error(`Ошибка при удалении Docker сети ${networkName}:`, error);
+                console.error(`Ошибка при удалении ${runtimeName} сети ${networkName}:`, error);
                 throw error;
             }
         }
     }
 
     /**
-     * Запускает docker-compose
+     * Запускает compose
      * @param projectPath - путь к проекту
      * @param projectName - имя проекта (для создания сети)
      * @param onLog - callback для логов в реальном времени
      * @returns - Promise<void>
      */
-    public async startDockerCompose(projectPath: string, projectName: string, onLog?: (log: string) => void): Promise<void> {
+    public async startCompose(projectPath: string, projectName: string, onLog?: (log: string) => void): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
             // Запускаем с ожиданием готовности всех контейнеров и логированием
-            await this.executeDockerCommandWithLogs(
+            await this.executeCommandWithLogs(
                 ['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'up', '--detach', '--wait'], 
                 projectPath, 
                 onLog
             );
-            onLog?.(`Docker Compose успешно запущен и все контейнеры готовы`);
+            onLog?.(`${runtimeName} Compose успешно запущен и все контейнеры готовы`);
         } catch (error) {
-            onLog?.(`Ошибка при запуске Docker Compose: ${error}`);
+            onLog?.(`Ошибка при запуске ${runtimeName} Compose: ${error}`);
             throw error;
         }
     }
 
     /**
-     * Останавливает docker-compose
+     * Останавливает compose
      * @param projectPath - путь к проекту
      * @param projectName - имя проекта
      * @param onLog - callback для логов в реальном времени
      * @returns - Promise<void>
      */
-    public async stopDockerCompose(projectPath: string, projectName: string, onLog?: (log: string) => void): Promise<void> {
+    public async stopCompose(projectPath: string, projectName: string, onLog?: (log: string) => void): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
-            await this.executeDockerCommand(['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'down'], projectPath);
-            onLog?.(`Docker Compose успешно остановлен`);
+            await this.executeCommand(['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'down'], projectPath);
+            onLog?.(`${runtimeName} Compose успешно остановлен`);
         } catch (error) {
-            onLog?.(`Ошибка при остановке Docker Compose: ${error}`);
+            onLog?.(`Ошибка при остановке ${runtimeName} Compose: ${error}`);
             throw error;
         }
     }
 
     /**
-     * Перезапускает docker-compose
+     * Перезапускает compose
      * @param projectPath - путь к проекту
      * @param projectName - имя проекта
      * @param onLog - callback для логов в реальном времени
      * @returns - Promise<void>
      */
-    public async restartDockerCompose(projectPath: string, projectName: string, onLog?: (log: string) => void): Promise<void> {
+    public async restartCompose(projectPath: string, projectName: string, onLog?: (log: string) => void): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
-            await this.stopDockerCompose(projectPath, projectName, onLog);
-            await this.startDockerCompose(projectPath, projectName, onLog);
-            onLog?.(`Docker Compose успешно перезапущен`);
+            await this.stopCompose(projectPath, projectName, onLog);
+            await this.startCompose(projectPath, projectName, onLog);
+            onLog?.(`${runtimeName} Compose успешно перезапущен`);
         } catch (error) {
-            onLog?.(`Ошибка при перезапуске Docker Compose: ${error}`);
+            onLog?.(`Ошибка при перезапуске ${runtimeName} Compose: ${error}`);
             throw error;
         }
     }
@@ -107,12 +123,13 @@ export class DockerProcessHelper {
      * @param projectName - имя проекта
      * @returns - Promise<string>
      */
-    public async getDockerComposeStatus(projectPath: string, projectName: string): Promise<string> {
+    public async getComposeStatus(projectPath: string, projectName: string): Promise<string> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
-            const result = await this.executeDockerCommandWithOutput(['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'ps'], projectPath);
+            const result = await this.executeCommandWithOutput(['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'ps'], projectPath);
             return result;
         } catch (error) {
-            console.error('Ошибка при получении статуса Docker Compose:', error);
+            console.error(`Ошибка при получении статуса ${runtimeName} Compose:`, error);
             throw error;
         }
     }
@@ -124,16 +141,17 @@ export class DockerProcessHelper {
      * @param serviceName - имя сервиса (опционально)
      * @returns - Promise<string>
      */
-    public async getDockerComposeLogs(projectPath: string, projectName: string, serviceName?: string): Promise<string> {
+    public async getComposeLogs(projectPath: string, projectName: string, serviceName?: string): Promise<string> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
             const args = ['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'logs'];
             if (serviceName) {
                 args.push(serviceName);
             }
-            const result = await this.executeDockerCommandWithOutput(args, projectPath);
+            const result = await this.executeCommandWithOutput(args, projectPath);
             return result;
         } catch (error) {
-            console.error('Ошибка при получении логов Docker Compose:', error);
+            console.error(`Ошибка при получении логов ${runtimeName} Compose:`, error);
             throw error;
         }
     }
@@ -146,28 +164,30 @@ export class DockerProcessHelper {
      * @param onLog - callback для логов в реальном времени
      * @returns - Promise<void>
      */
-    public async getDockerComposeLogsRealtime(projectPath: string, projectName: string, serviceName?: string): Promise<void> {
+    public async getComposeLogsRealtime(projectPath: string, projectName: string, serviceName?: string): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
             const args = ['compose', '-p', projectName, '-f', ConstantValues.FILE_NAMES.DOCKER_COMPOSE, 'logs', '--follow'];
             if (serviceName) {
                 args.push(serviceName);
             }
-            await this.executeDockerCommandWithLogs(args, projectPath);
+            await this.executeCommandWithLogs(args, projectPath);
         } catch (error) {
-            console.error('Ошибка при получении логов Docker Compose в реальном времени:', error);
+            console.error(`Ошибка при получении логов ${runtimeName} Compose в реальном времени:`, error);
             throw error;
         }
     }
 
     /**
-     * Выполняет Docker команду
+     * Выполняет команду контейнерного runtime
      * @param args - аргументы команды
      * @param cwd - рабочая директория (опционально)
      * @returns - Promise<void>
      */
-    public executeDockerCommand(args: string[], cwd?: string): Promise<void> {
+    public executeCommand(args: string[], cwd?: string): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         return new Promise((resolve, reject) => {
-            const dockerProcess = spawn('docker', args, {
+            const dockerProcess = spawn(this.containerRuntime, args, {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 cwd: cwd
             });
@@ -182,25 +202,26 @@ export class DockerProcessHelper {
                 if (code === 0) {
                     resolve();
                 } else {
-                    reject(new Error(`Docker команда завершилась с кодом ${code}. Stderr: ${stderr}`));
+                    reject(new Error(`${runtimeName} команда завершилась с кодом ${code}. Stderr: ${stderr}`));
                 }
             });
 
             dockerProcess.on('error', (error) => {
-                reject(new Error(`Ошибка выполнения Docker команды: ${error.message}`));
+                reject(new Error(`Ошибка выполнения ${runtimeName} команды: ${error.message}`));
             });
         });
     }
 
     /**
-     * Выполняет Docker команду и возвращает вывод
+     * Выполняет команду контейнерного runtime и возвращает вывод
      * @param args - аргументы команды
      * @param cwd - рабочая директория (опционально)
      * @returns - Promise<string>
      */
-    private executeDockerCommandWithOutput(args: string[], cwd?: string): Promise<string> {
+    private executeCommandWithOutput(args: string[], cwd?: string): Promise<string> {
+        const runtimeName = this.getRuntimeDisplayName();
         return new Promise((resolve, reject) => {
-            const dockerProcess = spawn('docker', args, {
+            const dockerProcess = spawn(this.containerRuntime, args, {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 cwd: cwd
             });
@@ -220,26 +241,27 @@ export class DockerProcessHelper {
                 if (code === 0) {
                     resolve(stdout);
                 } else {
-                    reject(new Error(`Docker команда завершилась с кодом ${code}. Stderr: ${stderr}`));
+                    reject(new Error(`${runtimeName} команда завершилась с кодом ${code}. Stderr: ${stderr}`));
                 }
             });
 
             dockerProcess.on('error', (error) => {
-                reject(new Error(`Ошибка выполнения Docker команды: ${error.message}`));
+                reject(new Error(`Ошибка выполнения ${runtimeName} команды: ${error.message}`));
             });
         });
     }
 
     /**
-     * Выполняет Docker команду с логированием в реальном времени
+     * Выполняет команду контейнерного runtime с логированием в реальном времени
      * @param args - аргументы команды
      * @param cwd - рабочая директория (опционально)
      * @param onLog - callback для логов
      * @returns - Promise<void>
      */
-    public executeDockerCommandWithLogs(args: string[], cwd?: string, onLog?: (log: string) => void): Promise<void> {
+    public executeCommandWithLogs(args: string[], cwd?: string, onLog?: (log: string) => void): Promise<void> {
+        const runtimeName = this.getRuntimeDisplayName();
         return new Promise((resolve, reject) => {
-            const dockerProcess = spawn('docker', args, {
+            const dockerProcess = spawn(this.containerRuntime, args, {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 cwd: cwd
             });
@@ -259,45 +281,47 @@ export class DockerProcessHelper {
 
             dockerProcess.on('close', (code) => {
                 if (code === 0) {
-                    onLog?.(`[DockerProcessHelper] ✅ Docker команда завершилась с кодом ${code}`);
+                    onLog?.(`[DockerProcessHelper] ✅ ${runtimeName} команда завершилась с кодом ${code}`);
                     resolve();
                 } else {
-                    onLog?.(`[DockerProcessHelper] ❌ Docker команда завершилась с кодом ${code}. Stderr: ${stderr}`);
-                    reject(new Error(`Docker команда завершилась с кодом ${code}. Stderr: ${stderr}`));
+                    onLog?.(`[DockerProcessHelper] ❌ ${runtimeName} команда завершилась с кодом ${code}. Stderr: ${stderr}`);
+                    reject(new Error(`${runtimeName} команда завершилась с кодом ${code}. Stderr: ${stderr}`));
                 }
             });
 
             dockerProcess.on('error', (error) => {
-                onLog?.(`[DockerProcessHelper] ❌ Ошибка выполнения Docker команды: ${error.message}`);
-                reject(new Error(`Ошибка выполнения Docker команды: ${error.message}`));
+                onLog?.(`[DockerProcessHelper] ❌ Ошибка выполнения ${runtimeName} команды: ${error.message}`);
+                reject(new Error(`Ошибка выполнения ${runtimeName} команды: ${error.message}`));
             });
         });
     }
 
     /**
-     * Проверяет, установлен ли Docker
+     * Проверяет, установлен ли контейнерный runtime
      * @returns - Promise<boolean>
      */
-    public async isDockerInstalled(): Promise<boolean> {
+    public async isRuntimeInstalled(): Promise<boolean> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
-            await this.executeDockerCommand(['--version']);
+            await this.executeCommand(['--version']);
             return true;
         } catch (error) {
-            console.error('Docker не установлен или недоступен:', error);
+            console.error(`${runtimeName} не установлен или недоступен:`, error);
             return false;
         }
     }
 
     /**
-     * Проверяет, запущен ли Docker daemon
+     * Проверяет, запущен ли daemon контейнерного runtime
      * @returns - Promise<boolean>
      */
-    public async isDockerRunning(): Promise<boolean> {
+    public async isRuntimeRunning(): Promise<boolean> {
+        const runtimeName = this.getRuntimeDisplayName();
         try {
-            await this.executeDockerCommand(['info']);
+            await this.executeCommand(['info']);
             return true;
         } catch (error) {
-            console.error('Docker daemon не запущен:', error);
+            console.error(`${runtimeName} daemon не запущен:`, error);
             return false;
         }
     }

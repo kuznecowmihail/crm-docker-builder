@@ -67,6 +67,12 @@ export class CrmDockerBuilderValidator {
       result.message = 'Путь к проекту не может быть пустым';
     }
 
+    // Проверяем движок контейнеров
+    if (!projectConfig.containerRuntime || !['docker', 'podman'].includes(projectConfig.containerRuntime)) {
+      result.success = false;
+      result.message = 'Движок контейнеров должен быть docker или podman';
+    }
+
     // Проверяем, существует ли папка
     const pathExists = await this.fileSystemHelper.pathExists(projectConfig.projectPath);
     if (!pathExists) {
