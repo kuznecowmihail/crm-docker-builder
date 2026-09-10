@@ -88,6 +88,7 @@ export interface ProjectSystemAPI {
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => Promise<InitProjectResult>;
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
   saveCrmSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
+  deleteCrmSetting: (projectConfig: ProjectConfig, crmConfigId: string) => Promise<InitProjectResult>;
 }
 
 // API для работы с системой CRM Docker Builder

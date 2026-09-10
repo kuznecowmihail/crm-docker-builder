@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import type { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig, ConstantsAPI, Constants, ProjectSystemAPI } from '@shared/api';
+import type { SystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig, ConstantsAPI, Constants, ProjectSystemAPI } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -23,13 +23,6 @@ export class ElectronService {
    */
   get systemAPI(): SystemAPI | null {
     return this.isElectron ? window.systemAPI : null;
-  }
-
-  /**
-   * Получает API для работы с файловой системой
-   */
-  get fileSystemAPI(): FileSystemAPI | null {
-    return this.isElectron ? window.fileSystemAPI : null;
   }
 
   /**
@@ -121,46 +114,6 @@ export class ElectronService {
       duration: 5000,
     });
     return await this.systemAPI.showNotification(title, body);
-  }
-
-  /**
-   * Читает файл
-   */
-  async readFile(filePath: string): Promise<string> {
-    if (!this.fileSystemAPI) {
-      throw new Error('Electron API недоступен');
-    }
-    return await this.fileSystemAPI.readFile(filePath);
-  }
-
-  /**
-   * Записывает файл
-   */
-  async writeFile(filePath: string, content: string): Promise<void> {
-    if (!this.fileSystemAPI) {
-      throw new Error('Electron API недоступен');
-    }
-    return await this.fileSystemAPI.writeFile(filePath, content);
-  }
-
-  /**
-   * Проверяет существование файла
-   */
-  async fileExists(filePath: string): Promise<boolean> {
-    if (!this.fileSystemAPI) {
-      throw new Error('Electron API недоступен');
-    }
-    return await this.fileSystemAPI.fileExists(filePath);
-  }
-
-  /**
-   * Создает папку
-   */
-  async createDirectory(dirPath: string): Promise<void> {
-    if (!this.fileSystemAPI) {
-      throw new Error('Electron API недоступен');
-    }
-    return await this.fileSystemAPI.createDirectory(dirPath);
   }
 
   /**
@@ -279,6 +232,19 @@ export class ElectronService {
   }
 
   /**
+   * Удаляет конфигурацию CRM из проекта
+   * @param projectConfig - конфигурация проекта
+   * @param crmConfigId - идентификатор CRM
+   * @returns результат удаления
+   */
+  async deleteCrmSetting(projectConfig: ProjectConfig, crmConfigId: string): Promise<InitProjectResult> {
+    if (!this.projectAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.projectAPI.deleteCrmSetting(projectConfig, crmConfigId);
+  }
+
+  /**
    * Собирает проект
    * @param projectConfig - конфигурация проекта
    * @returns результат сборки проекта
@@ -314,9 +280,7 @@ export class ElectronService {
       return;
     }
     
-    window.electronAPI?.on('project-log', (event: any, log: string) => {
-      onLogCallback(log);
-    });
+    window.electronAPI?.onProjectLog(onLogCallback);
   }
 
   /**
@@ -327,7 +291,7 @@ export class ElectronService {
       return;
     }
     
-    window.electronAPI?.removeAllListeners('project-log');
+    window.electronAPI?.removeProjectLogListeners();
   }
 
   /**

@@ -93,6 +93,20 @@ export class CrmHelper {
     }
 
     /**
+     * Экранирует значение для безопасной подстановки в XML-атрибут
+     * @param value - значение для экранирования
+     * @returns экранированная строка
+     */
+    private xmlAttr(value: string): string {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    }
+
+    /**
      * 
      * @param xmlContent - содержимое файла ConnectionStrings.config
      * @param projectConfig - конфигурация проекта
@@ -109,7 +123,7 @@ export class CrmHelper {
         const redisConnectionString = `host=${redisConfig.containerName};db=${crmConfig.redisDb};port=${ConstantValues.DEFAULT_REDIS_CONFIG.port}`;
         
         // Обновляем строку подключения к RabbitMQ
-        const rabbitmqConnectionString = `amqp://${rabbitmqConfig.user}:${rabbitmqConfig.password}@${rabbitmqConfig.containerName}:${ConstantValues.DEFAULT_RABBITMQ_CONFIG.amqpPort}`;
+        const rabbitmqConnectionString = `amqp://${encodeURIComponent(rabbitmqConfig.user)}:${encodeURIComponent(rabbitmqConfig.password)}@${rabbitmqConfig.containerName}:${ConstantValues.DEFAULT_RABBITMQ_CONFIG.amqpPort}`;
         
         // Заменяем строки подключения в XML
         let updatedContent = xmlContent;
@@ -117,19 +131,19 @@ export class CrmHelper {
         // Заменяем строку подключения к PostgreSQL
         updatedContent = updatedContent.replace(
             /<add name="db" connectionString="[^"]*"/,
-            `<add name="db" connectionString="${postgresConnectionString}"`
+            () => `<add name="db" connectionString="${this.xmlAttr(postgresConnectionString)}"`
         );
         
         // Заменяем строку подключения к Redis
         updatedContent = updatedContent.replace(
             /<add name="redis" connectionString="[^"]*"/,
-            `<add name="redis" connectionString="${redisConnectionString}"`
+            () => `<add name="redis" connectionString="${this.xmlAttr(redisConnectionString)}"`
         );
         
         // Заменяем строку подключения к RabbitMQ
         updatedContent = updatedContent.replace(
             /<add name="messageBroker" connectionString="[^"]*"/,
-            `<add name="messageBroker" connectionString="${rabbitmqConnectionString}"`
+            () => `<add name="messageBroker" connectionString="${this.xmlAttr(rabbitmqConnectionString)}"`
         );
         
         return updatedContent;
@@ -147,17 +161,17 @@ export class CrmHelper {
         // Обновляем настройки приложения
         updatedContent = updatedContent.replace(
             /<add key="UseStaticFileContent" value="[^"]*"/,
-            `<add key="UseStaticFileContent" value="false"`
+            () => `<add key="UseStaticFileContent" value="false"`
         );
         
         updatedContent = updatedContent.replace(
             /<fileDesignMode enabled="[^"]*"/,
-            `<fileDesignMode enabled="true"`
+            () => `<fileDesignMode enabled="true"`
         );
         
         updatedContent = updatedContent.replace(
             /<add key="CookiesSameSiteMode" value="[^"]*"/,
-            `<add key="CookiesSameSiteMode" value="Lax"`
+            () => `<add key="CookiesSameSiteMode" value="Lax"`
         );
         
         return updatedContent;
@@ -181,23 +195,23 @@ export class CrmHelper {
         // Заменяем строку подключения к PostgreSQL
         updatedContent = updatedContent.replace(
             /<add name="db" connectionString="[^"]*"/,
-            `<add name="db" connectionString="${postgresConnectionString}"`
+            () => `<add name="db" connectionString="${this.xmlAttr(postgresConnectionString)}"`
         );
         
         // Обновляем настройки приложения
         updatedContent = updatedContent.replace(
             /<add key="UseStaticFileContent" value="[^"]*"/,
-            `<add key="UseStaticFileContent" value="false"`
+            () => `<add key="UseStaticFileContent" value="false"`
         );
         
         updatedContent = updatedContent.replace(
             /<fileDesignMode enabled="[^"]*"/,
-            `<fileDesignMode enabled="true"`
+            () => `<fileDesignMode enabled="true"`
         );
         
         updatedContent = updatedContent.replace(
             /<add key="CookiesSameSiteMode" value="[^"]*"/,
-            `<add key="CookiesSameSiteMode" value="Lax"`
+            () => `<add key="CookiesSameSiteMode" value="Lax"`
         );
         
         return updatedContent;

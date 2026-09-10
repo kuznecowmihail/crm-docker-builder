@@ -30,6 +30,11 @@ export class ProjectHelper {
      */
     public async createProject(projectPath: string): Promise<InitProjectResult> {
         try {
+        const pathResult = await this.crmDockerBuilderValidatorHelper.validateProjectPath(projectPath);
+        if (!pathResult.success) {
+            return { success: false, projectConfig: null, message: pathResult.message };
+        }
+
         // Проверяем, существует ли папка
         const pathExists = await this.fileSystemHelper.pathExists(projectPath);
         
@@ -58,7 +63,7 @@ export class ProjectHelper {
 
         const configPath = path.join(projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG);
         const сonfig: ProjectConfig = {
-            projectName: path.basename(projectPath),
+            projectName: this.normalizeProjectName(path.basename(projectPath)),
             projectPath: projectPath,
             containerRuntime: 'docker',
             modifiedOn: new Date(),
@@ -122,10 +127,19 @@ export class ProjectHelper {
      */
     public async openProject(projectPath: string): Promise<InitProjectResult> {
         try {
+        const pathResult = await this.crmDockerBuilderValidatorHelper.validateProjectPath(projectPath);
+        if (!pathResult.success) {
+            return { success: false, projectConfig: null, message: pathResult.message };
+        }
+
         const configPath = path.join(projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG);
-        console.log(configPath);
         const config = await this.fileSystemHelper.readFile(configPath);
-        const projectConfig: ProjectConfig = JSON.parse(config);
+        const parsed: unknown = JSON.parse(config);
+        if (typeof parsed !== 'object' || parsed === null || !Array.isArray((parsed as ProjectConfig).crmConfigs)) {
+            return { success: false, projectConfig: null, message: 'Файл конфигурации проекта повреждён' };
+        }
+        const projectConfig: ProjectConfig = parsed as ProjectConfig;
+        projectConfig.projectPath = projectPath;
         if (!projectConfig.containerRuntime) {
             projectConfig.containerRuntime = 'docker';
         }
@@ -160,15 +174,22 @@ export class ProjectHelper {
         }
 
         const localProjectResult = await this.openProject(projectConfig.projectPath);
-        let localProjectConfig = localProjectResult.projectConfig;
+        const localProjectConfig = localProjectResult.projectConfig;
 
-        if (localProjectResult.success && localProjectConfig) {
-            localProjectConfig.projectName = projectConfig.projectName;
-            localProjectConfig.containerRuntime = projectConfig.containerRuntime;
-            localProjectConfig.modifiedOn = projectConfig.modifiedOn;
-            localProjectConfig.buildOn = projectConfig.buildOn;
-            localProjectConfig.runOn = projectConfig.runOn;
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
         }
+
+        localProjectConfig.projectName = projectConfig.projectName;
+        localProjectConfig.containerRuntime = projectConfig.containerRuntime;
+        localProjectConfig.modifiedOn = projectConfig.modifiedOn;
+        localProjectConfig.buildOn = projectConfig.buildOn;
+        localProjectConfig.runOn = projectConfig.runOn;
+
         await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
         return {
             success: true,
@@ -206,12 +227,19 @@ export class ProjectHelper {
         }
 
         const localProjectResult = await this.openProject(projectConfig.projectPath);
-        let localProjectConfig = localProjectResult.projectConfig;
+        const localProjectConfig = localProjectResult.projectConfig;
 
-        if (localProjectResult.success && localProjectConfig) {
-            localProjectConfig.postgresConfig = postgresConfig;
-            localProjectConfig.modifiedOn = new Date();
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
         }
+
+        localProjectConfig.postgresConfig = postgresConfig;
+        localProjectConfig.modifiedOn = new Date();
+
         await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
         return {
             success: true,
@@ -249,12 +277,19 @@ export class ProjectHelper {
         }
 
         const localProjectResult = await this.openProject(projectConfig.projectPath);
-        let localProjectConfig = localProjectResult.projectConfig;
+        const localProjectConfig = localProjectResult.projectConfig;
 
-        if (localProjectResult.success && localProjectConfig) {
-            localProjectConfig.pgAdminConfig = pgAdminConfig;
-            localProjectConfig.modifiedOn = new Date();
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
         }
+
+        localProjectConfig.pgAdminConfig = pgAdminConfig;
+        localProjectConfig.modifiedOn = new Date();
+
         await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
         return {
             success: true,
@@ -292,13 +327,20 @@ export class ProjectHelper {
         }
 
         const localProjectResult = await this.openProject(projectConfig.projectPath);
-        let localProjectConfig = localProjectResult.projectConfig;
+        const localProjectConfig = localProjectResult.projectConfig;
 
-        if (localProjectResult.success && localProjectConfig) {
-            localProjectConfig.redisConfig = redisConfig;
-            localProjectConfig.modifiedOn = new Date();
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
         }
-        await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectResult.projectConfig, null, 2));
+
+        localProjectConfig.redisConfig = redisConfig;
+        localProjectConfig.modifiedOn = new Date();
+
+        await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
         return {
             success: true,
             message: 'Настройки Redis успешно сохранены',
@@ -335,13 +377,20 @@ export class ProjectHelper {
         }
 
         const localProjectResult = await this.openProject(projectConfig.projectPath);
-        let localProjectConfig = localProjectResult.projectConfig;
+        const localProjectConfig = localProjectResult.projectConfig;
 
-        if (localProjectResult.success && localProjectConfig) {
-            localProjectConfig.rabbitmqConfig = rabbitmqConfig;
-            localProjectConfig.modifiedOn = new Date();
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
         }
-        await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectResult.projectConfig, null, 2));
+
+        localProjectConfig.rabbitmqConfig = rabbitmqConfig;
+        localProjectConfig.modifiedOn = new Date();
+
+        await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
         return {
             success: true,
             message: 'Настройки Rabbitmq успешно сохранены',
@@ -375,26 +424,33 @@ export class ProjectHelper {
         }
 
         const localProjectResult = await this.openProject(projectConfig.projectPath);
-        let localProjectConfig = localProjectResult.projectConfig;
+        const localProjectConfig = localProjectResult.projectConfig;
 
-        if (localProjectResult.success && localProjectConfig) {
-            let existsCrmConfig = localProjectConfig.crmConfigs.find(crm => crm.id === crmConfig.id);
-            if (existsCrmConfig) {
-                existsCrmConfig.containerName = crmConfig.containerName;
-                existsCrmConfig.port = crmConfig.port;
-                existsCrmConfig.volumePath = crmConfig.volumePath;
-                existsCrmConfig.appPath = crmConfig.appPath;
-                existsCrmConfig.backupPath = crmConfig.backupPath;
-                existsCrmConfig.redisDb = crmConfig.redisDb;
-                existsCrmConfig.dbType = crmConfig.dbType;
-                existsCrmConfig.netVersion = crmConfig.netVersion;
-                existsCrmConfig.crmType = crmConfig.crmType;
-                existsCrmConfig.runOn = crmConfig.runOn;
-            } else {
-                localProjectConfig.crmConfigs.push(crmConfig);
-            }
-            localProjectConfig.modifiedOn = new Date();
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
         }
+
+        let existsCrmConfig = localProjectConfig.crmConfigs.find(crm => crm.id === crmConfig.id);
+        if (existsCrmConfig) {
+            existsCrmConfig.containerName = crmConfig.containerName;
+            existsCrmConfig.port = crmConfig.port;
+            existsCrmConfig.volumePath = crmConfig.volumePath;
+            existsCrmConfig.appPath = crmConfig.appPath;
+            existsCrmConfig.backupPath = crmConfig.backupPath;
+            existsCrmConfig.redisDb = crmConfig.redisDb;
+            existsCrmConfig.dbType = crmConfig.dbType;
+            existsCrmConfig.netVersion = crmConfig.netVersion;
+            existsCrmConfig.crmType = crmConfig.crmType;
+            existsCrmConfig.runOn = crmConfig.runOn;
+        } else {
+            localProjectConfig.crmConfigs.push(crmConfig);
+        }
+        localProjectConfig.modifiedOn = new Date();
+
         await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
         return {
             success: true,
@@ -428,12 +484,19 @@ export class ProjectHelper {
         }
 
         const localProjectResult = await this.openProject(projectConfig.projectPath);
-        let localProjectConfig = localProjectResult.projectConfig;
+        const localProjectConfig = localProjectResult.projectConfig;
 
-        if (localProjectResult.success && localProjectConfig) {
-            localProjectConfig.crmConfigs = projectConfig.crmConfigs;
-            localProjectConfig.modifiedOn = new Date();
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
         }
+
+        localProjectConfig.crmConfigs = projectConfig.crmConfigs;
+        localProjectConfig.modifiedOn = new Date();
+
         await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
         return {
             success: true,
@@ -447,6 +510,39 @@ export class ProjectHelper {
             projectConfig: null,
             message: `Ошибка при сохранении настроек проекта (CRM): ${error instanceof Error ? error.message : String(error)}`
         };
+        }
+    }
+
+    /**
+     * Удаляет конфигурацию CRM из проекта (только из файла конфигурации)
+     * @param projectConfig - конфигурация проекта
+     * @param crmConfigId - идентификатор удаляемой CRM
+     * @returns результат удаления
+     */
+    public async deleteCrmSetting(projectConfig: ProjectConfig, crmConfigId: string): Promise<InitProjectResult> {
+        try {
+            if (typeof crmConfigId !== 'string' || !crmConfigId) {
+                return { success: false, projectConfig: null, message: 'Некорректный идентификатор CRM' };
+            }
+
+            const localProjectResult = await this.openProject(projectConfig.projectPath);
+            const localProjectConfig = localProjectResult.projectConfig;
+            if (!localProjectResult.success || !localProjectConfig) {
+                return { success: false, projectConfig: null, message: localProjectResult.message };
+            }
+
+            localProjectConfig.crmConfigs = localProjectConfig.crmConfigs.filter(crm => crm.id !== crmConfigId);
+            localProjectConfig.modifiedOn = new Date();
+
+            await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
+            return { success: true, message: 'Конфигурация CRM удалена', projectConfig: localProjectConfig };
+        }
+        catch (error) {
+            return {
+                success: false,
+                projectConfig: null,
+                message: `Ошибка при удалении CRM: ${error instanceof Error ? error.message : String(error)}`
+            };
         }
     }
 
@@ -476,6 +572,15 @@ export class ProjectHelper {
         console.error('Ошибка при создании папок проекта:', error);
         throw error;
       }
+    }
+
+    /**
+     * Нормализует имя проекта из имени папки
+     * @param basename - имя папки проекта
+     * @returns нормализованное имя проекта
+     */
+    private normalizeProjectName(basename: string): string {
+      return basename.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/^[^a-z0-9]+/, '').slice(0, 63) || 'project';
     }
 
     /**

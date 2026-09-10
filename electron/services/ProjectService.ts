@@ -63,5 +63,10 @@ export class ProjectService implements IService {
     ipcMain.handle(ConstantValues.IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTINGS, async (event, projectConfig: ProjectConfig) => {
       return await this.helper.saveCrmSettings(projectConfig);
     });
+
+    // Удаление настроек CRM
+    ipcMain.handle(ConstantValues.IPC_CHANNELS.PROJECT_SYSTEM.DELETE_CRM_SETTING, async (event, projectConfig: ProjectConfig, crmConfigId: string) => {
+      return await this.helper.deleteCrmSetting(projectConfig, crmConfigId);
+    });
   }
 }

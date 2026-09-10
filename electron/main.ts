@@ -1,15 +1,14 @@
 import { app } from 'electron';
-import * as path from 'path';
-import * as fs from 'fs';
 import { AppManager } from './services/AppManager';
+import { getAppIconPath, getAppRootPath } from './helpers/AssetPathHelper';
 
 // Функция для установки иконки приложения
 function setAppIcon() {
-  const iconPath = path.join(process.cwd(), 'electron', 'assets', 'icons', 'icon-512x512.png');
+  const iconPath = getAppIconPath();
   console.log('🎨 Установка иконки приложения...');
   console.log('📁 iconPath:', iconPath);
 
-  if (fs.existsSync(iconPath)) {
+  if (iconPath) {
     console.log(`✅ Устанавливаем иконку приложения: ${iconPath}`);
     app.setAppUserModelId('com.crm-docker-builder.app');
     
@@ -21,7 +20,7 @@ function setAppIcon() {
   }
 }
 
-console.log('📁 Текущая директория:', process.cwd());
+console.log('📁 Корень приложения:', getAppRootPath());
 console.log('📁 __dirname:', __dirname);
 console.log('🖥️  Платформа:', process.platform);
 

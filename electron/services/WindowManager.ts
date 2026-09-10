@@ -2,6 +2,7 @@ import { BrowserWindow, type BrowserWindowConstructorOptions } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ConstantValues } from '../config/constants';
+import { getAppIconPath, getAppRootPath, getProductionIndexPath } from '../helpers/AssetPathHelper';
 
 // Сервис для работы с окнами
 export class WindowManager {
@@ -17,9 +18,9 @@ export class WindowManager {
   private getIconPath(): string | undefined {
     console.log('🔍 Поиск иконки приложения...');
 
-    const iconPath = path.join(process.cwd(), 'electron', 'assets', 'icons', 'icon-512x512.png');
-    
-    if (fs.existsSync(iconPath)) {
+    const iconPath = getAppIconPath();
+
+    if (iconPath) {
       console.log(`✅ Иконка найдена: ${iconPath}`);
       return iconPath;
     }
@@ -41,6 +42,10 @@ export class WindowManager {
         nodeIntegration: false,
         contextIsolation: true,
         preload: path.join(__dirname, ConstantValues.PATHS.preload),
+        sandbox: true,
+        webSecurity: true,
+        allowRunningInsecureContent: false,
+        navigateOnDragDrop: false,
       },
     };
 
@@ -53,11 +58,96 @@ export class WindowManager {
   }
 
   /**
+   * Экранирует спецсимволы HTML для безопасного вывода в data-странице
+   * @param value - исходная строка
+   * @returns - экранированная строка
+   */
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Проверяет, разрешена ли навигация по указанному URL
+   * @param url - URL для проверки
+   * @returns - true, если навигация разрешена
+   */
+  private isAllowedNavigation(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'file:') {
+        return true;
+      }
+      if (
+        process.env.NODE_ENV === 'development' &&
+        parsed.origin === new URL(ConstantValues.DEV_SERVER_URL).origin
+      ) {
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Блокирует небезопасную навигацию и открытие новых окон
+   * @param window - окно BrowserWindow
+   */
+  private hardenWebContents(window: BrowserWindow): void {
+    const { webContents } = window;
+    webContents.setWindowOpenHandler(({ url }) => {
+      console.warn(`🚫 Заблокировано открытие окна: ${url}`);
+      return { action: 'deny' };
+    });
+    webContents.on('will-navigate', (event, url) => {
+      if (!this.isAllowedNavigation(url)) {
+        console.warn(`🚫 Заблокирована навигация: ${url}`);
+        event.preventDefault();
+      }
+    });
+    webContents.on('will-attach-webview', (event) => event.preventDefault());
+  }
+
+  /**
+   * Генерирует HTML fallback-страницы при ошибке загрузки приложения
+   * @param appPath - путь к index.html
+   * @returns - HTML-разметка страницы ошибки
+   */
+  private buildErrorPageHtml(appPath: string): string {
+    const escapedAppPath = this.escapeHtml(appPath);
+    const escapedAppRoot = this.escapeHtml(getAppRootPath());
+    const escapedDirname = this.escapeHtml(__dirname);
+    const escapedResourcesPath = this.escapeHtml(process.resourcesPath || 'undefined');
+    const escapedNodeEnv = this.escapeHtml(process.env.NODE_ENV || 'undefined');
+
+    return `<html>
+      <head><title>Ошибка загрузки</title></head>
+      <body>
+        <p>Не удалось найти файл: <code>${escapedAppPath}</code></p>
+        <p><strong>Отладочная информация:</strong></p>
+        <ul>
+          <li>app root: ${escapedAppRoot}</li>
+          <li>__dirname: ${escapedDirname}</li>
+          <li>process.resourcesPath: ${escapedResourcesPath}</li>
+          <li>NODE_ENV: ${escapedNodeEnv}</li>
+        </ul>
+        <p>Убедитесь, что Angular приложение было собрано корректно.</p>
+      </body>
+    </html>`;
+  }
+
+  /**
    * Создать главное окно
    * @returns - главное окно
    */
   public createMainWindow(): BrowserWindow {
     this.mainWindow = new BrowserWindow(this.createWindowConfig());
+    this.hardenWebContents(this.mainWindow);
 
     // Дополнительно устанавливаем иконку для окна
     const iconPath = this.getIconPath();
@@ -74,66 +164,16 @@ export class WindowManager {
       this.mainWindow.loadURL(ConstantValues.DEV_SERVER_URL);
       this.mainWindow.webContents.openDevTools();
     } else {
-      // В продакшене загружаем собранное Angular приложение
-      let appPath: string;
-      const defaultAppPath = path.join(process.cwd(), ConstantValues.PATHS.productionApp);
-      const resourcesAppPath = path.join(process.resourcesPath, 'app', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html');
-      console.log('defaultAppPath', defaultAppPath);
-      console.log('resourcesAppPath', resourcesAppPath);
-      
-      // Проверяем, запущено ли приложение из упакованного exe
-      if (process.env.NODE_ENV === 'production' || (process.resourcesPath && fs.existsSync(resourcesAppPath))) {
-        // В упакованном приложении используем ресурсы
-        appPath = resourcesAppPath;
-        console.log('📦 Упакованное приложение, путь к ресурсам:', process.resourcesPath);
-      } else {
-        // В режиме разработки используем обычный путь
-        appPath = defaultAppPath;
-      }
-      
+      const appPath = getProductionIndexPath();
       console.log('📁 Загружаем Angular приложение:', appPath);
-      
-      // Проверяем существование файла
+
       if (fs.existsSync(appPath)) {
         console.log('✅ Файл index.html найден');
-        
-        // Используем file:// протокол для загрузки локального файла
-        const fileUrl = `file://${appPath.replace(/\\/g, '/')}`;
-        console.log('🔗 URL для загрузки:', fileUrl);
-        
-        this.mainWindow.loadURL(fileUrl);
+        this.mainWindow.loadFile(appPath);
       } else {
         console.error('❌ Файл index.html не найден:', appPath);
-        
-        // Попробуем альтернативные пути
-        const alternativePaths = [
-          path.join(process.cwd(), 'angular-app', 'dist', 'angular-app', 'browser', 'index.html'),
-          path.join(__dirname, '..', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html'),
-          path.join(process.resourcesPath || '', 'app', 'angular-app', 'dist', 'angular-app', 'browser', 'index.html')
-        ];
-        
-        console.log('🔍 Проверяем альтернативные пути:');
-        for (const altPath of alternativePaths) {
-          console.log(`  - ${altPath}: ${fs.existsSync(altPath) ? '✅' : '❌'}`);
-        }
-        
-        // Показываем ошибку пользователю с дополнительной информацией
-        this.mainWindow.loadURL(`data:text/html,
-          <html>
-            <head><title>Ошибка загрузки</title></head>
-            <body">
-              <p>Не удалось найти файл: <code>${appPath}</code></p>
-              <p><strong>Отладочная информация:</strong></p>
-              <ul>
-                <li>process.cwd(): ${process.cwd()}</li>
-                <li>__dirname: ${__dirname}</li>
-                <li>process.resourcesPath: ${process.resourcesPath || 'undefined'}</li>
-                <li>NODE_ENV: ${process.env.NODE_ENV || 'undefined'}</li>
-              </ul>
-              <p>Убедитесь, что Angular приложение было собрано корректно.</p>
-            </body>
-          </html>
-        `);
+        console.log(`🔍 appPath: ${appPath}, process.resourcesPath: ${process.resourcesPath}`);
+        this.mainWindow.loadURL(`data:text/html,${this.buildErrorPageHtml(appPath)}`);
       }
     }
 

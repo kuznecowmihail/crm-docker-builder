@@ -1,7 +1,16 @@
 import * as path from 'path';
+import * as os from 'os';
+import { promises as fsPromises } from 'fs';
 import { BaseContainerConfig, CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig, ValidateCrmResult, ValidateProjectResult } from '@shared/api';
 import { FileSystemHelper } from './FileSystemHelper';
 import { ConstantValues } from '../config/constants';
+
+const CONTAINER_NAME_REGEX = /^[a-z][a-z0-9_]{0,62}$/;
+const PROJECT_NAME_REGEX = /^[a-z0-9][a-z0-9_-]{0,62}$/;
+const USER_NAME_REGEX = /^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/;
+const PASSWORD_REGEX = /^[A-Za-z0-9!#%&()*+,\-./:<>?@\[\]^_{|}~]{1,128}$/;
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+const IMAGE_NAME_REGEX = /^[a-z0-9]+(?:[._-][a-z0-9]+)*(?:\/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9._-]{0,127})?(?:@sha256:[a-f0-9]{64})?$/;
 
 // Помощник для работы с CRM Docker Builder Validator
 export class CrmDockerBuilderValidator {
@@ -18,31 +27,139 @@ export class CrmDockerBuilderValidator {
   }
 
   /**
-   * Проверяет, существует ли конфигурация контейнера
-   * @param containerConfig - конфигурация контейнера
+   * Проверяет, является ли значение допустимым портом
+   * @param v - значение порта
+   * @returns true, если порт допустим
+   */
+  private isValidPort(v: unknown): boolean {
+    return Number.isInteger(v) && (v as number) >= 1 && (v as number) <= 65535;
+  }
+
+  /**
+   * Возвращает результат неуспешной валидации
+   * @param message - сообщение об ошибке
    * @returns результат проверки
    */
-  private async validateBaseContainerSettings(containerConfig: BaseContainerConfig): Promise<ValidateProjectResult> {
-    let result: ValidateProjectResult = {
-      success: true,
-      message: 'Все настройки корректны'
-    };
-    // Проверяем, существует ли название контейнера
-    if (!containerConfig.containerName) {
-      result.success = false;
-      result.message = 'Название контейнера Postgres не может быть пустым';
+  private fail(message: string): ValidateProjectResult {
+    return { success: false, message };
+  }
+
+  /**
+   * Возвращает результат успешной валидации
+   * @returns результат проверки
+   */
+  private ok(): ValidateProjectResult {
+    return { success: true, message: 'Все настройки корректны' };
+  }
+
+  /**
+   * Возвращает список запрещённых корневых директорий для пути проекта
+   * @returns массив абсолютных путей
+   */
+  private getForbiddenRoots(): string[] {
+    if (process.platform === 'win32') {
+      return [
+        process.env.SystemRoot,
+        process.env.ProgramFiles,
+        process.env['ProgramFiles(x86)'],
+        process.env.ProgramData,
+        (process.env.SystemDrive ?? 'C:') + path.sep,
+      ]
+        .filter((root): root is string => Boolean(root))
+        .map((root) => path.resolve(root));
     }
-    // Проверяем, существует ли порт
-    if (!containerConfig.port) {
-      result.success = false;
-      result.message = 'Порт не может быть пустым';
+    return ['/', '/etc', '/usr', '/bin', '/sbin', '/var', '/System', '/Library', '/Applications', '/private'].map(
+      (root) => path.resolve(root)
+    );
+  }
+
+  /**
+   * Проверяет, указывает ли путь на системную директорию
+   * @param resolved - абсолютный путь к проекту
+   * @returns true, если путь запрещён
+   */
+  private isSystemDirectory(resolved: string): boolean {
+    const forbiddenRoots = this.getForbiddenRoots();
+    return forbiddenRoots.some(
+      (root) => this.fileSystemHelper.isPathInside(resolved, root)
+    );
+  }
+
+  /**
+   * Проверяет существование и тип директории проекта
+   * @param resolved - абсолютный путь к проекту
+   * @returns результат проверки
+   */
+  private async validateProjectDirectoryExists(resolved: string): Promise<ValidateProjectResult> {
+    try {
+      const stat = await fsPromises.stat(resolved);
+      if (!stat.isDirectory()) {
+        return this.fail('Папка проекта не существует');
+      }
+      return this.ok();
+    } catch {
+      return this.fail('Папка проекта не существует');
     }
-    // Проверяем, существует ли путь к папке
-    if (!containerConfig.volumePath) {
-      result.success = false;
-      result.message = 'Путь к папке не может быть пустым';
+  }
+
+  /**
+   * Проверяет путь к проекту
+   * @param projectPath - путь к папке проекта
+   * @returns результат проверки
+   */
+  public async validateProjectPath(projectPath: string): Promise<ValidateProjectResult> {
+    if (typeof projectPath !== 'string' || !projectPath) {
+      return this.fail('Путь к проекту не может быть пустым');
     }
-    return result;
+    if (!path.isAbsolute(projectPath)) {
+      return this.fail('Путь к проекту должен быть абсолютным');
+    }
+    if (projectPath.split(/[\\/]+/).includes('..')) {
+      return this.fail('Путь к проекту не должен содержать ".."');
+    }
+
+    const resolved = path.resolve(projectPath);
+    if (this.fileSystemHelper.isSamePath(resolved, os.homedir())) {
+      return this.fail('Путь к проекту не может быть домашней директорией пользователя');
+    }
+    if (this.isSystemDirectory(resolved)) {
+      return this.fail('Путь к проекту указывает на системную директорию');
+    }
+
+    return await this.validateProjectDirectoryExists(resolved);
+  }
+
+  /**
+   * Проверяет базовые настройки контейнера
+   * @param containerConfig - конфигурация контейнера
+   * @param projectPath - путь к папке проекта
+   * @returns результат проверки
+   */
+  private async validateBaseContainerSettings(
+    containerConfig: BaseContainerConfig,
+    projectPath: string
+  ): Promise<ValidateProjectResult> {
+    const { containerName, port, volumePath } = containerConfig;
+
+    if (!containerName) {
+      return this.fail('Название контейнера не может быть пустым');
+    }
+    if (!CONTAINER_NAME_REGEX.test(containerName)) {
+      return this.fail(
+        `Название контейнера "${containerName}" некорректно: допустимы только строчные латинские буквы, цифры и "_", первый символ — буква, не более 63 символов`
+      );
+    }
+    if (!this.isValidPort(port)) {
+      return this.fail('Порт должен быть целым числом от 1 до 65535');
+    }
+    if (!volumePath) {
+      return this.fail('Путь к папке не может быть пустым');
+    }
+    if (!path.isAbsolute(volumePath) || !this.fileSystemHelper.isPathInside(volumePath, projectPath)) {
+      return this.fail('Путь к папке должен быть абсолютным и находиться внутри папки проекта');
+    }
+
+    return this.ok();
   }
 
   /**
@@ -51,35 +168,19 @@ export class CrmDockerBuilderValidator {
    * @returns результат проверки
    */
   public async validateGeneralProjectSettings(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
-    let result: ValidateProjectResult = {
-      success: true,
-      message: 'Все настройки корректны'
-    };
-    // Проверяем, существует ли название проекта
     if (!projectConfig.projectName) {
-      result.success = false;
-      result.message = 'Название проекта не может быть пустым';
+      return this.fail('Название проекта не может быть пустым');
     }
-
-    // Проверяем, существует ли путь к проекту
-    if (!projectConfig.projectPath) {
-      result.success = false;
-      result.message = 'Путь к проекту не может быть пустым';
+    if (!PROJECT_NAME_REGEX.test(projectConfig.projectName)) {
+      return this.fail(
+        `Название проекта "${projectConfig.projectName}" некорректно: допустимы строчные латинские буквы, цифры, "-" и "_", первый символ — буква или цифра`
+      );
     }
-
-    // Проверяем движок контейнеров
     if (!projectConfig.containerRuntime || !['docker', 'podman'].includes(projectConfig.containerRuntime)) {
-      result.success = false;
-      result.message = 'Движок контейнеров должен быть docker или podman';
+      return this.fail('Движок контейнеров должен быть docker или podman');
     }
 
-    // Проверяем, существует ли папка
-    const pathExists = await this.fileSystemHelper.pathExists(projectConfig.projectPath);
-    if (!pathExists) {
-      result.success = false;
-      result.message = 'Папка не существует';
-    }
-    return result;
+    return await this.validateProjectPath(projectConfig.projectPath);
   }
 
   /**
@@ -88,19 +189,27 @@ export class CrmDockerBuilderValidator {
    * @param postgresConfig - конфигурация Postgres
    * @returns результат проверки
    */
-  public async validatePostgresSettings(projectConfig: ProjectConfig, postgresConfig: PostgresConfig): Promise<ValidateProjectResult> {
-    let result = await this.validateBaseContainerSettings(postgresConfig);
-    // Проверяем, существует ли имя пользователя
-    if (!projectConfig.postgresConfig.user) {
-      result.success = false;
-      result.message = 'Имя пользователя не может быть пустым';
+  public async validatePostgresSettings(
+    projectConfig: ProjectConfig,
+    postgresConfig: PostgresConfig
+  ): Promise<ValidateProjectResult> {
+    const baseResult = await this.validateBaseContainerSettings(postgresConfig, projectConfig.projectPath);
+    if (!baseResult.success) {
+      return baseResult;
     }
-    // Проверяем, существует ли пароль
-    if (!projectConfig.postgresConfig.password) {
-      result.success = false;
-      result.message = 'Пароль не может быть пустым';
+    if (!postgresConfig.user || !USER_NAME_REGEX.test(postgresConfig.user)) {
+      return this.fail('Имя пользователя некорректно: латинские буквы, цифры и "_", первый символ — буква или "_"');
     }
-    return result;
+    if (!postgresConfig.password || !PASSWORD_REGEX.test(postgresConfig.password)) {
+      return this.fail(
+        'Пароль некорректен: 1–128 символов, только латинские буквы, цифры и символы !#%&()*+,-./:<>?@[]^_{|}~ (без пробелов, кавычек, ";", "=", "$", "\\", "`")'
+      );
+    }
+    if (!IMAGE_NAME_REGEX.test(postgresConfig.dockerImageName)) {
+      return this.fail('Имя Docker-образа некорректно');
+    }
+
+    return this.ok();
   }
 
   /**
@@ -109,19 +218,24 @@ export class CrmDockerBuilderValidator {
    * @param pgAdminConfig - конфигурация PgAdmin
    * @returns результат проверки
    */
-  public async validatePgAdminSettings(projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig): Promise<ValidateProjectResult> {
-    let result = await this.validateBaseContainerSettings(pgAdminConfig);
-    // Проверяем, существует ли email
-    if (!projectConfig.pgAdminConfig.email) {
-      result.success = false;
-      result.message = 'Email не может быть пустым';
+  public async validatePgAdminSettings(
+    projectConfig: ProjectConfig,
+    pgAdminConfig: PgAdminConfig
+  ): Promise<ValidateProjectResult> {
+    const baseResult = await this.validateBaseContainerSettings(pgAdminConfig, projectConfig.projectPath);
+    if (!baseResult.success) {
+      return baseResult;
     }
-    // Проверяем, существует ли пароль
-    if (!projectConfig.pgAdminConfig.password) {
-      result.success = false;
-      result.message = 'Пароль не может быть пустым';
+    if (!pgAdminConfig.email || !EMAIL_REGEX.test(pgAdminConfig.email)) {
+      return this.fail('Email некорректен');
     }
-    return result;
+    if (!pgAdminConfig.password || !PASSWORD_REGEX.test(pgAdminConfig.password)) {
+      return this.fail(
+        'Пароль некорректен: 1–128 символов, только латинские буквы, цифры и символы !#%&()*+,-./:<>?@[]^_{|}~ (без пробелов, кавычек, ";", "=", "$", "\\", "`")'
+      );
+    }
+
+    return this.ok();
   }
 
   /**
@@ -130,19 +244,24 @@ export class CrmDockerBuilderValidator {
    * @param redisConfig - конфигурация Redis
    * @returns результат проверки
    */
-  public async validateRedisSettings(projectConfig: ProjectConfig, redisConfig: RedisConfig): Promise<ValidateProjectResult> {
-    let result = await this.validateBaseContainerSettings(redisConfig);
-    // Проверяем, существует ли пароль
-    if (!projectConfig.redisConfig.password) {
-      result.success = false;
-      result.message = 'Пароль не может быть пустым';
+  public async validateRedisSettings(
+    projectConfig: ProjectConfig,
+    redisConfig: RedisConfig
+  ): Promise<ValidateProjectResult> {
+    const baseResult = await this.validateBaseContainerSettings(redisConfig, projectConfig.projectPath);
+    if (!baseResult.success) {
+      return baseResult;
     }
-    // Проверяем, существует ли количество баз данных
-    if (!projectConfig.redisConfig.dbCount) {
-      result.success = false;
-      result.message = 'Количество баз данных не может быть пустым';
+    if (!redisConfig.password || !PASSWORD_REGEX.test(redisConfig.password)) {
+      return this.fail(
+        'Пароль некорректен: 1–128 символов, только латинские буквы, цифры и символы !#%&()*+,-./:<>?@[]^_{|}~ (без пробелов, кавычек, ";", "=", "$", "\\", "`")'
+      );
     }
-    return result;
+    if (!Number.isInteger(redisConfig.dbCount) || redisConfig.dbCount < 1 || redisConfig.dbCount > 16384) {
+      return this.fail('Количество баз данных должно быть целым числом от 1 до 16384');
+    }
+
+    return this.ok();
   }
 
   /**
@@ -151,19 +270,27 @@ export class CrmDockerBuilderValidator {
    * @param rabbitmqConfig - конфигурация Rabbitmq
    * @returns результат проверки
    */
-  public async validateRabbitmqSettings(projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig): Promise<ValidateProjectResult> {
-    let result = await this.validateBaseContainerSettings(rabbitmqConfig);
-    // Проверяем, существует ли пароль
-    if (!projectConfig.rabbitmqConfig.user) {
-      result.success = false;
-      result.message = 'Имя пользователя не может быть пустым';
+  public async validateRabbitmqSettings(
+    projectConfig: ProjectConfig,
+    rabbitmqConfig: RabbitmqConfig
+  ): Promise<ValidateProjectResult> {
+    const baseResult = await this.validateBaseContainerSettings(rabbitmqConfig, projectConfig.projectPath);
+    if (!baseResult.success) {
+      return baseResult;
     }
-    // Проверяем, существует ли пароль
-    if (!projectConfig.rabbitmqConfig.password) {
-      result.success = false;
-      result.message = 'Пароль пользователя не может быть пустым';
+    if (!rabbitmqConfig.user || !USER_NAME_REGEX.test(rabbitmqConfig.user)) {
+      return this.fail('Имя пользователя некорректно: латинские буквы, цифры и "_", первый символ — буква или "_"');
     }
-    return result;
+    if (!rabbitmqConfig.password || !PASSWORD_REGEX.test(rabbitmqConfig.password)) {
+      return this.fail(
+        'Пароль некорректен: 1–128 символов, только латинские буквы, цифры и символы !#%&()*+,-./:<>?@[]^_{|}~ (без пробелов, кавычек, ";", "=", "$", "\\", "`")'
+      );
+    }
+    if (!this.isValidPort(rabbitmqConfig.amqpPort)) {
+      return this.fail('AMQP-порт должен быть целым числом от 1 до 65535');
+    }
+
+    return this.ok();
   }
 
   /**
@@ -173,75 +300,40 @@ export class CrmDockerBuilderValidator {
    * @returns результат проверки
    */
   public async validateCrmSetting(projectConfig: ProjectConfig, crmConfig: CrmConfig): Promise<ValidateProjectResult> {
-    let generalResult = await this.validateBaseContainerSettings(crmConfig);
+    const generalResult = await this.validateBaseContainerSettings(crmConfig, projectConfig.projectPath);
     if (!generalResult.success) {
       return generalResult;
     }
-    // Проверяем, существует ли путь к папке
     if (!crmConfig.appPath) {
-      return {
-        success: false,
-        message: 'Путь к папке приложения не может быть пустым'
-      };
+      return this.fail('Путь к папке приложения не может быть пустым');
     }
-    // Проверяем, существует ли путь к папке
     if (!crmConfig.backupPath) {
-      return {
-        success: false,
-        message: 'Путь к папке резервных копий не может быть пустым'
-      };
+      return this.fail('Путь к папке резервных копий не может быть пустым');
     }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.redisDb) {
-      return {
-        success: false,
-        message: 'Номер базы данных не может быть пустым'
-      };
+    if (!Number.isInteger(crmConfig.redisDb) || crmConfig.redisDb < 0) {
+      return this.fail('Номер базы данных Redis должен быть целым числом ≥ 0');
     }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.dbType) {
-      return {
-        success: false,
-        message: 'Тип базы данных не может быть пустым'
-      };
+    if (!ConstantValues.DB_TYPES.includes(crmConfig.dbType)) {
+      return this.fail('Недопустимый тип базы данных');
     }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.netVersion) {
-      return {
-        success: false,
-        message: 'Версия .NET не может быть пустой'
-      };
+    if (!ConstantValues.NET_VERSIONS.includes(crmConfig.netVersion)) {
+      return this.fail('Недопустимая версия .NET');
     }
-    // Проверяем, существует ли путь к папке
-    if (!crmConfig.crmType) {
-      return {
-        success: false,
-        message: 'Тип CRM не может быть пустым'
-      };
+    if (!ConstantValues.CRM_TYPES.includes(crmConfig.crmType)) {
+      return this.fail('Недопустимый тип CRM');
     }
 
-    // Проверяем, существует ли путь к папке
     const appPathResult = await this.validateAppPath(projectConfig.projectPath, crmConfig.appPath);
     if (!appPathResult.success) {
-      return {
-        success: false,
-        message: appPathResult.message
-      };
+      return appPathResult;
     }
 
-    // Проверяем, существует ли файл резервных копий
     const backupPathResult = await this.validateBackupPath(crmConfig.backupPath);
     if (!backupPathResult.success) {
-      return {
-        success: false,
-        message: backupPathResult.message
-      };
+      return backupPathResult;
     }
 
-    return {
-      success: true,
-      message: 'Все настройки корректны'
-    };
+    return this.ok();
   }
 
   /**
@@ -250,60 +342,37 @@ export class CrmDockerBuilderValidator {
    * @returns результат проверки
    */
   public async validateAppPath(projectPath: string, appPath: string): Promise<ValidateProjectResult> {
-    let result: ValidateProjectResult = {
-      success: true,
-      message: 'Все настройки корректны'
-    };
-
-    // Проверяем, что appPath не пустой
     if (!appPath) {
-      result.success = false;
-      result.message = 'Путь к приложению не может быть пустым';
-      return result;
+      return this.fail('Путь к приложению не может быть пустым');
     }
 
-    // Проверяем, существует ли папка приложения
     const appPathExists = await this.fileSystemHelper.pathExists(appPath);
     if (!appPathExists) {
-      result.success = false;
-      result.message = 'Папка приложения не существует';
-      return result;
+      return this.fail('Папка приложения не существует');
     }
 
-    // Проверяем, что appPath находится внутри projectPath
     if (!this.fileSystemHelper.isPathInside(appPath, path.join(projectPath, ConstantValues.FOLDER_NAMES.CRM_VOLUMES))) {
-      result.success = false;
-      result.message = 'Папка приложения должна находиться внутри папки проекта';
-      return result;
+      return this.fail('Папка приложения должна находиться внутри папки проекта');
     }
 
-    // Проверяем, существует ли файлы в папке
     const files = await this.fileSystemHelper.getFilesInDirectory(appPath);
     if (files.length === 0) {
-      result.success = false;
-      result.message = 'Папка приложения пуста';
-      return result;
+      return this.fail('Папка приложения пуста');
     }
 
     if (!files.includes('appsettings.json')) {
-      result.success = false;
-      result.message = 'Файл appsettings.json не найден';
-      return result;
+      return this.fail('Файл appsettings.json не найден');
     }
 
     if (!files.includes('ConnectionStrings.config')) {
-      result.success = false;
-      result.message = 'Файл ConnectionStrings.config не найден';
-      return result;
+      return this.fail('Файл ConnectionStrings.config не найден');
     }
 
     if (!files.includes('Terrasoft.WebHost.dll.config') && !files.includes('BPMSoft.WebHost.dll.config')) {
-      result.success = false;
-      result.message = 'Файл Terrasoft.WebHost.dll.config или BPMSoft.WebHost.dll.config не найден';
-      return result;
+      return this.fail('Файл Terrasoft.WebHost.dll.config или BPMSoft.WebHost.dll.config не найден');
     }
 
-    return result;
+    return this.ok();
   }
 
   /**
@@ -312,23 +381,16 @@ export class CrmDockerBuilderValidator {
    * @returns результат проверки
    */
   public async validateBackupPath(backupPath: string): Promise<ValidateProjectResult> {
-    let result: ValidateProjectResult = {
-      success: true,
-      message: 'Все настройки корректны'
-    };
-    // Проверяем, существует ли файл резервных копий
     const backupPathExists = await this.fileSystemHelper.pathExists(backupPath);
     if (!backupPathExists) {
-      result.success = false;
-      result.message = 'Файл резервных копий не существует';
+      return this.fail('Файл резервных копий не существует');
     }
 
-    // Проверяем, существует ли файл резервных копий
     if (backupPath && !backupPath.endsWith('.backup')) {
-      result.success = false;
-      result.message = 'Файл резервных копий должен иметь расширение .backup';
+      return this.fail('Файл резервных копий должен иметь расширение .backup');
     }
-    return result;
+
+    return this.ok();
   }
 
   /**
@@ -343,10 +405,11 @@ export class CrmDockerBuilderValidator {
       crmConfig: null
     };
     if (!projectConfig.crmConfigs.length) {
-      result.success = false;
-      result.message = 'Конфигурация CRM не найдена';
-
-      return result;
+      return {
+        success: false,
+        message: 'Конфигурация CRM не найдена',
+        crmConfig: null
+      };
     }
 
     for (const crmConfig of projectConfig.crmConfigs) {
@@ -424,10 +487,7 @@ export class CrmDockerBuilderValidator {
 
     onLogCallback?.(`[CrmDockerBuilderValidator] Все настройки корректны`);
 
-    return {
-      success: true,
-      message: 'Все настройки корректны'
-    };
+    return this.ok();
   }
 
   /**
@@ -437,22 +497,15 @@ export class CrmDockerBuilderValidator {
    * @returns результат проверки
    */
   private async validateRedisDb(projectConfig: ProjectConfig, redisDb: number): Promise<ValidateProjectResult> {
-    let result: ValidateProjectResult = {
-      success: true,
-      message: 'Все настройки корректны'
-    };
-    
-    if (!redisDb) {
-      result.success = false;
-      result.message = 'Номер базы данных не может быть пустым';
+    if (!Number.isInteger(redisDb) || redisDb < 0) {
+      return this.fail('Номер базы данных Redis должен быть целым числом ≥ 0');
     }
 
-    if (redisDb > projectConfig.redisConfig.dbCount) {
-      result.success = false;
-      result.message = 'Номер базы данных не может быть больше количества баз данных';
+    if (redisDb >= projectConfig.redisConfig.dbCount) {
+      return this.fail('Номер базы данных должен быть меньше количества баз данных Redis');
     }
 
-    return result;
+    return this.ok();
   }
 
   /**
@@ -461,23 +514,16 @@ export class CrmDockerBuilderValidator {
    * @returns результат проверки
    */
   private async validateCommonRedisDb(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
-    let result: ValidateProjectResult = {
-      success: true,
-      message: 'Все настройки корректны'
-    };
     const redisDbSet = new Set<number>();
     
     for (const crmConfig of projectConfig.crmConfigs) {
       if (redisDbSet.has(crmConfig.redisDb)) {
-        result.success = false;
-        result.message = `Номер базы данных Redis должен быть уникальным для CRM: ${crmConfig.containerName}`;
-        
-        return result;
+        return this.fail(`Номер базы данных Redis должен быть уникальным для CRM: ${crmConfig.containerName}`);
       }
       redisDbSet.add(crmConfig.redisDb);
     }
 
-    return result;
+    return this.ok();
   }
 
   /**
@@ -486,59 +532,35 @@ export class CrmDockerBuilderValidator {
    * @returns результат проверки
    */
   private async validateCommonPort(projectConfig: ProjectConfig): Promise<ValidateProjectResult> {
-    let result: ValidateProjectResult = {
-      success: true,
-      message: 'Все настройки корректны'
-    };
     const portSet = new Set<number>();
 
     if (portSet.has(projectConfig.postgresConfig.port)) {
-      result.success = false;
-      result.message = `Порт должен быть уникальным для Postgres: ${projectConfig.postgresConfig.containerName}`;
-      return result;
+      return this.fail(`Порт должен быть уникальным для Postgres: ${projectConfig.postgresConfig.containerName}`);
     } 
     portSet.add(projectConfig.postgresConfig.port);
 
     if (portSet.has(projectConfig.pgAdminConfig.port)) {
-      result.success = false;
-      result.message = `Порт должен быть уникальным для PgAdmin: ${projectConfig.pgAdminConfig.containerName}`;
-      return result;
+      return this.fail(`Порт должен быть уникальным для PgAdmin: ${projectConfig.pgAdminConfig.containerName}`);
     }
     portSet.add(projectConfig.pgAdminConfig.port);
 
     if (portSet.has(projectConfig.redisConfig.port)) {
-      result.success = false;
-      result.message = `Порт должен быть уникальным для Redis: ${projectConfig.redisConfig.containerName}`;
-      return result;
+      return this.fail(`Порт должен быть уникальным для Redis: ${projectConfig.redisConfig.containerName}`);
     }
     portSet.add(projectConfig.redisConfig.port);
 
-    
     if (portSet.has(projectConfig.rabbitmqConfig.port)) {
-      result.success = false;
-      result.message = `Порт должен быть уникальным для Rabbitmq: ${projectConfig.rabbitmqConfig.containerName}`;
-      return result;
+      return this.fail(`Порт должен быть уникальным для Rabbitmq: ${projectConfig.rabbitmqConfig.containerName}`);
     }
     portSet.add(projectConfig.rabbitmqConfig.port);
     
     for (const crmConfig of projectConfig.crmConfigs) {
       if (portSet.has(crmConfig.port)) {
-        result.success = false;
-        result.message = `Порт должен быть уникальным для CRM: ${crmConfig.containerName}`;
-        
-        return result;
+        return this.fail(`Порт должен быть уникальным для CRM: ${crmConfig.containerName}`);
       }
       portSet.add(crmConfig.port);
     }
 
-    return result;
-  }
-
-  /**
-   * Генерирует уникальный идентификатор
-   * @returns уникальный идентификатор
-   */
-  private generateId(): string {
-    return crypto.randomUUID();
+    return this.ok();
   }
 }

@@ -26,12 +26,6 @@ export const ConstantValues: Constants = {
     NOTIFICATION: {
       SHOW: 'notification:show',
     },
-    FILE_SYSTEM: {
-      READ_FILE: 'fs:read-file',
-      WRITE_FILE: 'fs:write-file',
-      FILE_EXISTS: 'fs:file-exists',
-      CREATE_DIR: 'fs:create-dir',
-    },
     PROJECT_SYSTEM: {
       CREATE_PROJECT: 'project:create-project',
       OPEN_PROJECT: 'project:open-project',
@@ -42,6 +36,7 @@ export const ConstantValues: Constants = {
       SAVE_RABBITMQ_SETTINGS: 'project:save-rabbitmq-settings',
       SAVE_CRM_SETTING: 'project:save-crm-setting',
       SAVE_CRM_SETTINGS: 'project:save-crm-settings',
+      DELETE_CRM_SETTING: 'project:delete-crm-setting',
     },
     CRM_DOCKER_BUILDER_SYSTEM: {
       BUILD_PROJECT: 'crm-docker-builder:build-project',
@@ -90,7 +85,7 @@ export const ConstantValues: Constants = {
     amqpPort: 5672,
   },
   DEFAULT_CRM_CONFIG: {
-    containerName: 'crm-bpmsoft',
+    containerName: 'crm_bpmsoft',
     port: 8000,
     redisDb: 0,
     dbType: 'postgres',

@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, FileSystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig, ConstantsAPI, ProjectSystemAPI } from '@shared/api';
+import { SystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig, ConstantsAPI, ProjectSystemAPI, ElectronAPI } from '@shared/api';
+
+const PROJECT_LOG_CHANNEL = 'project-log';
 
 // IPC каналы (встроены прямо в preload для совместимости с Electron)
 const IPC_CHANNELS = {
@@ -16,12 +18,6 @@ const IPC_CHANNELS = {
   NOTIFICATION: {
     SHOW: 'notification:show',
   },
-  FILE_SYSTEM: {
-    READ_FILE: 'fs:read-file',
-    WRITE_FILE: 'fs:write-file',
-    FILE_EXISTS: 'fs:file-exists',
-    CREATE_DIR: 'fs:create-dir',
-  },
   PROJECT_SYSTEM: {
     CREATE_PROJECT: 'project:create-project',
     OPEN_PROJECT: 'project:open-project',
@@ -32,6 +28,7 @@ const IPC_CHANNELS = {
     SAVE_RABBITMQ_SETTINGS: 'project:save-rabbitmq-settings',
     SAVE_CRM_SETTING: 'project:save-crm-setting',
     SAVE_CRM_SETTINGS: 'project:save-crm-settings',
+    DELETE_CRM_SETTING: 'project:delete-crm-setting',
   },
   CRM_DOCKER_BUILDER_SYSTEM: {
     BUILD_PROJECT: 'crm-docker-builder:build-project',
@@ -65,15 +62,6 @@ contextBridge.exposeInMainWorld('systemAPI', {
     ipcRenderer.invoke(IPC_CHANNELS.NOTIFICATION.SHOW, title, body),
 } as SystemAPI);
 
-// Экспонируем API для работы с файловой системой
-contextBridge.exposeInMainWorld('fileSystemAPI', {
-  readFile: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_SYSTEM.READ_FILE, filePath),
-  writeFile: (filePath: string, content: string) => 
-    ipcRenderer.invoke(IPC_CHANNELS.FILE_SYSTEM.WRITE_FILE, filePath, content),
-  fileExists: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_SYSTEM.FILE_EXISTS, filePath),
-  createDirectory: (dirPath: string) => ipcRenderer.invoke(IPC_CHANNELS.FILE_SYSTEM.CREATE_DIR, dirPath),
-} as FileSystemAPI);
-
 // Экспонируем API для работы с системой проекта
 contextBridge.exposeInMainWorld('projectSystemAPI', {
   createProject: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.CREATE_PROJECT, path),
@@ -85,6 +73,7 @@ contextBridge.exposeInMainWorld('projectSystemAPI', {
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
+  deleteCrmSetting: (projectConfig: ProjectConfig, crmConfigId: string) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.DELETE_CRM_SETTING, projectConfig, crmConfigId),
 } as ProjectSystemAPI);
 
 // Экспонируем API для работы с системой CRM Docker Builder
@@ -98,8 +87,8 @@ contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
-  buildProject: (projectConfig: ProjectConfig, onLogCallback?: (log: string) => void) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, projectConfig, onLogCallback),
-  runProject: (projectConfig: ProjectConfig, onLogCallback?: (log: string) => void) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, projectConfig, onLogCallback),
+  buildProject: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, projectConfig),
+  runProject: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.RUN_PROJECT, projectConfig),
 } as CrmDockerBuilderSystemAPI);
 
 // Экспонируем API для работы с системой CRM Docker Builder Validator
@@ -116,15 +105,19 @@ contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
   validateAll: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_ALL, projectConfig),
 } as CrmDockerBuilderValidatorSystemAPI);
 
-// Экспонируем Electron API для работы с событиями
+// Экспонируем Electron API для подписки на логи проекта
 contextBridge.exposeInMainWorld('electronAPI', {
-  on: (channel: string, callback: (event: any, ...args: any[]) => void) => {
-    ipcRenderer.on(channel, callback);
+  onProjectLog: (callback: (log: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, log: unknown) => {
+      if (typeof log === 'string') {
+        callback(log);
+      }
+    };
+    ipcRenderer.on(PROJECT_LOG_CHANNEL, listener);
+    return () => ipcRenderer.removeListener(PROJECT_LOG_CHANNEL, listener);
   },
-  removeAllListeners: (channel: string) => {
-    ipcRenderer.removeAllListeners(channel);
-  }
-});
+  removeProjectLogListeners: () => ipcRenderer.removeAllListeners(PROJECT_LOG_CHANNEL),
+} as ElectronAPI);
 
 // Экспонируем API для работы с константами
 contextBridge.exposeInMainWorld('constantsAPI', {

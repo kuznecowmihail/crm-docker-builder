@@ -6,20 +6,30 @@ import path from "path";
 export class DockerComposeHelper {
 
     /**
+     * Экранирует значение для безопасной подстановки в YAML
+     * @param value - значение для экранирования
+     * @returns экранированная YAML-строка
+     */
+    private yaml(value: string | number): string {
+        return JSON.stringify(String(value)).replace(/\$/g, '$$$$');
+    }
+
+    /**
      * Генерирует содержимое файла docker-compose.yml
      * @param projectConfig - конфигурация проекта
      * @returns - содержимое файла docker-compose.yml
      */
     public generateDockerComposeContent(projectConfig: ProjectConfig, secondRun: boolean = false): string {
         const { postgresConfig, pgAdminConfig, redisConfig, rabbitmqConfig, crmConfigs } = projectConfig;
+        const networkName = `${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}`;
         
         // Вспомогательная функция для создания относительных путей
         const getRelativePath = (targetPath: string): string => {
-            return path.relative(projectConfig.projectPath, targetPath);
+            return path.relative(projectConfig.projectPath, targetPath).split(path.sep).join('/');
         };
         
         // Генерация сервисов CRM
-        const crmServices = crmConfigs.filter(crmConfig => Boolean(crmConfig.runOn) || secondRun).map((crmConfig, index) => {
+        const crmServices = crmConfigs.filter(crmConfig => Boolean(crmConfig.runOn) || secondRun).map((crmConfig) => {
           let dockerFile = '';
           if (crmConfig.crmType === "creatio" && crmConfig.netVersion === "8.0") {
             dockerFile = ConstantValues.FILE_NAMES.DOCKERFILE_CREATIO_NET8;
@@ -39,37 +49,49 @@ export class DockerComposeHelper {
           const appPath = getRelativePath(crmConfig.appPath);
           
           return `  ${serviceName}:
-    container_name: ${containerName}
-    image: ${imageName}
+    container_name: ${this.yaml(containerName)}
+    image: ${this.yaml(imageName)}
     pull_policy: never
     restart: unless-stopped
     build:
-      dockerfile: ${dockerFile}
-      context: ./${appPath}
+      dockerfile: ${this.yaml(dockerFile)}
+      context: ${this.yaml('./' + appPath)}
     ports:
-      - ${appPort}:5000
+      - ${this.yaml(`${appPort}:5000`)}
     volumes:
-      - ./${appPath}:${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}
+      - ${this.yaml(`./${appPath}:${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}`)}
     depends_on:
       postgres_container:
         condition: service_healthy
       redis_container:
         condition: service_healthy
     networks:
-      - ${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}`
+      - ${this.yaml(networkName)}`;
         }).join('\n\n');
 
-        console.log(crmConfigs);
-        console.log(crmConfigs.filter(crmConfig => Boolean(crmConfig.runOn) || secondRun));
-        console.log(crmServices);
+        const postgresDataRel = getRelativePath(path.join(
+            projectConfig.projectPath,
+            ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES,
+            ConstantValues.FOLDER_NAMES.POSTGRES_PATHS.POSTGRES_DATA
+        ));
+        const redisDataRel = getRelativePath(path.join(
+            projectConfig.projectPath,
+            ConstantValues.FOLDER_NAMES.REDIS_VOLUMES,
+            ConstantValues.FOLDER_NAMES.REDIS_PATHS.REDIS_DATA
+        ));
+        const redisConfRel = getRelativePath(path.join(
+            projectConfig.projectPath,
+            ConstantValues.FOLDER_NAMES.REDIS_VOLUMES,
+            ConstantValues.FOLDER_NAMES.REDIS_PATHS.REDIS_CONF
+        ));
 
         return `services:
   # postgres
   postgres_container:
-    container_name: ${postgresConfig.containerName}
-    image: ${postgresConfig.dockerImageName}
+    container_name: ${this.yaml(postgresConfig.containerName)}
+    image: ${this.yaml(postgresConfig.dockerImageName)}
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${postgresConfig.user} -d db'"]
+      test: ["CMD-SHELL", ${this.yaml(`sh -c 'pg_isready -U ${postgresConfig.user} -d db'`)}]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -82,14 +104,14 @@ export class DockerComposeHelper {
       - "-c"
       - "log_min_duration_statement=1000"
     environment:
-      POSTGRES_DB: "db"
-      POSTGRES_USER: ${postgresConfig.user}
-      POSTGRES_PASSWORD: ${postgresConfig.password}
-      PGDATA: ${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/pgdata
+      POSTGRES_DB: ${this.yaml("db")}
+      POSTGRES_USER: ${this.yaml(postgresConfig.user)}
+      POSTGRES_PASSWORD: ${this.yaml(postgresConfig.password)}
+      PGDATA: ${this.yaml(`${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/pgdata`)}
     volumes:
-      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.POSTGRES_VOLUMES, ConstantValues.FOLDER_NAMES.POSTGRES_PATHS.POSTGRES_DATA))}:${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}
+      - ${this.yaml(`./${postgresDataRel}:${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}`)}
     ports:
-      - ${postgresConfig.port}:5432
+      - ${this.yaml(`${postgresConfig.port}:5432`)}
     restart: unless-stopped
     deploy:
       resources:
@@ -97,20 +119,20 @@ export class DockerComposeHelper {
           cpus: '2'
           memory: 4G
     networks:
-      - ${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}
+      - ${this.yaml(networkName)}
 
   # pgadmin
   pgadmin_container:
-    container_name: ${pgAdminConfig.containerName}
-    image: 'dpage/pgadmin4:latest'
+    container_name: ${this.yaml(pgAdminConfig.containerName)}
+    image: ${this.yaml('dpage/pgadmin4:latest')}
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${pgAdminConfig.email}
-      PGADMIN_DEFAULT_PASSWORD: ${pgAdminConfig.password}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_DEFAULT_EMAIL: ${this.yaml(pgAdminConfig.email)}
+      PGADMIN_DEFAULT_PASSWORD: ${this.yaml(pgAdminConfig.password)}
+      PGADMIN_CONFIG_SERVER_MODE: ${this.yaml("False")}
     volumes:
-      - ./${getRelativePath(pgAdminConfig.volumePath)}:${ConstantValues.FOLDER_NAMES.PGADMIN_PATHS_DOCKER.PGADMIN_DATA}
+      - ${this.yaml(`./${getRelativePath(pgAdminConfig.volumePath)}:${ConstantValues.FOLDER_NAMES.PGADMIN_PATHS_DOCKER.PGADMIN_DATA}`)}
     ports:
-      - ${pgAdminConfig.port}:80
+      - ${this.yaml(`${pgAdminConfig.port}:80`)}
     restart: unless-stopped
     deploy:
       resources:
@@ -118,12 +140,12 @@ export class DockerComposeHelper {
           cpus: '0.25'
           memory: 512M
     networks:
-      - ${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}
+      - ${this.yaml(networkName)}
 
   # redis
   redis_container:
-    container_name: ${redisConfig.containerName}
-    image: 'redis:6'
+    container_name: ${this.yaml(redisConfig.containerName)}
+    image: ${this.yaml('redis:6')}
     command: redis-server /usr/local/etc/redis/redis.conf
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
@@ -133,49 +155,49 @@ export class DockerComposeHelper {
       retries: 5
     restart: unless-stopped
     ports:
-      - ${redisConfig.port}:6379
+      - ${this.yaml(`${redisConfig.port}:6379`)}
     volumes:
-      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES, ConstantValues.FOLDER_NAMES.REDIS_PATHS.REDIS_DATA))}:${ConstantValues.FOLDER_NAMES.REDIS_PATHS_DOCKER.REDIS_DATA}
-      - ./${getRelativePath(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES, ConstantValues.FOLDER_NAMES.REDIS_PATHS.REDIS_CONF))}:${ConstantValues.FOLDER_NAMES.REDIS_PATHS_DOCKER.REDIS_CONF}
+      - ${this.yaml(`./${redisDataRel}:${ConstantValues.FOLDER_NAMES.REDIS_PATHS_DOCKER.REDIS_DATA}`)}
+      - ${this.yaml(`./${redisConfRel}:${ConstantValues.FOLDER_NAMES.REDIS_PATHS_DOCKER.REDIS_CONF}`)}
     environment:
-      - REDIS_PASSWORD=${redisConfig.password}
-      - REDIS_DATABASES=${redisConfig.dbCount}
-      - REDIS_PORT=6379
+      - ${this.yaml(`REDIS_PASSWORD=${redisConfig.password}`)}
+      - ${this.yaml(`REDIS_DATABASES=${redisConfig.dbCount}`)}
+      - ${this.yaml('REDIS_PORT=6379')}
     deploy:
       resources:
         limits:
           cpus: '0.25'
           memory: 512M
     networks:
-      - ${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}
+      - ${this.yaml(networkName)}
 
   # rabbitmq
   rabbitmq_container:
-    container_name: ${rabbitmqConfig.containerName}
-    image: rabbitmq:3.10.7-management
+    container_name: ${this.yaml(rabbitmqConfig.containerName)}
+    image: ${this.yaml('rabbitmq:3.10.7-management')}
     restart: unless-stopped
     environment:
-      - RABBITMQ_DEFAULT_USER=${rabbitmqConfig.user}
-      - RABBITMQ_DEFAULT_PASS=${rabbitmqConfig.password}
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+      - ${this.yaml(`RABBITMQ_DEFAULT_USER=${rabbitmqConfig.user}`)}
+      - ${this.yaml(`RABBITMQ_DEFAULT_PASS=${rabbitmqConfig.password}`)}
+      - ${this.yaml('RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648')}
     volumes:
-      - ./${getRelativePath(rabbitmqConfig.volumePath)}:${ConstantValues.FOLDER_NAMES.RABBITMQ_PATHS_DOCKER.RABBITMQ_DATA}
+      - ${this.yaml(`./${getRelativePath(rabbitmqConfig.volumePath)}:${ConstantValues.FOLDER_NAMES.RABBITMQ_PATHS_DOCKER.RABBITMQ_DATA}`)}
     ports:
-      - ${rabbitmqConfig.port}:15672
+      - ${this.yaml(`${rabbitmqConfig.port}:15672`)}
       # amqp
-      - ${rabbitmqConfig.amqpPort}:5672
+      - ${this.yaml(`${rabbitmqConfig.amqpPort}:5672`)}
     deploy:
       resources:
         limits:
           cpus: '0.5'
           memory: 0.5G
     networks:
-      - ${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}
+      - ${this.yaml(networkName)}
 
 ${crmServices}
 
 networks:
-  ${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}:
+  ${this.yaml(networkName)}:
     external: true`;
     }
 }

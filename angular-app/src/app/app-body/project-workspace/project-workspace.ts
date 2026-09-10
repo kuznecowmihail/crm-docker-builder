@@ -8,6 +8,10 @@ import { MatCardModule } from '@angular/material/card';
 import { Constants, CrmConfig, ProjectConfig } from '@shared/api';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
+import { ConfirmDialog, ConfirmDialogData } from 'src/app/shared/confirm-dialog/confirm-dialog';
 import { GeneralProjectSettings } from './general-project-settings/general-project-settings';
 import { PostgresSettings } from './postgres-settings/postgres-settings';
 import { PgAdminSettings } from './pgadmin-settings/pgadmin-settings';
@@ -29,6 +33,8 @@ import { ElectronService } from 'src/app/services/electron.service';
     MatCardModule,
     MatIconModule,
     MatExpansionModule,
+    MatTooltipModule,
+    MatDialogModule,
     GeneralProjectSettings,
     PostgresSettings,
     PgAdminSettings,
@@ -110,7 +116,8 @@ export class ProjectWorkspace implements OnDestroy {
   constructor(
     private electronService: ElectronService,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private dialog: MatDialog
   ) {
     this.electronService.getConstants().then((constants) => {
       this.constants = constants;
@@ -235,6 +242,12 @@ export class ProjectWorkspace implements OnDestroy {
       this.electronService.showNotification('Сборка проекта', crmSettingsResult.message);
       return;
     }
+
+    const saveCrmResult = await this.electronService.saveCrmSettings(this.projectConfig);
+    if (!saveCrmResult.success) {
+      this.electronService.showNotification('Сборка проекта', saveCrmResult.message);
+      return;
+    }
     
     this.onClearLogs();
     this.onSectionSelect('logs');
@@ -354,6 +367,32 @@ export class ProjectWorkspace implements OnDestroy {
         this.projectConfig.crmConfigs.push(crmConfig);
       }
     }
+  }
+
+  /**
+   * Обработчик удаления CRM (удаляет из проекта и сразу записывает на диск)
+   * @param crm - удаляемая конфигурация CRM
+   * @param event - событие клика (чтобы не открывать раздел CRM)
+   */
+  async onCrmDelete(crm: CrmConfig, event: MouseEvent): Promise<void> {
+    event.stopPropagation();
+    if (!this.projectConfig) {
+      return;
+    }
+    const data: ConfirmDialogData = {
+      title: 'Удалить CRM?',
+      message: `Конфигурация «${crm.containerName || 'Новая CRM'}» будет удалена из проекта.\nDocker-контейнер и файлы приложения не затрагиваются.`,
+    };
+    const confirmed = await firstValueFrom(this.dialog.open(ConfirmDialog, { data, autoFocus: false }).afterClosed());
+    if (!confirmed) {
+      return;
+    }
+    this.projectConfig.crmConfigs = this.projectConfig.crmConfigs.filter(item => item.id !== crm.id);
+    if (this.selectedCrmConfig?.id === crm.id) {
+      this.onSectionSelect('');
+    }
+    const result = await this.electronService.deleteCrmSetting(this.projectConfig, crm.id);
+    this.electronService.showNotification('Удаление CRM', result.message);
   }
 
   /**

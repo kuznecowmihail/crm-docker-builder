@@ -3,6 +3,9 @@ import { spawn } from 'child_process';
 import { FileSystemHelper } from "../FileSystemHelper";
 import { ConstantValues } from "../../config/constants";
 import * as path from 'path';
+import * as https from 'https';
+import * as os from 'os';
+import * as fs from 'fs/promises';
 
 export class VscodeHelper {
   /**
@@ -13,12 +16,12 @@ export class VscodeHelper {
   /**
    * URL для скачивания vsdbg файлов для Windows
    */
-  private winUrl: string = 'https://aka.ms/getvsdbgps1';
+  private readonly winUrl = 'https://aka.ms/getvsdbgps1';
 
   /**
    * URL для скачивания vsdbg файлов для Linux
    */
-  private linuxUrl: string = 'https://aka.ms/getvsdbgsh';
+  private readonly linuxUrl = 'https://aka.ms/getvsdbgsh';
 
   /**
    * Конструктор
@@ -37,8 +40,7 @@ export class VscodeHelper {
       const platform = process.platform;
       const arch = process.arch;
 
-      let vsdbgArch = 'linux-x64'
-
+      let vsdbgArch: string;
       if (arch === 'x64') {
         vsdbgArch = 'linux-x64';
       } else if (arch === 'arm64') {
@@ -48,29 +50,39 @@ export class VscodeHelper {
         throw new Error(`Неподдерживаемая архитектура: ${arch}`);
       }
 
-      if (platform !== 'win32' && arch !== 'arm64') {
+      if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
         onLogCallback?.(`[VscodeFilesHelper] ❌ Неподдерживаемая платформа: ${platform}`);
         throw new Error(`Неподдерживаемая платформа: ${platform}`);
       }
       onLogCallback?.(`[VscodeFilesHelper] 🚀 Начинаем скачивание vsdbg...`);
       onLogCallback?.(`[VscodeFilesHelper] Платформа: ${platform}, Архитектура: ${arch}, Архитектура vsdbg: ${vsdbgArch}`);
 
-      let command = '';
       const vsdbgPath = path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG);
+      const scriptUrl = platform === 'win32' ? this.winUrl : this.linuxUrl;
+      const ext = platform === 'win32' ? 'ps1' : 'sh';
+      const scriptPath = path.join(os.tmpdir(), `crm-docker-builder-getvsdbg-${process.pid}-${Date.now()}.${ext}`);
 
+      await this.downloadToFile(scriptUrl, scriptPath, onLogCallback);
+
+      let file: string;
+      let args: string[];
       if (platform === 'win32') {
-        // Windows - используем PowerShell
-        command = `powershell -NoProfile -ExecutionPolicy RemoteSigned -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; &([scriptblock]::Create((Invoke-WebRequest -useb '${this.winUrl}'))) -Version latest -RuntimeID ${vsdbgArch} -InstallPath ${vsdbgPath}"`;
-      } else if (platform === 'darwin' || platform === 'linux') {
-        // macOS или Linux - используем curl
-        command = `curl -sSL ${this.linuxUrl} | bash /dev/stdin -r ${vsdbgArch} -v latest -l ${vsdbgPath}`;
+        file = 'powershell.exe';
+        args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath, '-Version', 'latest', '-RuntimeID', vsdbgArch, '-InstallPath', vsdbgPath];
+      } else {
+        file = 'bash';
+        args = [scriptPath, '-r', vsdbgArch, '-v', 'latest', '-l', vsdbgPath];
       }
-      onLogCallback?.(`[VscodeFilesHelper] Команда: ${command}`);
+
+      onLogCallback?.(`[VscodeFilesHelper] Команда: ${file} ${JSON.stringify(args)}`);
       onLogCallback?.(`[VscodeFilesHelper] Путь к vsdbg: ${vsdbgPath}`);
-      await this.executeCommandWithLogs(command, onLogCallback, vsdbgArch);
-      
-      onLogCallback?.(`[VscodeFilesHelper] ✅ vsdbg для ${vsdbgArch} успешно скачан`);
-      
+
+      try {
+        await this.executeCommandWithLogs(file, args, onLogCallback);
+        onLogCallback?.(`[VscodeFilesHelper] ✅ vsdbg для ${vsdbgArch} успешно скачан`);
+      } finally {
+        await fs.rm(scriptPath, { force: true });
+      }
     } catch (error) {
       onLogCallback?.(`[VscodeFilesHelper] ⚠️ Ошибка при скачивании vsdbg файлов: ${error}`);
     }
@@ -106,34 +118,94 @@ export class VscodeHelper {
   }
 
   /**
-   * Выполняет команду с логированием в реальном времени
-   * @param command Команда для выполнения
-   * @param onLogCallback Колбэк для получения логов
-   * @param archType Тип архитектуры для логирования
+   * Скачивает файл по https-ссылке
+   * @param url URL для скачивания
+   * @param destPath Путь для сохранения файла
+   * @param onLog Колбэк для логирования
+   * @param redirectsLeft Оставшееся число редиректов
    */
-  private async executeCommandWithLogs(command: string, onLogCallback?: (log: string) => void, archType?: string): Promise<void> {
+  private async downloadToFile(url: string, destPath: string, onLog?: (log: string) => void, redirectsLeft = 5): Promise<void> {
+    if (new URL(url).protocol !== 'https:') {
+      return Promise.reject(new Error('Разрешены только https-ссылки: ' + url));
+    }
     return new Promise((resolve, reject) => {
+      const req = https.get(url, { headers: { 'User-Agent': 'crm-docker-builder' } }, (res) => {
+        this.handleDownloadResponse(res, url, destPath, onLog, redirectsLeft, resolve, reject);
+      });
+      req.setTimeout(60000, () => req.destroy(new Error('Таймаут скачивания')));
+      req.on('error', reject);
+    });
+  }
 
-      const process = spawn(command, [], {
-        shell: true,
-        stdio: ['pipe', 'pipe', 'pipe']
+  /**
+   * Обрабатывает HTTP-ответ при скачивании файла
+   */
+  private handleDownloadResponse(
+    res: import('http').IncomingMessage,
+    url: string,
+    destPath: string,
+    onLog: ((log: string) => void) | undefined,
+    redirectsLeft: number,
+    resolve: () => void,
+    reject: (err: Error) => void
+  ): void {
+    const status = res.statusCode ?? 0;
+    if ([301, 302, 303, 307, 308].includes(status) && res.headers.location) {
+      res.resume();
+      if (redirectsLeft <= 0) {
+        reject(new Error('Превышено число редиректов'));
+        return;
+      }
+      void this.downloadToFile(new URL(res.headers.location, url).toString(), destPath, onLog, redirectsLeft - 1)
+        .then(resolve)
+        .catch(reject);
+      return;
+    }
+    if (status !== 200) {
+      reject(new Error(`HTTP ${status} при скачивании ${url}`));
+      return;
+    }
+    const chunks: Buffer[] = [];
+    res.on('data', (chunk: Buffer) => chunks.push(chunk));
+    res.on('end', () => {
+      void (async () => {
+        const buffer = Buffer.concat(chunks);
+        await fs.writeFile(destPath, buffer);
+        onLog?.(`[VscodeFilesHelper] Скрипт установки сохранён: ${destPath} (${buffer.length} байт)`);
+        resolve();
+      })().catch(reject);
+    });
+    res.on('error', reject);
+  }
+
+  /**
+   * Выполняет команду с логированием в реальном времени
+   * @param file Исполняемый файл
+   * @param args Аргументы команды
+   * @param onLogCallback Колбэк для получения логов
+   */
+  private async executeCommandWithLogs(file: string, args: string[], onLogCallback?: (log: string) => void): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const childProcess = spawn(file, args, {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        windowsHide: true
       });
 
-      process.stdout.on('data', (data) => {
+      childProcess.stdout.on('data', (data) => {
         const log = data.toString().trim();
         if (log) {
           onLogCallback?.(`[VscodeFilesHelper] ${log}`);
         }
       });
 
-      process.stderr.on('data', (data) => {
+      childProcess.stderr.on('data', (data) => {
         const log = data.toString().trim();
         if (log) {
           onLogCallback?.(`[VscodeFilesHelper] ${log}`);
         }
       });
 
-      process.on('close', (code) => {
+      childProcess.on('close', (code) => {
         if (code === 0) {
           resolve();
         } else {
@@ -141,7 +213,7 @@ export class VscodeHelper {
         }
       });
 
-      process.on('error', (error) => {
+      childProcess.on('error', (error) => {
         reject(error);
       });
     });

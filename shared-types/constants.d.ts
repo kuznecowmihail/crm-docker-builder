@@ -25,12 +25,6 @@ export interface Constants {
     NOTIFICATION: {
       SHOW: string,
     },
-    FILE_SYSTEM: {
-      READ_FILE: string,
-      WRITE_FILE: string,
-      FILE_EXISTS: string,
-      CREATE_DIR: string,
-    },
     PROJECT_SYSTEM: {
       CREATE_PROJECT: string,
       OPEN_PROJECT: string,
@@ -41,6 +35,7 @@ export interface Constants {
       SAVE_RABBITMQ_SETTINGS: string,
       SAVE_CRM_SETTING: string,
       SAVE_CRM_SETTINGS: string,
+      DELETE_CRM_SETTING: string,
     },
     CRM_DOCKER_BUILDER_SYSTEM: {
       BUILD_PROJECT: string,

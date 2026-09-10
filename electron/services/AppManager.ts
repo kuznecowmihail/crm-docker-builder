@@ -3,7 +3,6 @@ import { WindowManager } from './WindowManager';
 import { SystemService } from './SystemService';
 import { DialogService } from './DialogService';
 import { NotificationService } from './NotificationService';
-import { FileSystemService } from './FileSystemService';
 import { CrmDockerBuilderService } from './CrmDockerBuilderService';
 import { CrmDockerBuilderValidatorService } from './CrmDockerBuilderValidatorService';
 import { ConstService } from './ConstService';
@@ -27,10 +26,6 @@ export class AppManager {
    * Уведомление
    */
   private notificationService: NotificationService;
-  /**
-   * Файловая система
-   */
-  private fileSystemService: FileSystemService;
   /**
    * CRM Docker Builder
    */
@@ -56,7 +51,6 @@ export class AppManager {
     this.systemService = new SystemService();
     this.dialogService = new DialogService();
     this.notificationService = new NotificationService();
-    this.fileSystemService = new FileSystemService();
     this.projectService = new ProjectService();
     this.crmDockerBuilderService = new CrmDockerBuilderService();
     this.crmDockerBuilderValidatorService = new CrmDockerBuilderValidatorService();
@@ -102,7 +96,6 @@ export class AppManager {
     this.systemService.setupHandlers();
     this.dialogService.setupHandlers();
     this.notificationService.setupHandlers();
-    this.fileSystemService.setupHandlers();
     this.projectService.setupHandlers();
     this.crmDockerBuilderService.setupHandlers();
     this.crmDockerBuilderValidatorService.setupHandlers();

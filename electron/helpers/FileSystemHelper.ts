@@ -26,7 +26,7 @@ export class FileSystemHelper {
       const directory = path.dirname(filePath);
       await this.ensureDirectoryExists(directory);
       
-      await fs.writeFile(filePath, content, 'utf-8');
+      await fs.writeFile(filePath, this.normalizeLineEndings(content), 'utf-8');
     } catch (error) {
       throw new Error(`Ошибка записи файла: ${error}`);
     }
@@ -48,7 +48,7 @@ export class FileSystemHelper {
         const fileBuffer = this.addBOMForPowerShell(content);
         await fs.writeFile(filePath, fileBuffer);
       } else {
-        await fs.writeFile(filePath, content, encoding);
+        await fs.writeFile(filePath, this.normalizeLineEndings(content), encoding);
       }
     } catch (error) {
       throw new Error(`Ошибка записи файла: ${error}`);
@@ -131,8 +131,8 @@ export class FileSystemHelper {
    */
   public isPathInside(innerPath: string, outerPath: string): boolean {
     try {
-      const normalizedInnerPath = path.resolve(innerPath);
-      const normalizedOuterPath = path.resolve(outerPath);
+      const normalizedInnerPath = this.normalizeForCompare(innerPath);
+      const normalizedOuterPath = this.normalizeForCompare(outerPath);
       
       return normalizedInnerPath.startsWith(normalizedOuterPath + path.sep) || 
              normalizedInnerPath === normalizedOuterPath;
@@ -221,6 +221,35 @@ export class FileSystemHelper {
     }
   }
   
+  /**
+   * Приводит переводы строк к LF (генерируемые sh/yml/Dockerfile должны быть без CR)
+   * @param content - текст
+   * @returns текст с LF
+   */
+  private normalizeLineEndings(content: string): string {
+    return content.replace(/\r\n?/g, '\n');
+  }
+
+  /**
+   * Нормализует путь для сравнения (на Windows — без учёта регистра)
+   * @param targetPath - путь
+   * @returns нормализованный абсолютный путь
+   */
+  private normalizeForCompare(targetPath: string): string {
+    const resolved = path.resolve(targetPath);
+    return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+  }
+
+  /**
+   * Проверяет, указывают ли два пути на один каталог/файл
+   * @param firstPath - первый путь
+   * @param secondPath - второй путь
+   * @returns true, если пути совпадают
+   */
+  public isSamePath(firstPath: string, secondPath: string): boolean {
+    return this.normalizeForCompare(firstPath) === this.normalizeForCompare(secondPath);
+  }
+
   /**
    * Добавляет BOM для PowerShell скриптов на Windows
    * @param content - содержимое файла

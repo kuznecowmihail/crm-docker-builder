@@ -176,7 +176,10 @@ export class CrmDockerBuilderHelper {
         );
         // Запускаем файл для восстановления бэкапа в PostgreSQL
         await processHelper.executeCommandWithLogs(
-          ['exec', projectConfig.postgresConfig.containerName, 'bash', '-c', `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT} ${crmConfig.containerName} ${projectConfig.postgresConfig.user} ${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}`], 
+          ['exec', projectConfig.postgresConfig.containerName, 'sh',
+ `${ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA}/${ConstantValues.FILE_NAMES.POSTGRES_RESTORE_SCRIPT}`,
+ crmConfig.containerName, projectConfig.postgresConfig.user,
+ ConstantValues.FOLDER_NAMES.POSTGRES_PATHS_DOCKER.POSTGRES_DATA], 
           projectConfig.projectPath, 
           onLogCallback
         );
