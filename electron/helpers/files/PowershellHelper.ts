@@ -7,7 +7,8 @@ export class PowershellHelper {
      * @param crmConfig - CRM configuration
      * @returns - content of WorkspaceConsoleHandler.ps1 file
      */
-    public generateWorkspaceConsoleHadlerContent(crmConfig: CrmConfig): string {
+    public generateWorkspaceConsoleHadlerContent(projectConfig: ProjectConfig, crmConfig: CrmConfig): string {
+      const runtime = projectConfig.containerRuntime || 'docker';
       let crmPrefix = crmConfig.crmType === 'bpmsoft' ? 'BPMSoft' : 'Terrasoft';
       return `# PowerShell script for Workspace Console on Windows
 # Author: CRM Infrastructure Team
@@ -45,37 +46,42 @@ function Write-Header {
 switch ($Command) {
     "LoadPackagesToFileSystem" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_FILE_SYSTEM_ARG"
+        ${runtime} exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_FILE_SYSTEM_ARG"
         break
     }
     "LoadPackagesToDB" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_DB_ARG"
+        ${runtime} exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_DB_ARG"
         break
     }
     "BuildWorkspace" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_WORKSPACE_ARG"
+        ${runtime} exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_WORKSPACE_ARG"
         break
     }
     "RebuildWorkspace" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REBUILD_WORKSPACE_ARG"
+        ${runtime} exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REBUILD_WORKSPACE_ARG"
         break
     }
     "BuildConfiguration" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_CONFIGURATION_ARG"
+        ${runtime} exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_CONFIGURATION_ARG"
         break
     }
     "RegenerateSchemaSources" {
         Write-Header
-        docker exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REGENERATE_SCHEMA_SOURCES_ARG"
+        ${runtime} exec -it $PROJECT_NAME /bin/bash -c "dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REGENERATE_SCHEMA_SOURCES_ARG"
+        break
+    }
+    "BuildConfigurationProject" {
+        Write-Header
+        ${runtime} exec -it $PROJECT_NAME /bin/bash -c "dotnet build /app/${crmPrefix}.Configuration/${crmPrefix}.Configuration.Dev.csproj"
         break
     }
     default {
         Write-Host "Unknown command: $Command" -ForegroundColor Red
-        Write-Host "Available commands: LoadPackagesToFileSystem, LoadPackagesToDB, BuildWorkspace, RebuildWorkspace, BuildConfiguration, RegenerateSchemaSources" -ForegroundColor Yellow
+        Write-Host "Available commands: LoadPackagesToFileSystem, LoadPackagesToDB, BuildWorkspace, RebuildWorkspace, BuildConfiguration, RegenerateSchemaSources, BuildConfigurationProject" -ForegroundColor Yellow
         break
     }
 }`;
@@ -88,7 +94,8 @@ switch ($Command) {
      * @returns - content of AppHandler.ps1 file
      */
     public generateAppHandlerContent(projectConfig: ProjectConfig, crmConfig: CrmConfig): string {
-      return `# PowerShell script for running Docker containers on Windows
+      const runtime = projectConfig.containerRuntime || 'docker';
+      return `# PowerShell script for running containers on Windows
 # Author: CRM Infrastructure Team
 # Version: 1.0
 
@@ -124,24 +131,23 @@ function Write-Header {
     Write-Host ""
 }
 
-# Function to check Docker
-function Test-Docker {
-    Write-Host "[i] Checking Docker..." -ForegroundColor Cyan
+# Function to check container runtime
+function Test-Runtime {
+    Write-Host "[i] Checking ${runtime}..." -ForegroundColor Cyan
     
-    if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-        Write-Host "[✗] Docker is not installed. Install Docker Desktop for Windows" -ForegroundColor Red
+    if (-not (Get-Command ${runtime} -ErrorAction SilentlyContinue)) {
+        Write-Host "[✗] ${runtime} is not installed" -ForegroundColor Red
         exit 1
     }
     
     try {
-        docker info | Out-Null
+        ${runtime} info | Out-Null
     } catch {
-        Write-Host "[✗] Docker is not running. Start Docker Desktop" -ForegroundColor Red
-        Write-Host "Open Docker Desktop and wait for full loading" -ForegroundColor Yellow
+        Write-Host "[✗] ${runtime} is not running" -ForegroundColor Red
         exit 1
     }
     
-    Write-Host "[✓] Docker is ready" -ForegroundColor Green
+    Write-Host "[✓] ${runtime} is ready" -ForegroundColor Green
 }
 
 # Function to start container
@@ -155,7 +161,7 @@ function Start-Container {
     
     # Start container
     try {
-        docker start $ContainerName | Out-Null
+        ${runtime} start $ContainerName | Out-Null
         Write-Host "[✓] Container $ContainerName started" -ForegroundColor Green
         return $true
     } catch {
@@ -174,7 +180,7 @@ function Wait-ForPostgres {
     $postgresAccess = $false
     
     while (($attempt -le $maxAttempts) -and ($false -eq $postgresAccess)) {
-        $postgresStatus = docker exec -it $POSTGRES_NAME pg_isready
+        $postgresStatus = ${runtime} exec -it $POSTGRES_NAME pg_isready
         $postgresAccess = $postgresStatus -Match 'accepting connections'
 
         if ($true -eq $postgresAccess) {
@@ -200,7 +206,7 @@ function Wait-ForRedis {
     $redisAccess = $false
     
     while (($attempt -le $maxAttempts) -and ($false -eq $redisAccess)) {
-        $redisStatus = docker exec -it $REDIS_NAME redis-cli ping
+        $redisStatus = ${runtime} exec -it $REDIS_NAME redis-cli ping
         $redisAccess = $redisStatus -Match 'PONG'
 
         if ($true -eq $redisAccess) {
@@ -233,8 +239,8 @@ function Open-Browser {
 function Start-All {
     Write-Header
     
-    # Check Docker
-    Test-Docker
+    # Check container runtime
+    Test-Runtime
     
     Write-Host ""
     Write-Host "[i] Starting containers in correct order..." -ForegroundColor Cyan
@@ -264,10 +270,10 @@ function Start-All {
     Write-Host "  - PgAdmin: http://localhost:$PGADMIN_PORT" -ForegroundColor Green
     Write-Host ""
     Write-Host "[i] To view logs use:" -ForegroundColor Cyan
-    Write-Host "  docker logs -f $PROJECT_NAME" -ForegroundColor Yellow
+    Write-Host "  ${runtime} logs -f $PROJECT_NAME" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "[i] To stop all containers:" -ForegroundColor Cyan
-    Write-Host "  docker stop pgadmin postgres redis $PROJECT_NAME" -ForegroundColor Yellow
+    Write-Host "  ${runtime} stop pgadmin postgres redis $PROJECT_NAME" -ForegroundColor Yellow
     
     # Ask to open browser
     Write-Host ""
@@ -284,27 +290,27 @@ switch ($Command) {
     }
     "stop" {
         Write-Host "[i] Stopping container $PROJECT_NAME..." -ForegroundColor Cyan
-        docker stop $PROJECT_NAME
+        ${runtime} stop $PROJECT_NAME
         Write-Host "[✓] Container $PROJECT_NAME stopped" -ForegroundColor Green
         break
     }
     "stopall" {
         Write-Host "[i] Stopping all containers..." -ForegroundColor Cyan
-        docker stop $CONTAINERS 2>$null
+        ${runtime} stop $CONTAINERS 2>$null
         Write-Host "[✓] All containers stopped" -ForegroundColor Green
         break
     }
     "restart" {
         Write-Host "[i] Restarting container $PROJECT_NAME..." -ForegroundColor Cyan
-        docker stop $PROJECT_NAME
+        ${runtime} stop $PROJECT_NAME
         Start-Sleep -Seconds 2
-        docker start $PROJECT_NAME
+        ${runtime} start $PROJECT_NAME
         Write-Host "[✓] Container $PROJECT_NAME restarted" -ForegroundColor Green
         break
     }
     "redisflushdb" {
         Write-Host "[i] Clearing Redis database $REDIS_DB_COUNT..." -ForegroundColor Cyan
-        docker exec -it $REDIS_NAME redis-cli -n $REDIS_DB_COUNT FLUSHDB
+        ${runtime} exec -it $REDIS_NAME redis-cli -n $REDIS_DB_COUNT FLUSHDB
         Write-Host "[✓] Redis database $REDIS_DB_COUNT cleared" -ForegroundColor Green
         break
     }

@@ -10,9 +10,10 @@ export class BashHelper {
    * @returns - содержимое файла AppHandler
    */
   public generateAppHandlerContent(projectConfig: ProjectConfig, crmConfig: CrmConfig): string {
+    const runtime = projectConfig.containerRuntime || 'docker';
     return `#!/bin/bash
 
-# Универсальный скрипт для запуска Docker контейнеров на macOS
+# Универсальный скрипт для запуска контейнеров на macOS
 # Автор: CRM Infrastructure Team
 # Версия: 1.0
 
@@ -63,23 +64,21 @@ print_info() {
   echo -e "\${CYAN}[i]\${NC} \$1"
 }
 
-# Функция для проверки Docker
-check_docker() {
-  print_info "Проверяю Docker..."
+# Функция для проверки container runtime
+check_runtime() {
+  print_info "Проверяю ${runtime}..."
   
-  if ! command -v docker &> /dev/null; then
-      print_error "Docker не установлен. Установите Docker Desktop для macOS"
-      echo "Скачать: https://www.docker.com/products/docker-desktop"
+  if ! command -v ${runtime} &> /dev/null; then
+      print_error "${runtime} не установлен"
       exit 1
   fi
   
-  if ! docker info &> /dev/null; then
-      print_error "Docker не запущен. Запустите Docker Desktop"
-      echo "Откройте Docker Desktop и дождитесь полной загрузки"
+  if ! ${runtime} info &> /dev/null; then
+      print_error "${runtime} не запущен"
       exit 1
   fi
   
-  print_status "Docker готов к работе"
+  print_status "${runtime} готов к работе"
 }
 
 # Функция для запуска контейнера
@@ -91,13 +90,13 @@ start_container() {
   print_info "Запускаю контейнер $container_name..."
   
   # Проверяем, существует ли контейнер
-  if ! docker ps -a --format "table {{.Names}}" | grep -q "^$container_name$"; then
+  if ! ${runtime} ps -a --format "table {{.Names}}" | grep -q "^$container_name$"; then
       print_warning "Контейнер $container_name не найден. Пропускаю..."
       return 1
   fi
   
   # Запускаем контейнер
-  docker start "$container_name" > /dev/null 2>&1
+  ${runtime} start "$container_name" > /dev/null 2>&1
   
   if [ $? -eq 0 ]; then
       print_status "Контейнер $container_name запущен"
@@ -116,7 +115,7 @@ wait_for_postgres() {
   local attempt=1
   
   while [ $attempt -le $max_attempts ]; do
-      if docker exec $POSTGRES_NAME pg_isready -U $POSTGRES_USER > /dev/null 2>&1; then
+      if ${runtime} exec $POSTGRES_NAME pg_isready -U $POSTGRES_USER > /dev/null 2>&1; then
           print_status "PostgreSQL готов к работе"
           return 0
       fi
@@ -138,7 +137,7 @@ wait_for_redis() {
   local attempt=1
   
   while [ $attempt -le $max_attempts ]; do
-      if docker exec $REDIS_NAME redis-cli ping > /dev/null 2>&1; then
+      if ${runtime} exec $REDIS_NAME redis-cli ping > /dev/null 2>&1; then
           print_status "Redis готов к работе"
           return 0
       fi
@@ -159,9 +158,9 @@ show_status() {
   echo ""
   
   for container in "\${CONTAINERS[@]}"; do
-      if docker ps --format "table {{.Names}}" | grep -q "^$container$"; then
+      if ${runtime} ps --format "table {{.Names}}" | grep -q "^$container$"; then
           print_status "$container - запущен"
-      elif docker ps -a --format "table {{.Names}}" | grep -q "^$container$"; then
+      elif ${runtime} ps -a --format "table {{.Names}}" | grep -q "^$container$"; then
           print_warning "$container - остановлен"
       else
           print_error "$container - не найден"
@@ -170,7 +169,7 @@ show_status() {
   
   echo ""
   print_info "Использование ресурсов:"
-  docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" 2>/dev/null || print_warning "Не удалось получить статистику"
+  ${runtime} stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" 2>/dev/null || print_warning "Не удалось получить статистику"
 }
 
 # Функция для открытия в браузере
@@ -193,8 +192,8 @@ open_browser() {
 start() {
   print_header
   
-  # Проверяем Docker
-  check_docker
+  # Проверяем container runtime
+  check_runtime
   
   echo ""
   print_info "Запускаю контейнеры в правильном порядке..."
@@ -224,10 +223,10 @@ start() {
   echo "  • PgAdmin: http://localhost:$PGADMIN_PORT"
   echo ""
   print_info "Для просмотра логов используйте:"
-  echo "  docker logs -f $PROJECT_NAME"
+  echo "  ${runtime} logs -f $PROJECT_NAME"
   echo ""
   print_info "Для остановки всех контейнеров:"
-  echo "  docker stop pgadmin postgres redis $PROJECT_NAME"
+  echo "  ${runtime} stop pgadmin postgres redis $PROJECT_NAME"
   
   # Спрашиваем, открыть ли браузер
   echo ""
@@ -250,27 +249,27 @@ case "\${1:-}" in
       ;;
   "stop")
       print_info "Останавливаю контейнер $PROJECT_NAME..."
-      docker stop "$PROJECT_NAME"
+      ${runtime} stop "$PROJECT_NAME"
       print_status "Контейнер $PROJECT_NAME остановлен"
       exit 0
       ;;
   "stopall")
       print_info "Останавливаю все контейнеры..."
-      docker stop "\${CONTAINERS[@]}" 2>/dev/null || true
+      ${runtime} stop "\${CONTAINERS[@]}" 2>/dev/null || true
       print_status "Все контейнеры остановлены"
       exit 0
       ;;
   "restart")
       print_info "Перезапускаю контейнер$PROJECT_NAME..."
-      docker stop "$PROJECT_NAME"
+      ${runtime} stop "$PROJECT_NAME"
       sleep 2
-      docker start "$PROJECT_NAME"
+      ${runtime} start "$PROJECT_NAME"
       print_status "Контейнер $PROJECT_NAME перезапущен"
       exit 0  
       ;;
   "redisflushdb")
       print_info "Очищаю Redis базу данных \${REDIS_DB_COUNT}..."
-      docker exec -it $REDIS_NAME redis-cli -n \${REDIS_DB_COUNT} FLUSHDB
+      ${runtime} exec -it $REDIS_NAME redis-cli -n \${REDIS_DB_COUNT} FLUSHDB
       print_status "Redis база данных \${REDIS_DB_COUNT} очищена"
       exit 0  
       ;;
@@ -281,7 +280,8 @@ esac`;
    * Генерирует содержимое файла WorkspaceConsoleHandler.sh
    * @returns - содержимое файла WorkspaceConsoleHandler.sh
    */
-  public generateWorkspaceConsoleHadlerContent(crmConfig: CrmConfig): string {
+  public generateWorkspaceConsoleHadlerContent(projectConfig: ProjectConfig, crmConfig: CrmConfig): string {
+    const runtime = projectConfig.containerRuntime || 'docker';
     let crmPrefix = crmConfig.crmType === 'bpmsoft' ? 'BPMSoft' : 'Terrasoft';
     return `#!/bin/bash
 
@@ -317,32 +317,37 @@ print_header() {
 case "\${1:-}" in
   "LoadPackagesToFileSystem")
       print_header
-      docker exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_FILE_SYSTEM_ARG\"
+      ${runtime} exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_FILE_SYSTEM_ARG\"
       exit 0
       ;;
   "LoadPackagesToDB")
       print_header
-      docker exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_DB_ARG\"
+      ${runtime} exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $LOAD_PACKAGES_TO_DB_ARG\"
       exit 0
       ;;
   "BuildWorkspace")
       print_header
-      docker exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_WORKSPACE_ARG\"
+      ${runtime} exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_WORKSPACE_ARG\"
       exit 0
       ;;
   "RebuildWorkspace")
       print_header
-      docker exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REBUILD_WORKSPACE_ARG\"
+      ${runtime} exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REBUILD_WORKSPACE_ARG\"
       exit 0
       ;;
   "BuildConfiguration")
       print_header
-      docker exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_CONFIGURATION_ARG\"
+      ${runtime} exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $BUILD_CONFIGURATION_ARG\"
       exit 0  
       ;;
   "RegenerateSchemaSources")
       print_header
-      docker exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REGENERATE_SCHEMA_SOURCES_ARG\"
+      ${runtime} exec -it $PROJECT_NAME /bin/bash -c \"dotnet WorkspaceConsole/${crmPrefix}.Tools.WorkspaceConsole.dll $REGENERATE_SCHEMA_SOURCES_ARG\"
+      exit 0
+      ;;
+  "BuildConfigurationProject")
+      print_header
+      ${runtime} exec -it $PROJECT_NAME /bin/bash -c \"dotnet build /app/${crmPrefix}.Configuration/${crmPrefix}.Configuration.Dev.csproj\"
       exit 0
       ;;
 esac`;

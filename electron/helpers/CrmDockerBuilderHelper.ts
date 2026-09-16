@@ -214,18 +214,6 @@ export class CrmDockerBuilderHelper {
             onLogCallback
           );
         }
-        // // Делаем файл app-handler.sh исполняемым
-        // await processHelper.executeCommandWithLogs(
-        //   ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.APP_HANDLER}`], 
-        //   projectConfig.projectPath, 
-        //   onLogCallback
-        // );
-        // // Делаем файл workspace-console-handler.sh исполняемым
-        // await processHelper.executeCommandWithLogs(
-        //   ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER}`], 
-        //   projectConfig.projectPath, 
-        //   onLogCallback
-        // );
 
         // Очищаем Redis базу данных
         await processHelper.executeCommandWithLogs(

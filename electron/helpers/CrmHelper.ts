@@ -81,7 +81,7 @@ export class CrmHelper {
 
                 await this.buildDockerFile(crmConfig, onLog);
                 await this.buildAppHandler(projectConfig, crmConfig, onLog);
-                await this.buildWorkspaceConsoleHadler(crmConfig, onLog);
+                await this.buildWorkspaceConsoleHadler(projectConfig, crmConfig, onLog);
 
                 await this.vscodeHelper.buildVsCodeFiles(crmConfig, onLog);
             }
@@ -274,7 +274,7 @@ export class CrmHelper {
      * @param crmConfig - конфигурация CRM
      * @returns - содержимое файла WorkspaceConsoleHandler.sh
      */
-    private async buildWorkspaceConsoleHadler(crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
+    private async buildWorkspaceConsoleHadler(projectConfig: ProjectConfig, crmConfig: CrmConfig, onLog?: (log: string) => void): Promise<void> {
       try {
         await this.fileSystemHelper.ensureDirectoryExists(path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES));
 
@@ -285,10 +285,10 @@ export class CrmHelper {
         let workspaceConsolePath = '';
 
         if (platform === 'win32' && (arch === 'x64' || arch === 'arm64')) {
-          workspaceConsoleContent = this.powershellHelper.generateWorkspaceConsoleHadlerContent(crmConfig);
+          workspaceConsoleContent = this.powershellHelper.generateWorkspaceConsoleHadlerContent(projectConfig, crmConfig);
           workspaceConsolePath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER_PS);
         } else if (platform === 'darwin' || platform === 'linux') {
-          workspaceConsoleContent = this.bashHelper.generateWorkspaceConsoleHadlerContent(crmConfig);
+          workspaceConsoleContent = this.bashHelper.generateWorkspaceConsoleHadlerContent(projectConfig, crmConfig);
           workspaceConsolePath = path.join(crmConfig.appPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES, ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER);
         } else {
           throw new Error(`Неподдерживаемая платформа: ${platform}`);

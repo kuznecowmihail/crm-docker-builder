@@ -228,6 +228,7 @@ export class VscodeHelper {
     const runtimeExecutable = process.platform === 'win32' ? 'powershell' : '/bin/bash';
     const appHandlerFile = process.platform === 'win32' ? ConstantValues.FILE_NAMES.APP_HANDLER_PS : ConstantValues.FILE_NAMES.APP_HANDLER;
     const workspaceConsoleHandlerFile = process.platform === 'win32' ? ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER_PS : ConstantValues.FILE_NAMES.WORKSPACE_CONSOLE_HANDLER;
+    const crmPrefix = crmConfig.crmType === 'bpmsoft' ? 'BPMSoft' : 'Terrasoft';
 
     return JSON.stringify({
       "version": "0.2.0",
@@ -453,6 +454,38 @@ export class VscodeHelper {
           "justMyCode": false,
           "requireExactSource": true,
           "suppressJITOptimizations": true
+        },
+        {
+          "name": "🔨 Build Configuration Project",
+          "type": "node",
+          "request": "launch",
+          "runtimeExecutable": runtimeExecutable,
+          "args": [`\${workspaceFolder}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.PROJ_FILES}/${workspaceConsoleHandlerFile}`, "BuildConfigurationProject"],
+          "console": "integratedTerminal",
+          "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+          }
+        },
+        {
+          "name": "💻 Build Configuration Project (Local)",
+          "type": "node",
+          "request": "launch",
+          "runtimeExecutable": "dotnet",
+          "args": ["build", `\${workspaceFolder}/${crmPrefix}.Configuration/${crmPrefix}.Configuration.Dev.csproj`],
+          "console": "integratedTerminal",
+          "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+          }
         }
       ]
     }, null, 2);
