@@ -183,6 +183,10 @@
   color: #ff6600 !important;
 }
 
+.keycloak-button .mat-icon {
+  color: #4690eb !important;
+}
+
 .crm-nav-item {
   display: flex;
   align-items: center;

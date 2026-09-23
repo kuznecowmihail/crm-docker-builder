@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from '@shared/api';
+import { CrmConfig, KeycloakConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from '@shared/api';
 import { ConstantValues } from '../config/constants';
 import { IService } from '../interfaces/IService';
 import { ProjectHelper } from '../helpers/ProjectHelper';
@@ -52,6 +52,11 @@ export class ProjectService implements IService {
     // Сохранение настроек Rabbitmq
     ipcMain.handle(ConstantValues.IPC_CHANNELS.PROJECT_SYSTEM.SAVE_RABBITMQ_SETTINGS, async (event, projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => {
       return await this.helper.saveRabbitmqSettings(projectConfig, rabbitmqConfig);
+    });
+
+    // Сохранение настроек Keycloak
+    ipcMain.handle(ConstantValues.IPC_CHANNELS.PROJECT_SYSTEM.SAVE_KEYCLOAK_SETTINGS, async (event, projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => {
+      return await this.helper.saveKeycloakSettings(projectConfig, keycloakConfig);
     });
     
     // Сохранение настроек CRM

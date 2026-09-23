@@ -2,7 +2,7 @@ import { ipcMain } from 'electron';
 import { ConstantValues } from '../config/constants';
 import { IService } from '../interfaces/IService';
 import { CrmDockerBuilderValidator } from '../helpers/CrmDockerBuilderValidator';
-import { CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from '@shared/api';
+import { CrmConfig, KeycloakConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from '@shared/api';
 
 // Сервис для работы с CRM Docker Builder Validator
 export class CrmDockerBuilderValidatorService implements IService {
@@ -45,6 +45,11 @@ export class CrmDockerBuilderValidatorService implements IService {
     // Проверка настроек Rabbitmq
     ipcMain.handle(ConstantValues.IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_RABBITMQ_SETTINGS, async (event, projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => {
       return await this.validator.validateRabbitmqSettings(projectConfig, rabbitmqConfig);
+    });
+
+    // Проверка настроек Keycloak
+    ipcMain.handle(ConstantValues.IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_KEYCLOAK_SETTINGS, async (event, projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => {
+      return await this.validator.validateKeycloakSettings(projectConfig, keycloakConfig);
     });
 
     // Проверка настроек CRM

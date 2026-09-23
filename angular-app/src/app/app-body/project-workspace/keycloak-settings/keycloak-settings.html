@@ -1,0 +1,127 @@
+<div class="keycloak-settings">
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>vpn_key</mat-icon>
+        Настройки Keycloak
+      </mat-card-title>
+      <mat-card-subtitle>
+        Конфигурация сервера аутентификации
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="form-section">
+        <h3>Основные настройки</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Название контейнера</mat-label>
+            <input matInput 
+                   [(ngModel)]="containerName" 
+                   (change)="onContainerNameChange()"
+                   placeholder="keycloak"
+                   [disabled]="!isEditing"
+                   required>
+            <mat-hint>Уникальное имя для Docker контейнера Keycloak</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="port-field">
+            <mat-label>Порт</mat-label>
+            <input matInput 
+                   type="number"
+                   [(ngModel)]="port" 
+                   (change)="onPortChange()"
+                   placeholder="8080"
+                   min="1024"
+                   max="65535"
+                   required>
+            <mat-hint>Порт для веб-интерфейса Keycloak</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Аутентификация</h3>
+        
+        <div class="form-row username-row">
+          <mat-form-field appearance="outline" class="username-field">
+            <mat-label>Имя пользователя</mat-label>
+            <input matInput 
+                   [(ngModel)]="username" 
+                   (change)="onUsernameChange()"
+                   placeholder="admin"
+                   [disabled]="!isEditing"
+                   required>
+            <mat-hint>Имя пользователя для доступа к Keycloak</mat-hint>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row password-row">
+          <mat-form-field appearance="outline" class="password-field">
+            <mat-label>Пароль</mat-label>
+            <input matInput 
+                   [(ngModel)]="password"
+                   (change)="onPasswordChange()"
+                   placeholder="admin"
+                   [disabled]="!isEditing"
+                   required>
+            <mat-hint>Пароль для доступа к Keycloak</mat-hint>
+          </mat-form-field>
+          
+          <button mat-icon-button 
+                  type="button"
+                  (click)="onGeneratePassword()"
+                  [disabled]="!isEditing"
+                  matTooltip="Сгенерировать пароль">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3>Доступ к интерфейсу</h3>
+        <div class="access-info">
+          <div class="info-item">
+            <span class="info-label">Host:</span>
+            <span class="info-value">localhost</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Port:</span>
+            <span class="info-value">{{ port }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Volumes path:</span>
+            <span class="info-value">{{ volumePath }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Username:</span>
+            <span class="info-value">{{ username || 'Не указан' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Статус:</span>
+            <span class="info-value status-ready">Готов к запуску</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button mat-button 
+              color="warn" 
+              (click)="onCancelChanges()">
+        <mat-icon>cancel</mat-icon>
+        Отмена
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSaveChanges()"
+              [disabled]="!containerName || !port || !username || !password">
+        <mat-icon>save</mat-icon>
+        Сохранить изменения
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

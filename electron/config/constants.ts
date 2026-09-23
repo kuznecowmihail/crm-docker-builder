@@ -34,6 +34,7 @@ export const ConstantValues: Constants = {
       SAVE_PGADMIN_SETTINGS: 'project:save-pgadmin-settings',
       SAVE_REDIS_SETTINGS: 'project:save-redis-settings',
       SAVE_RABBITMQ_SETTINGS: 'project:save-rabbitmq-settings',
+      SAVE_KEYCLOAK_SETTINGS: 'project:save-keycloak-settings',
       SAVE_CRM_SETTING: 'project:save-crm-setting',
       SAVE_CRM_SETTINGS: 'project:save-crm-settings',
       DELETE_CRM_SETTING: 'project:delete-crm-setting',
@@ -48,6 +49,7 @@ export const ConstantValues: Constants = {
       VALIDATE_PGADMIN_SETTINGS: 'crm-docker-builder-validator:validate-pgadmin-settings',
       VALIDATE_REDIS_SETTINGS: 'crm-docker-builder-validator:validate-redis-settings',
       VALIDATE_RABBITMQ_SETTINGS: 'crm-docker-builder-validator:validate-rabbitmq-settings',
+      VALIDATE_KEYCLOAK_SETTINGS: 'crm-docker-builder-validator:validate-keycloak-settings',
       VALIDATE_CRM_SETTINGS: 'crm-docker-builder-validator:validate-crm-settings',
       VALIDATE_CRM_SETTING: 'crm-docker-builder-validator:validate-crm-setting',
       VALIDATE_APP_PATH: 'crm-docker-builder-validator:validate-app-path',
@@ -84,6 +86,12 @@ export const ConstantValues: Constants = {
     password: 'rmpassword',
     amqpPort: 5672,
   },
+  DEFAULT_KEYCLOAK_CONFIG: {
+    containerName: 'keycloak',
+    port: 8080,
+    user: 'admin',
+    password: 'admin',
+  },
   DEFAULT_CRM_CONFIG: {
     containerName: 'crm_bpmsoft',
     port: 8000,
@@ -100,6 +108,7 @@ export const ConstantValues: Constants = {
     PGADMIN_VOLUMES: 'pgadmin-volumes',
     REDIS_VOLUMES: 'redis-volumes',
     RABBITMQ_VOLUMES: 'rabbitmq-volumes',
+    KEYCLOAK_VOLUMES: 'keycloak-volumes',
     CRM_VOLUMES: 'crm-volumes',
     LOG_FILES: 'log-files',
 

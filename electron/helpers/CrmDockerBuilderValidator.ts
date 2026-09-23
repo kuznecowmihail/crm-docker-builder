@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as os from 'os';
 import { promises as fsPromises } from 'fs';
-import { BaseContainerConfig, CrmConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig, ValidateCrmResult, ValidateProjectResult } from '@shared/api';
+import { BaseContainerConfig, CrmConfig, KeycloakConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig, ValidateCrmResult, ValidateProjectResult } from '@shared/api';
 import { FileSystemHelper } from './FileSystemHelper';
 import { ConstantValues } from '../config/constants';
 
@@ -294,6 +294,32 @@ export class CrmDockerBuilderValidator {
   }
 
   /**
+   * Проверяет, существует ли конфигурация Keycloak
+   * @param projectConfig - конфигурация проекта
+   * @param keycloakConfig - конфигурация Keycloak
+   * @returns результат проверки
+   */
+  public async validateKeycloakSettings(
+    projectConfig: ProjectConfig,
+    keycloakConfig: KeycloakConfig
+  ): Promise<ValidateProjectResult> {
+    const baseResult = await this.validateBaseContainerSettings(keycloakConfig, projectConfig.projectPath);
+    if (!baseResult.success) {
+      return baseResult;
+    }
+    if (!keycloakConfig.user || !USER_NAME_REGEX.test(keycloakConfig.user)) {
+      return this.fail('Имя пользователя некорректно: латинские буквы, цифры и "_", первый символ — буква или "_"');
+    }
+    if (!keycloakConfig.password || !PASSWORD_REGEX.test(keycloakConfig.password)) {
+      return this.fail(
+        'Пароль некорректен: 1–128 символов, только латинские буквы, цифры и символы !#%&()*+,-./:<>?@[]^_{|}~ (без пробелов, кавычек, ";", "=", "$", "\\", "`")'
+      );
+    }
+
+    return this.ok();
+  }
+
+  /**
    * Проверяет, существует ли конфигурация CRM
    * @param projectConfig - конфигурация проекта
    * @param crmConfig - конфигурация CRM
@@ -467,6 +493,12 @@ export class CrmDockerBuilderValidator {
       return rabbitmqResult;
     }
 
+    const keycloakResult = await this.validateKeycloakSettings(projectConfig, projectConfig.keycloakConfig);
+    onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек Keycloak: ${keycloakResult.message}`);
+    if (!keycloakResult.success) {
+      return keycloakResult;
+    }
+
     const crmResult = await this.validateCrmSettings(projectConfig);
     onLogCallback?.(`[CrmDockerBuilderValidator] Проверка настроек CRM: ${crmResult.message}`);
     if (!crmResult.success) {
@@ -553,6 +585,11 @@ export class CrmDockerBuilderValidator {
       return this.fail(`Порт должен быть уникальным для Rabbitmq: ${projectConfig.rabbitmqConfig.containerName}`);
     }
     portSet.add(projectConfig.rabbitmqConfig.port);
+
+    if (portSet.has(projectConfig.keycloakConfig.port)) {
+      return this.fail(`Порт должен быть уникальным для Keycloak: ${projectConfig.keycloakConfig.containerName}`);
+    }
+    portSet.add(projectConfig.keycloakConfig.port);
     
     for (const crmConfig of projectConfig.crmConfigs) {
       if (portSet.has(crmConfig.port)) {

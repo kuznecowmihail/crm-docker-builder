@@ -56,6 +56,10 @@
                 <mat-icon>queue</mat-icon>
                 RabbitMQ
               </button>
+              <button mat-button [class.active]="activeSection === 'keycloak'" (click)="onSectionSelect('keycloak')" class="keycloak-button">
+                <mat-icon>vpn_key</mat-icon>
+                Keycloak
+              </button>
             </div>
         </mat-expansion-panel>
         
@@ -139,6 +143,11 @@
           *ngIf="activeSection === 'rabbitmq'"
           [projectConfig]="projectConfig">
         </app-rabbitmq-settings>
+
+        <app-keycloak-settings
+          *ngIf="activeSection === 'keycloak'"
+          [projectConfig]="projectConfig">
+        </app-keycloak-settings>
         
         <!-- Настройки CRM -->
         <app-crm-settings 

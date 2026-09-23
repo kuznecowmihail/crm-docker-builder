@@ -17,6 +17,7 @@ import { PostgresSettings } from './postgres-settings/postgres-settings';
 import { PgAdminSettings } from './pgadmin-settings/pgadmin-settings';
 import { RedisSettings } from './redis-settings/redis-settings';
 import { RabbitMqSettings } from './rabbitmq-settings/rabbitmq-settings';
+import { KeycloakSettings } from './keycloak-settings/keycloak-settings';
 import { CrmSettings } from './crm-settings/crm-settings';
 import { ProjectLogs } from './project-logs/project-logs';
 import { ElectronService } from 'src/app/services/electron.service';
@@ -40,6 +41,7 @@ import { ElectronService } from 'src/app/services/electron.service';
     PgAdminSettings,
     RedisSettings,
     RabbitMqSettings,
+    KeycloakSettings,
     CrmSettings,
     ProjectLogs,
   ],
@@ -233,6 +235,13 @@ export class ProjectWorkspace implements OnDestroy {
     if (!redisSettingsResult.success) {
       this.onSectionSelect('redis');
       this.electronService.showNotification('Сборка проекта', redisSettingsResult.message);
+      return;
+    }
+
+    const keycloakSettingsResult = await this.electronService.validateKeycloakSettings(this.projectConfig, this.projectConfig.keycloakConfig);
+    if (!keycloakSettingsResult.success) {
+      this.onSectionSelect('keycloak');
+      this.electronService.showNotification('Сборка проекта', keycloakSettingsResult.message);
       return;
     }
 

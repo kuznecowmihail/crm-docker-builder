@@ -1,0 +1,102 @@
+.keycloak-settings {
+  padding: 1rem;
+}
+
+.settings-card mat-card-title .mat-icon {
+  color: #4690eb !important;
+}
+
+.port-field {
+  width: 200px;
+}
+
+.username-field {
+  width: 300px;
+}
+
+.username-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.password-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.password-field {
+  flex: 1;
+}
+
+.mat-mdc-checkbox {
+  margin-bottom: 1rem;
+}
+
+.access-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.info-item {
+  border-left: 4px solid #4690eb;
+}
+
+.status-ready {
+  color: #28a745 !important;
+  font-weight: 600;
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-form-field-wrapper {
+  margin: 0;
+}
+
+.username-row .mat-mdc-icon-button,
+.password-row .mat-mdc-icon-button {
+  margin-top: 0.5rem;
+  background-color: var(--app-bg);
+  border: 1px solid var(--app-border);
+}
+
+.username-row .mat-mdc-icon-button:hover,
+.password-row .mat-mdc-icon-button:hover {
+  background-color: var(--app-border);
+}
+
+.mat-mdc-button.mat-accent {
+  background-color: #4690eb;
+  color: white;
+}
+
+.mat-mdc-button.mat-accent:hover {
+  background-color: #3a7ed4;
+}
+
+@media (max-width: 768px) {
+  .keycloak-settings {
+    padding: 0.5rem;
+  }
+
+  .access-info {
+    grid-template-columns: 1fr;
+  }
+
+  .port-field,
+  .username-field {
+    width: 100%;
+  }
+
+  .username-row,
+  .password-row {
+    flex-direction: column;
+  }
+
+  .username-row .mat-mdc-icon-button,
+  .password-row .mat-mdc-icon-button {
+    align-self: flex-start;
+    margin-top: 0;
+  }
+}

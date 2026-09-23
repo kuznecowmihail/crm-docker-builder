@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import type { SystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig, ConstantsAPI, Constants, ProjectSystemAPI } from '@shared/api';
+import type { SystemAPI, CrmDockerBuilderSystemAPI, SystemInfo, OpenDialogOptions, InitProjectResult, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, ValidateProjectResult, CrmDockerBuilderValidatorSystemAPI, ValidateCrmResult, RabbitmqConfig, KeycloakConfig, ConstantsAPI, Constants, ProjectSystemAPI } from '@shared/api';
 
 @Injectable({
   providedIn: 'root'
@@ -207,6 +207,19 @@ export class ElectronService {
   }
 
   /**
+   * Сохраняет настройки Keycloak
+   * @param projectConfig - конфигурация проекта
+   * @param keycloakConfig - конфигурация Keycloak
+   * @returns результат сохранения настроек Keycloak
+   */
+  async saveKeycloakSettings(projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig): Promise<InitProjectResult> {
+    if (!this.projectAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.projectAPI.saveKeycloakSettings(projectConfig, keycloakConfig);
+  }
+
+  /**
    * Сохраняет настройки CRM
    * @param projectConfig - конфигурация проекта
    * @param crmConfig - конфигурация CRM
@@ -357,7 +370,20 @@ export class ElectronService {
     }
     return await this.crmDockerBuilderValidatorSystemAPI.validateRabbitmqSettings(projectConfig, rabbitmqConfig);
   }
-  
+
+  /**
+   * Проверяет настройки Keycloak
+   * @param projectConfig - конфигурация проекта
+   * @param keycloakConfig - конфигурация Keycloak
+   * @returns результат проверки
+   */
+  async validateKeycloakSettings(projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig): Promise<ValidateProjectResult> {
+    if (!this.crmDockerBuilderValidatorSystemAPI) {
+      throw new Error('Electron API недоступен');
+    }
+    return await this.crmDockerBuilderValidatorSystemAPI.validateKeycloakSettings(projectConfig, keycloakConfig);
+  }
+
   /**
    * Проверяет настройки CRM
    * @param projectConfig - конфигурация проекта

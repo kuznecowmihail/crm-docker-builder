@@ -33,6 +33,7 @@ export interface Constants {
       SAVE_PGADMIN_SETTINGS: string,
       SAVE_REDIS_SETTINGS: string,
       SAVE_RABBITMQ_SETTINGS: string,
+      SAVE_KEYCLOAK_SETTINGS: string,
       SAVE_CRM_SETTING: string,
       SAVE_CRM_SETTINGS: string,
       DELETE_CRM_SETTING: string,
@@ -47,6 +48,7 @@ export interface Constants {
       VALIDATE_PGADMIN_SETTINGS: string,
       VALIDATE_REDIS_SETTINGS: string,
       VALIDATE_RABBITMQ_SETTINGS: string,
+      VALIDATE_KEYCLOAK_SETTINGS: string,
       VALIDATE_CRM_SETTINGS: string,
       VALIDATE_CRM_SETTING: string,
       VALIDATE_APP_PATH: string,
@@ -83,6 +85,12 @@ export interface Constants {
     password: string,
     amqpPort: number,
   },
+  DEFAULT_KEYCLOAK_CONFIG: {
+    containerName: string,
+    port: number,
+    user: string,
+    password: string,
+  },
   DEFAULT_CRM_CONFIG: {
     containerName: string,
     port: number,
@@ -99,6 +107,7 @@ export interface Constants {
     PGADMIN_VOLUMES: string,
     REDIS_VOLUMES: string,
     RABBITMQ_VOLUMES: string,
+    KEYCLOAK_VOLUMES: string,
     CRM_VOLUMES: string,
     LOG_FILES: string,
 

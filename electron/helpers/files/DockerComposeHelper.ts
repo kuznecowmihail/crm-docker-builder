@@ -20,7 +20,7 @@ export class DockerComposeHelper {
      * @returns - содержимое файла docker-compose.yml
      */
     public generateDockerComposeContent(projectConfig: ProjectConfig, secondRun: boolean = false): string {
-        const { postgresConfig, pgAdminConfig, redisConfig, rabbitmqConfig, crmConfigs } = projectConfig;
+        const { postgresConfig, pgAdminConfig, redisConfig, rabbitmqConfig, keycloakConfig, crmConfigs } = projectConfig;
         const networkName = `${projectConfig.projectName}${ConstantValues.NETWORK_PREFIX}`;
         
         // Вспомогательная функция для создания относительных путей
@@ -191,6 +191,22 @@ export class DockerComposeHelper {
         limits:
           cpus: '0.5'
           memory: 0.5G
+    networks:
+      - ${this.yaml(networkName)}
+
+  # keycloak
+  keycloak_container:
+    container_name: ${this.yaml(keycloakConfig.containerName)}
+    image: ${this.yaml('quay.io/keycloak/keycloak:22.0.5')}
+    command:
+      - "start-dev"
+    environment:
+      KEYCLOAK_ADMIN: ${this.yaml(keycloakConfig.user)}
+      KEYCLOAK_ADMIN_PASSWORD: ${this.yaml(keycloakConfig.password)}
+      KC_HOSTNAME_URL: ${this.yaml(`http://localhost:${keycloakConfig.port}`)}
+    ports:
+      - ${this.yaml(`${keycloakConfig.port}:8080`)}
+    restart: unless-stopped
     networks:
       - ${this.yaml(networkName)}
 

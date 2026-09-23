@@ -35,6 +35,7 @@ export interface ProjectConfig {
   pgAdminConfig: PgAdminConfig;
   redisConfig: RedisConfig;
   rabbitmqConfig: RabbitmqConfig;
+  keycloakConfig: KeycloakConfig;
   crmConfigs: CrmConfig[];
 }
 
@@ -67,6 +68,11 @@ export interface RabbitmqConfig extends BaseContainerConfig {
   amqpPort: number;
 }
 
+export interface KeycloakConfig extends BaseContainerConfig {
+  user: string;
+  password: string;
+}
+
 export interface CrmConfig extends BaseContainerConfig {
   appPath: string;
   backupPath: string;
@@ -86,6 +92,7 @@ export interface ProjectSystemAPI {
   savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => Promise<InitProjectResult>;
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<InitProjectResult>;
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => Promise<InitProjectResult>;
+  saveKeycloakSettings: (projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => Promise<InitProjectResult>;
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
   saveCrmSettings: (projectConfig: ProjectConfig) => Promise<InitProjectResult>;
   deleteCrmSetting: (projectConfig: ProjectConfig, crmConfigId: string) => Promise<InitProjectResult>;
@@ -107,6 +114,8 @@ export interface CrmDockerBuilderSystemAPI {
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<InitProjectResult>;
   // Сохранение настроек Rabbitmq
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => Promise<InitProjectResult>;
+  // Сохранение настроек Keycloak
+  saveKeycloakSettings: (projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => Promise<InitProjectResult>;
   // Сохранение настроек CRM
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => Promise<InitProjectResult>;
   // Сохранение настроек CRM
@@ -128,6 +137,7 @@ export interface CrmDockerBuilderValidatorSystemAPI {
   validateRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => Promise<ValidateProjectResult>;
   // Проверка настроек Rabbitmq
   validateRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => Promise<ValidateProjectResult>;
+  validateKeycloakSettings: (projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => Promise<ValidateProjectResult>;
   // Проверка настроек CRM
   validateCrmSettings: (projectConfig: ProjectConfig) => Promise<ValidateCrmResult>;
   // Проверка настроек CRM

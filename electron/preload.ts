@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { SystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig, ConstantsAPI, ProjectSystemAPI, ElectronAPI } from '@shared/api';
+import { SystemAPI, CrmDockerBuilderSystemAPI, ProjectConfig, PostgresConfig, PgAdminConfig, RedisConfig, CrmConfig, CrmDockerBuilderValidatorSystemAPI, RabbitmqConfig, KeycloakConfig, ConstantsAPI, ProjectSystemAPI, ElectronAPI } from '@shared/api';
 
 const PROJECT_LOG_CHANNEL = 'project-log';
 
@@ -26,6 +26,7 @@ const IPC_CHANNELS = {
     SAVE_PGADMIN_SETTINGS: 'project:save-pgadmin-settings',
     SAVE_REDIS_SETTINGS: 'project:save-redis-settings',
     SAVE_RABBITMQ_SETTINGS: 'project:save-rabbitmq-settings',
+    SAVE_KEYCLOAK_SETTINGS: 'project:save-keycloak-settings',
     SAVE_CRM_SETTING: 'project:save-crm-setting',
     SAVE_CRM_SETTINGS: 'project:save-crm-settings',
     DELETE_CRM_SETTING: 'project:delete-crm-setting',
@@ -40,6 +41,7 @@ const IPC_CHANNELS = {
     VALIDATE_PGADMIN_SETTINGS: 'crm-docker-builder-validator:validate-pgadmin-settings',
     VALIDATE_REDIS_SETTINGS: 'crm-docker-builder-validator:validate-redis-settings',
     VALIDATE_RABBITMQ_SETTINGS: 'crm-docker-builder-validator:validate-rabbitmq-settings',
+    VALIDATE_KEYCLOAK_SETTINGS: 'crm-docker-builder-validator:validate-keycloak-settings',
     VALIDATE_CRM_SETTINGS: 'crm-docker-builder-validator:validate-crm-settings',
     VALIDATE_CRM_SETTING: 'crm-docker-builder-validator:validate-crm-setting',
     VALIDATE_APP_PATH: 'crm-docker-builder-validator:validate-app-path',
@@ -71,6 +73,7 @@ contextBridge.exposeInMainWorld('projectSystemAPI', {
   savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
+  saveKeycloakSettings: (projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_KEYCLOAK_SETTINGS, projectConfig, keycloakConfig),
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
   deleteCrmSetting: (projectConfig: ProjectConfig, crmConfigId: string) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.DELETE_CRM_SETTING, projectConfig, crmConfigId),
@@ -85,6 +88,7 @@ contextBridge.exposeInMainWorld('crmDockerBuilderSystemAPI', {
   savePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
   saveRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_REDIS_SETTINGS, projectConfig, redisConfig),
   saveRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
+  saveKeycloakSettings: (projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_KEYCLOAK_SETTINGS, projectConfig, keycloakConfig),
   saveCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTING, projectConfig, crmConfig),
   saveCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.PROJECT_SYSTEM.SAVE_CRM_SETTINGS, projectConfig),
   buildProject: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_SYSTEM.BUILD_PROJECT, projectConfig),
@@ -98,6 +102,7 @@ contextBridge.exposeInMainWorld('crmDockerBuilderValidatorSystemAPI', {
   validatePgAdminSettings: (projectConfig: ProjectConfig, pgAdminConfig: PgAdminConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_PGADMIN_SETTINGS, projectConfig, pgAdminConfig),
   validateRedisSettings: (projectConfig: ProjectConfig, redisConfig: RedisConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_REDIS_SETTINGS, projectConfig, redisConfig),
   validateRabbitmqSettings: (projectConfig: ProjectConfig, rabbitmqConfig: RabbitmqConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_RABBITMQ_SETTINGS, projectConfig, rabbitmqConfig),
+  validateKeycloakSettings: (projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_KEYCLOAK_SETTINGS, projectConfig, keycloakConfig),
   validateCrmSettings: (projectConfig: ProjectConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTINGS, projectConfig),
   validateCrmSetting: (projectConfig: ProjectConfig, crmConfig: CrmConfig) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_CRM_SETTING, projectConfig, crmConfig),
   validateAppPath: (projectPath: string, appPath: string) => ipcRenderer.invoke(IPC_CHANNELS.CRM_DOCKER_BUILDER_VALIDATOR_SYSTEM.VALIDATE_APP_PATH, projectPath, appPath),

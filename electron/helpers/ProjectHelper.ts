@@ -1,4 +1,4 @@
-import { CrmConfig, InitProjectResult, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from "@shared/api";
+import { CrmConfig, InitProjectResult, KeycloakConfig, PgAdminConfig, PostgresConfig, ProjectConfig, RabbitmqConfig, RedisConfig } from "@shared/api";
 import { FileSystemHelper } from "./FileSystemHelper";
 import { ConstantValues } from "../config/constants";
 import { CrmDockerBuilderValidator } from "./CrmDockerBuilderValidator";
@@ -101,6 +101,14 @@ export class ProjectHelper {
                 user: ConstantValues.DEFAULT_RABBITMQ_CONFIG.user,
                 password: ConstantValues.DEFAULT_RABBITMQ_CONFIG.password
             },
+            keycloakConfig: {
+                id: this.generateId(),
+                containerName: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.containerName,
+                port: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.port,
+                volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.KEYCLOAK_VOLUMES),
+                user: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.user,
+                password: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.password
+            },
             crmConfigs: []
         };
 
@@ -142,6 +150,16 @@ export class ProjectHelper {
         projectConfig.projectPath = projectPath;
         if (!projectConfig.containerRuntime) {
             projectConfig.containerRuntime = 'docker';
+        }
+        if (!projectConfig.keycloakConfig) {
+            projectConfig.keycloakConfig = {
+                id: this.generateId(),
+                containerName: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.containerName,
+                port: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.port,
+                volumePath: path.join(projectPath, ConstantValues.FOLDER_NAMES.KEYCLOAK_VOLUMES),
+                user: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.user,
+                password: ConstantValues.DEFAULT_KEYCLOAK_CONFIG.password,
+            };
         }
         return {
             success: true,
@@ -407,6 +425,55 @@ export class ProjectHelper {
     }
 
     /**
+     * Сохраняет настройки Keycloak
+     * @param projectConfig - конфигурация проекта
+     * @param keycloakConfig - конфигурация Keycloak
+     * @returns результат сохранения настроек
+     */
+    public async saveKeycloakSettings(projectConfig: ProjectConfig, keycloakConfig: KeycloakConfig): Promise<InitProjectResult> {
+        try {
+        await this.fileSystemHelper.ensureDirectoryExists(keycloakConfig.volumePath);
+
+        const validateResult = await this.crmDockerBuilderValidatorHelper.validateKeycloakSettings(projectConfig, keycloakConfig);
+        if (!validateResult.success) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: validateResult.message
+            };
+        }
+
+        const localProjectResult = await this.openProject(projectConfig.projectPath);
+        const localProjectConfig = localProjectResult.projectConfig;
+
+        if (!localProjectResult.success || !localProjectConfig) {
+            return {
+            success: false,
+            projectConfig: null,
+            message: localProjectResult.message
+            };
+        }
+
+        localProjectConfig.keycloakConfig = keycloakConfig;
+        localProjectConfig.modifiedOn = new Date();
+
+        await this.fileSystemHelper.writeFile(path.join(projectConfig.projectPath, ConstantValues.FILE_NAMES.CRM_DOCKER_BUILDER_CONFIG), JSON.stringify(localProjectConfig, null, 2));
+        return {
+            success: true,
+            message: 'Настройки Keycloak успешно сохранены',
+            projectConfig: projectConfig
+        };
+        }
+        catch (error) {
+        return {
+            success: false,
+            projectConfig: null,
+            message: `Ошибка при сохранении настроек проекта (Keycloak): ${error instanceof Error ? error.message : String(error)}`
+        };
+        }
+    }
+
+    /**
      * Сохраняет настройки CRM
      * @param projectConfig - конфигурация проекта
      * @param crmConfig - конфигурация CRM
@@ -557,6 +624,7 @@ export class ProjectHelper {
           path.join(projectPath, ConstantValues.FOLDER_NAMES.PGADMIN_VOLUMES),
           path.join(projectPath, ConstantValues.FOLDER_NAMES.REDIS_VOLUMES),
           path.join(projectPath, ConstantValues.FOLDER_NAMES.RABBITMQ_VOLUMES),
+          path.join(projectPath, ConstantValues.FOLDER_NAMES.KEYCLOAK_VOLUMES),
           path.join(projectPath, ConstantValues.FOLDER_NAMES.CRM_VOLUMES)
         ];
   
