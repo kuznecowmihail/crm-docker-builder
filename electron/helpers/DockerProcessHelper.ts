@@ -218,7 +218,7 @@ export class DockerProcessHelper {
      * @param cwd - рабочая директория (опционально)
      * @returns - Promise<string>
      */
-    private executeCommandWithOutput(args: string[], cwd?: string): Promise<string> {
+    public executeCommandWithOutput(args: string[], cwd?: string): Promise<string> {
         const runtimeName = this.getRuntimeDisplayName();
         return new Promise((resolve, reject) => {
             const dockerProcess = spawn(this.containerRuntime, args, {

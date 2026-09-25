@@ -67,7 +67,7 @@ export class CrmHelper {
                 const workspaceConsoleConfigContent = await this.fileSystemHelper.readFile(workspaceConsoleConfigPath);
 
                 const updatedConnectionStringsContent = this.updateConnectionStrings(connectionStringsContent, projectConfig, crmConfig);
-                const updatedWebHostConfigContent = this.updateWebHostConfig(webHostConfigContent);
+                const updatedWebHostConfigContent = this.updateWebHostConfig(webHostConfigContent, crmConfig);
                 const updatedWorkspaceConsoleConfigContent = this.updateWorkspaceConsoleConfig(workspaceConsoleConfigContent, projectConfig, crmConfig);
 
                 await this.fileSystemHelper.writeFile(connectionStringsPath, updatedConnectionStringsContent);
@@ -150,30 +150,56 @@ export class CrmHelper {
     }
 
     /**
-     * 
+     * Заменяет или добавляет ключ в секции appSettings
+     * @param xml - содержимое конфигурационного файла
+     * @param key - ключ настройки
+     * @param value - значение настройки
+     * @returns обновлённое содержимое
+     */
+    private setAppSetting(xml: string, key: string, value: string): string {
+        const keyPattern = new RegExp(`<add key="${key}" value="[^"]*"`);
+        if (keyPattern.test(xml)) {
+            return xml.replace(keyPattern, () => `<add key="${key}" value="${value}"`);
+        }
+
+        const closingTag = '</appSettings>';
+        const closingIndex = xml.indexOf(closingTag);
+        if (closingIndex === -1) {
+            throw new Error(`Секция appSettings не найдена в конфигурации WebHost`);
+        }
+
+        const insertLine = `    <add key="${key}" value="${value}" />\n`;
+        return xml.slice(0, closingIndex) + insertLine + xml.slice(closingIndex);
+    }
+
+    /**
      * @param xmlContent - содержимое файла BPMSoft.WebHost.dll.config
+     * @param crmConfig - конфигурация CRM
      * @returns - обновленное содержимое файла BPMSoft.WebHost.dll.config
      */
-    private updateWebHostConfig(xmlContent: string): string {
-        // Заменяем строки подключения в XML
+    private updateWebHostConfig(xmlContent: string, crmConfig: CrmConfig): string {
         let updatedContent = xmlContent;
-        
-        // Обновляем настройки приложения
+
         updatedContent = updatedContent.replace(
             /<add key="UseStaticFileContent" value="[^"]*"/,
             () => `<add key="UseStaticFileContent" value="false"`
         );
-        
+
         updatedContent = updatedContent.replace(
             /<fileDesignMode enabled="[^"]*"/,
             () => `<fileDesignMode enabled="true"`
         );
-        
+
         updatedContent = updatedContent.replace(
             /<add key="CookiesSameSiteMode" value="[^"]*"/,
             () => `<add key="CookiesSameSiteMode" value="Lax"`
         );
-        
+
+        updatedContent = this.setAppSetting(updatedContent, 'EnableOpenIDAuth', 'true');
+        if (crmConfig.netVersion === '8.0') {
+            updatedContent = this.setAppSetting(updatedContent, 'UseMetadataAddressWithAuthorityAddressValue', 'true');
+        }
+
         return updatedContent;
     }
 

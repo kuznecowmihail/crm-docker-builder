@@ -8,6 +8,7 @@ import { BashHelper } from './files/BashHelper';
 import { SqlHelper } from './files/SqlHelper';
 import { VscodeHelper } from './files/VscodeHelper';
 import { DockerComposeHelper } from './files/DockerComposeHelper';
+import { KeycloakProvisionHelper } from './files/KeycloakProvisionHelper';
 import { ConstantValues } from '../config/constants';
 import { ProjectHelper } from './ProjectHelper';
 
@@ -53,6 +54,11 @@ export class CrmDockerBuilderHelper {
   private dockerComposeHelper: DockerComposeHelper;
 
   /**
+   * Помощник для провижининга Keycloak и OpenID
+   */
+  private keycloakProvisionHelper: KeycloakProvisionHelper;
+
+  /**
    * Конструктор
    */
   constructor() {
@@ -64,6 +70,7 @@ export class CrmDockerBuilderHelper {
     this.bashHelper = new BashHelper();
     this.sqlHelper = new SqlHelper();
     this.dockerComposeHelper = new DockerComposeHelper();
+    this.keycloakProvisionHelper = new KeycloakProvisionHelper();
   }
 
   /**
@@ -189,6 +196,12 @@ export class CrmDockerBuilderHelper {
         }
       }
 
+      const openIdClients = await this.keycloakProvisionHelper.provision(
+        projectConfig,
+        processHelper,
+        onLogCallback
+      );
+
       onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен`);
 
       if (secondRun) {
@@ -200,38 +213,80 @@ export class CrmDockerBuilderHelper {
         onLogCallback?.(`[CrmDockerBuilderHelper] ✅ Проект успешно запущен (второй раз)`);
       }
 
-      for (const crmConfig of projectConfig.crmConfigs) {
-        const vsdbgPath = path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG);
-        const vsdgPathExists = await this.fileSystemHelper.pathExists(vsdbgPath);
+      const crmFailures: string[] = [];
 
-        if (!vsdgPathExists) {
-          // Копируем vsdbg файлы в папку приложения
-          await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), onLogCallback);
-          // Делаем файл vsdbg исполняемым
+      for (const crmConfig of projectConfig.crmConfigs) {
+        try {
+          const vsdbgPath = path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG);
+          const vsdgPathExists = await this.fileSystemHelper.pathExists(vsdbgPath);
+
+          if (!vsdgPathExists) {
+            // Копируем vsdbg файлы в папку приложения
+            await this.fileSystemHelper.copyDirectory(path.join(projectConfig.projectPath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), path.join(crmConfig.volumePath, ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG), onLogCallback);
+            // Делаем файл vsdbg исполняемым
+            await processHelper.executeCommandWithLogs(
+              ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}`], 
+              projectConfig.projectPath, 
+              onLogCallback
+            );
+          }
+
+          const openIdClient = openIdClients.find(
+            (entry) => entry.containerName === crmConfig.containerName
+          );
+          if (!openIdClient) {
+            throw new Error(
+              `OpenID-клиент для ${crmConfig.containerName} не найден после провижининга`
+            );
+          }
+          await this.keycloakProvisionHelper.publishOpenIdSettings(
+            crmConfig,
+            openIdClient,
+            onLogCallback,
+            async () => {
+              await processHelper.executeCommandWithLogs(
+                ['exec', projectConfig.redisConfig.containerName, 'redis-cli', 'FLUSHALL'],
+                projectConfig.projectPath,
+                onLogCallback
+              );
+              await processHelper.executeCommandWithLogs(
+                ['restart', crmConfig.containerName],
+                projectConfig.projectPath,
+                onLogCallback
+              );
+            }
+          );
+
+          // Очищаем Redis базу данных
           await processHelper.executeCommandWithLogs(
-            ['exec', crmConfig.containerName, 'chmod', '+x', `${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.APP}/${ConstantValues.FOLDER_NAMES.CRM_PATHS_DOCKER.VSDBG}`], 
+            ['exec', projectConfig.redisConfig.containerName, 'redis-cli', 'FLUSHALL'], 
             projectConfig.projectPath, 
             onLogCallback
           );
+
+          // Перезапускаем контейнер CRM
+          await processHelper.executeCommandWithLogs(
+            ['restart', crmConfig.containerName], 
+            projectConfig.projectPath, 
+            onLogCallback
+          );
+
+          // После успешной сборки помечаем CRM контейнеры датой запуска
+          crmConfig.runOn = new Date();
+          await this.projectHelper.saveCrmSetting(projectConfig, crmConfig);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          onLogCallback?.(`[CrmDockerBuilderHelper] ❌ Ошибка при настройке ${crmConfig.containerName}: ${message}`);
+          crmFailures.push(`${crmConfig.containerName}: ${message}`);
         }
+      }
 
-        // Очищаем Redis базу данных
-        await processHelper.executeCommandWithLogs(
-          ['exec', projectConfig.redisConfig.containerName, 'redis-cli', 'FLUSHALL'], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-
-        // Перезапускаем контейнер CRM
-        await processHelper.executeCommandWithLogs(
-          ['restart', crmConfig.containerName], 
-          projectConfig.projectPath, 
-          onLogCallback
-        );
-
-        // После успешной сборки помечаем CRM контейнеры датой запуска
-        crmConfig.runOn = new Date();
-        await this.projectHelper.saveCrmSetting(projectConfig, crmConfig);
+      if (crmFailures.length > 0) {
+        return {
+          success: false,
+          projectConfig,
+          message: `Не удалось настроить часть CRM. ${crmFailures.join('; ')}`
+        };
       }
       
       return {

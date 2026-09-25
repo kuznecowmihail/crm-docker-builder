@@ -6,6 +6,7 @@ import { FileSystemHelper } from './FileSystemHelper';
 import { ConstantValues } from '../config/constants';
 
 const CONTAINER_NAME_REGEX = /^[a-z][a-z0-9_]{0,62}$/;
+const KEYCLOAK_CONTAINER_NAME_REGEX = /^[a-z][a-z0-9]{0,62}$/;
 const PROJECT_NAME_REGEX = /^[a-z0-9][a-z0-9_-]{0,62}$/;
 const USER_NAME_REGEX = /^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/;
 const PASSWORD_REGEX = /^[A-Za-z0-9!#%&()*+,\-./:<>?@\[\]^_{|}~]{1,128}$/;
@@ -306,6 +307,11 @@ export class CrmDockerBuilderValidator {
     const baseResult = await this.validateBaseContainerSettings(keycloakConfig, projectConfig.projectPath);
     if (!baseResult.success) {
       return baseResult;
+    }
+    if (!KEYCLOAK_CONTAINER_NAME_REGEX.test(keycloakConfig.containerName)) {
+      return this.fail(
+        `Название контейнера Keycloak "${keycloakConfig.containerName}" не должно содержать "_": это имя используется как адрес внутри сети, а Keycloak не принимает подчёркивание в hostname.`
+      );
     }
     if (!keycloakConfig.user || !USER_NAME_REGEX.test(keycloakConfig.user)) {
       return this.fail('Имя пользователя некорректно: латинские буквы, цифры и "_", первый символ — буква или "_"');
