@@ -37,8 +37,10 @@ POSTGRES_USER="${projectConfig.postgresConfig.user}"
 REDIS_NAME="${projectConfig.redisConfig.containerName}"
 RABBITMQ_NAME="${projectConfig.rabbitmqConfig.containerName}"
 PGADMIN_NAME="${projectConfig.pgAdminConfig.containerName}"
+KEYCLOAK_NAME="${projectConfig.keycloakConfig.containerName}"
+KEYCLOAK_PORT="${projectConfig.keycloakConfig.port}"
 REDIS_DB_COUNT="${crmConfig.redisDb}"
-CONTAINERS=("$RABBITMQ_NAME" "$PGADMIN_NAME" "$POSTGRES_NAME" "$REDIS_NAME" "$PROJECT_NAME")
+CONTAINERS=("$RABBITMQ_NAME" "$PGADMIN_NAME" "$POSTGRES_NAME" "$REDIS_NAME" "$KEYCLOAK_NAME" "$PROJECT_NAME")
 
 # Функции для вывода
 print_header() {
@@ -204,6 +206,7 @@ start() {
   start_container "$PGADMIN_NAME"
   start_container "$REDIS_NAME"
   start_container "$POSTGRES_NAME"
+  start_container "$KEYCLOAK_NAME"
   
   # Ждем готовности Redis
   wait_for_redis
@@ -221,12 +224,13 @@ start() {
   print_info "Доступные сервисы:"
   echo "  • $PROJECT_NAME: http://localhost:$CRM_PORT"
   echo "  • PgAdmin: http://localhost:$PGADMIN_PORT"
+  echo "  • Keycloak: http://localhost:$KEYCLOAK_PORT"
   echo ""
   print_info "Для просмотра логов используйте:"
   echo "  ${runtime} logs -f $PROJECT_NAME"
   echo ""
   print_info "Для остановки всех контейнеров:"
-  echo "  ${runtime} stop pgadmin postgres redis $PROJECT_NAME"
+  echo "  ${runtime} stop pgadmin postgres redis $KEYCLOAK_NAME $PROJECT_NAME"
   
   # Спрашиваем, открыть ли браузер
   echo ""

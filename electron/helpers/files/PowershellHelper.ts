@@ -120,8 +120,10 @@ $POSTGRES_USER = "${projectConfig.postgresConfig.user}"
 $REDIS_NAME = "${projectConfig.redisConfig.containerName}"
 $RABBITMQ_NAME = "${projectConfig.rabbitmqConfig.containerName}"
 $PGADMIN_NAME = "${projectConfig.pgAdminConfig.containerName}"
+$KEYCLOAK_NAME = "${projectConfig.keycloakConfig.containerName}"
+$KEYCLOAK_PORT = "${projectConfig.keycloakConfig.port}"
 $REDIS_DB_COUNT = "${crmConfig.redisDb}"
-$CONTAINERS = @($RABBITMQ_NAME, $PGADMIN_NAME, $POSTGRES_NAME, $REDIS_NAME, $PROJECT_NAME)
+$CONTAINERS = @($RABBITMQ_NAME, $PGADMIN_NAME, $POSTGRES_NAME, $REDIS_NAME, $KEYCLOAK_NAME, $PROJECT_NAME)
 
 # Output functions
 function Write-Header {
@@ -251,6 +253,7 @@ function Start-All {
     Start-Container $PGADMIN_NAME
     Start-Container $REDIS_NAME
     Start-Container $POSTGRES_NAME
+    Start-Container $KEYCLOAK_NAME
     
     # Wait for Redis readiness
     Wait-ForRedis
@@ -268,12 +271,13 @@ function Start-All {
     Write-Host "[i] Available services:" -ForegroundColor Cyan
     Write-Host "  - \${PROJECT_NAME}: http://localhost:$CRM_PORT" -ForegroundColor Green
     Write-Host "  - PgAdmin: http://localhost:$PGADMIN_PORT" -ForegroundColor Green
+    Write-Host "  - Keycloak: http://localhost:$KEYCLOAK_PORT" -ForegroundColor Green
     Write-Host ""
     Write-Host "[i] To view logs use:" -ForegroundColor Cyan
     Write-Host "  ${runtime} logs -f $PROJECT_NAME" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "[i] To stop all containers:" -ForegroundColor Cyan
-    Write-Host "  ${runtime} stop pgadmin postgres redis $PROJECT_NAME" -ForegroundColor Yellow
+    Write-Host "  ${runtime} stop pgadmin postgres redis $KEYCLOAK_NAME $PROJECT_NAME" -ForegroundColor Yellow
     
     # Ask to open browser
     Write-Host ""
