@@ -1,6 +1,6 @@
 {
   "name": "CRM-Docker-Builder",
-  "version": "0.9.0",
+  "version": "0.4.0",
   "description": "Electron приложение с интеграцией Angular",
   "main": "electron/dist/main.js",
   "homepage": "./",

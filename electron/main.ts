@@ -1,6 +1,9 @@
 import { app } from 'electron';
 import { AppManager } from './services/AppManager';
 import { getAppIconPath, getAppRootPath } from './helpers/AssetPathHelper';
+import { augmentProcessPath } from './helpers/ProcessPathHelper';
+
+augmentProcessPath();
 
 // Функция для установки иконки приложения
 function setAppIcon() {
